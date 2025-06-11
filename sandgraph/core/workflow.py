@@ -9,7 +9,6 @@ from enum import Enum
 import logging
 from dataclasses import dataclass, field
 from .sandbox import Sandbox, SandboxProtocol
-from .mcp import MCPProtocol, ActionType
 
 
 class NodeType(Enum):
@@ -133,7 +132,6 @@ class WorkflowGraph:
         self.edges: List[tuple[str, str]] = []
         self.input_node: Optional[str] = None
         self.output_nodes: List[str] = []
-        self.mcp_protocol = MCPProtocol(f"workflow_{graph_id}")
         self.execution_history: List[Dict[str, Any]] = []
     
     def add_node(self, node: WorkflowNode) -> None:
@@ -199,7 +197,7 @@ class WorkflowGraph:
                         queue.append(to_node)
         
         if len(result) != len(self.nodes):
-            raise ValueError("图中存在循环依赖")
+            raise ValueError("图中存在环路，无法进行拓扑排序")
         
         return result
     
@@ -215,26 +213,46 @@ class WorkflowGraph:
         if not self.nodes:
             raise ValueError("工作流图为空")
         
+        # 如果没有显式设置输入节点，使用第一个INPUT类型节点
+        if self.input_node is None:
+            input_nodes = [node_id for node_id, node in self.nodes.items() 
+                          if node.node_type == NodeType.INPUT]
+            if input_nodes:
+                self.input_node = input_nodes[0]
+        
+        # 如果没有设置输出节点，使用所有OUTPUT类型节点
+        if not self.output_nodes:
+            self.output_nodes = [node_id for node_id, node in self.nodes.items() 
+                               if node.node_type == NodeType.OUTPUT]
+        
         # 获取执行顺序
         execution_order = self.topological_sort()
         
-        # 节点执行结果存储
-        node_results: Dict[str, Dict[str, Any]] = {}
+        # 存储节点执行结果
+        node_results = {}
         
-        # 执行所有节点
+        # 初始化输入
+        if initial_input is None:
+            initial_input = {}
+        
+        # 按拓扑顺序执行节点
         for node_id in execution_order:
             node = self.nodes[node_id]
             
-            # 准备节点输入
-            node_input = {}
-            
-            if node.node_type == NodeType.INPUT:
-                node_input = initial_input or {}
+            # 收集该节点的输入
+            if node.dependencies:
+                # 聚合依赖节点的输出
+                node_input = {}
+                for dep_id in node.dependencies:
+                    if dep_id in node_results:
+                        node_input[dep_id] = node_results[dep_id]
+                
+                # 如果是输入节点，合并初始输入
+                if node.node_type == NodeType.INPUT:
+                    node_input.update(initial_input)
             else:
-                # 收集依赖节点的输出
-                for dep_node_id in node.dependencies:
-                    if dep_node_id in node_results:
-                        node_input.update(node_results[dep_node_id])
+                # 根节点使用初始输入
+                node_input = initial_input.copy() if initial_input else {}
             
             # 执行节点
             try:
@@ -247,20 +265,27 @@ class WorkflowGraph:
                     "node_type": node.node_type.value,
                     "input": node_input,
                     "output": result,
-                    "timestamp": self.mcp_protocol.message_history[-1].timestamp.isoformat() if self.mcp_protocol.message_history else None
+                    "status": "success"
                 })
                 
             except Exception as e:
-                logging.error(f"节点 {node_id} 执行失败: {str(e)}")
-                raise
+                error_info = {
+                    "node_id": node_id,
+                    "node_type": node.node_type.value,
+                    "input": node_input,
+                    "error": str(e),
+                    "status": "failed"
+                }
+                self.execution_history.append(error_info)
+                raise RuntimeError(f"节点 {node_id} 执行失败: {e}") from e
         
-        # 收集输出结果
+        # 收集输出节点的结果
         if self.output_nodes:
-            output_result = {}
+            output_results = {}
             for output_node_id in self.output_nodes:
                 if output_node_id in node_results:
-                    output_result[output_node_id] = node_results[output_node_id]
-            return output_result
+                    output_results[output_node_id] = node_results[output_node_id]
+            return output_results
         else:
             # 如果没有指定输出节点，返回所有结果
             return node_results
@@ -270,23 +295,21 @@ class WorkflowGraph:
         return self.execution_history.copy()
     
     def clear_history(self) -> None:
-        """清空执行历史"""
+        """清除执行历史"""
         self.execution_history.clear()
-        self.mcp_protocol.clear_history()
     
     def to_dict(self) -> Dict[str, Any]:
-        """将图转换为字典格式"""
+        """将工作流图序列化为字典"""
         return {
             "graph_id": self.graph_id,
-            "nodes": [
-                {
-                    "node_id": node.node_id,
+            "nodes": {
+                node_id: {
                     "node_type": node.node_type.value,
                     "dependencies": node.dependencies,
                     "metadata": node.metadata
                 }
-                for node in self.nodes.values()
-            ],
+                for node_id, node in self.nodes.items()
+            },
             "edges": self.edges,
             "input_node": self.input_node,
             "output_nodes": self.output_nodes
