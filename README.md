@@ -6,8 +6,8 @@
 
 - **官方MCP集成**：基于 Anthropic 的官方 MCP Python SDK
 - **沙盒环境**：遵循 Game24bootcamp 模式的标准化任务环境
-- **工作流图**：支持复杂 LLM-沙盒交互的 DAG 执行引擎
-- **标准化通信**：使用官方 MCP 协议进行 LLM-沙盒通信
+- **工作流图**：支持复杂 LLM-Sandbox交互的 DAG 执行引擎
+- **标准化通信**：使用官方 MCP 协议进行 LLM-Sandbox通信
 - **多种使用场景**：从单一沙盒执行到复杂多阶段工作流
 - **生态系统兼容**：与 Claude Desktop、Cursor、Windsurf 等 MCP 客户端兼容
 
@@ -28,7 +28,7 @@ pip install "sandgraph[mcp-servers]"
 ### 开发安装
 
 ```bash
-git clone https://github.com/sandgraph/sandgraph.git
+git clone https://github.com/NoakLiu/sandgraph.git
 cd sandgraph
 pip install -e ".[dev]"
 ```
@@ -374,16 +374,15 @@ pytest
 - **MCP Python SDK**: https://github.com/modelcontextprotocol/python-sdk
 - **MCP 规范**: https://spec.modelcontextprotocol.io/
 - **Claude Desktop**: https://claude.ai/desktop
-- **项目主页**: https://github.com/sandgraph/sandgraph
-- **问题追踪**: https://github.com/sandgraph/sandgraph/issues
-- **讨论区**: https://github.com/sandgraph/sandgraph/discussions
+- **项目主页**: https://github.com/NoakLiu/sandgraph
+- **问题追踪**: https://github.com/NoakLiu/sandgraph/issues
 
 ## 🙏 致谢
 
 - 感谢 [Anthropic](https://anthropic.com) 开发的 MCP 协议
-- 感谢 Game24bootcamp 项目提供的设计模式
+- 感谢 [InternBootCamp](https://github.com/InternLM/InternBootcamp)项目提供的设计模式
 - 感谢开源社区的贡献和支持
 
 ---
 
-**SandGraph** - 让AI智能体之间的协作变得简单而强大 🚀
+**SandGraph** - 让AI SandBox之间的协作变得简单而强大 🚀
