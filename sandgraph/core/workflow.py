@@ -201,7 +201,7 @@ class WorkflowGraph:
         
         return result
     
-    def execute(self, initial_input: Dict[str, Any] = None) -> Dict[str, Any]:
+    def execute(self, initial_input: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """执行工作流图
         
         Args:

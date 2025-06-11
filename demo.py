@@ -152,34 +152,44 @@ def demo_mcp_protocol():
     """演示MCP协议使用"""
     print_separator("MCP协议演示")
     
-    from sandgraph.core.mcp import MCPProtocol, ActionType
+    from sandgraph.core.mcp import MCPSandboxServer, check_mcp_availability
     
-    # 创建协议处理器
-    protocol = MCPProtocol("demo_node")
+    # 检查MCP可用性
+    mcp_info = check_mcp_availability()
+    print(f"MCP SDK 可用性: {mcp_info['available']}")
+    print(f"版本信息: {mcp_info.get('version', 'N/A')}")
     
-    # 创建请求消息
-    request = protocol.create_request(
-        receiver="sandbox_node",
-        action=ActionType.CASE_GENERATOR,
-        sandbox_id="game24",
-        params={}
-    )
+    # 创建MCP服务器
+    server = MCPSandboxServer("demo_server", "演示用MCP服务器")
     
-    print(f"MCP请求消息:")
-    print(request.to_json())
+    # 注册沙盒
+    from sandgraph.modules.game24_sandbox import Game24Sandbox
+    game24_sandbox = Game24Sandbox()
+    server.register_sandbox(game24_sandbox)
     
-    # 创建响应消息
-    response = protocol.create_response(
-        receiver="demo_node",
-        request_id=request.message_id,
-        success=True,
-        result={"puzzle": [8, 43, 65, 77], "target": 28}
-    )
+    # 获取服务器信息
+    server_info = server.get_server_info()
+    print(f"\nMCP服务器信息:")
+    print(f"  名称: {server_info['name']}")
+    print(f"  描述: {server_info['description']}")
+    print(f"  注册的沙盒: {server_info['sandboxes']}")
+    print(f"  服务器类型: {server_info['server_type']}")
     
-    print(f"\nMCP响应消息:")
-    print(response.to_json())
+    # 如果MCP可用，演示一些基本操作
+    if mcp_info['available']:
+        print(f"\n✅ MCP SDK 可用，服务器已配置完成")
+        print(f"   可以通过以下方式启动服务器:")
+        print(f"   - STDIO: server.run_stdio()")
+        print(f"   - SSE: await server.run_sse()")
+    else:
+        print(f"\n⚠️  MCP SDK 不可用，使用简化实现")
+        print(f"   安装方法: pip install mcp")
     
-    return {"request": request.to_dict(), "response": response.to_dict()}
+    return {
+        "mcp_available": mcp_info['available'],
+        "server_info": server_info,
+        "status": "configured"
+    }
 
 
 def main():
