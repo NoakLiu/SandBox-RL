@@ -330,10 +330,10 @@ class RLTrainer:
         if self.experience_buffer.size() >= self.batch_size and \
            self.training_step % self.update_frequency == 0:
             
-            asyncio.create_task(self._update_policy())
+            self._update_policy()  # 改为同步调用
     
-    async def _update_policy(self) -> None:
-        """更新策略（异步）"""
+    def _update_policy(self) -> None:  # 改为同步方法
+        """更新策略"""
         try:
             # 采样经验批次
             experiences = self.experience_buffer.sample(self.batch_size)
