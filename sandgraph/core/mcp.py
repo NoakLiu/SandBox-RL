@@ -91,9 +91,9 @@ class MCPSandboxServer:
         
         # 注册完整的沙盒循环作为工具
         @self._server.tool(name=f"{sandbox_id}_full_cycle")
-        def full_cycle(llm_response_generator: Optional[Callable] = None) -> Dict[str, Any]:
-            """执行完整的沙盒循环"""
-            return sandbox.run_full_cycle(llm_response_generator)
+        def full_cycle() -> Dict[str, Any]:
+            """执行完整的沙盒循环（使用默认LLM函数）"""
+            return sandbox.run_full_cycle(None)  # 使用默认的LLM函数
         
         # 注册沙盒描述作为资源
         @self._server.resource(f"{sandbox_id}://description")
