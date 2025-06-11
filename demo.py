@@ -163,7 +163,7 @@ def demo_mcp_protocol():
     server = MCPSandboxServer("demo_server", "演示用MCP服务器")
     
     # 注册沙盒
-    from sandgraph.modules.game24_sandbox import Game24Sandbox
+    from sandgraph.sandbox_implementations import Game24Sandbox
     game24_sandbox = Game24Sandbox()
     server.register_sandbox(game24_sandbox)
     
