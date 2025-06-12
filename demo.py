@@ -283,7 +283,7 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
                 }
                 
                 # 计算奖励
-                rewards = rl_framework.rl_trainer.reward_calculator.calculate_reward(
+                rewards = rl_framework.reward_calculator.calculate_reward(
                     evaluation_result,
                     {"cycle": cycle + 1, "node_role": node_id}
                 )
@@ -342,20 +342,21 @@ def analyze_rl_training_results(rl_framework, training_history):
     
     print("🧠 全局LLM共享统计:")
     llm_info = rl_stats['llm_manager_info']
-    print(f"   模型名称: {llm_info['model_name']}")
-    print(f"   注册节点数: {len(llm_info['registered_nodes'])}")
-    print(f"   总推理次数: {llm_info['inference_count']}")
-    print(f"   参数更新次数: {llm_info['update_count']}")
+    print(f"   模型名称: {llm_info['llm_model']}")
+    print(f"   后端类型: {llm_info['llm_backend']}")
+    print(f"   注册节点数: {llm_info['registered_nodes_count']}")
+    print(f"   总生成次数: {llm_info['total_generations']}")
+    print(f"   参数更新次数: {llm_info['total_updates']}")
     
     print(f"\n📈 各LLM节点统计 (共享同一模型参数):")
-    for node_id, stats in llm_info['node_stats'].items():
-        print(f"   {node_id}: {stats['inference_count']} 次推理")
+    for node_id, stats in llm_info['node_usage_stats'].items():
+        print(f"   {node_id}: {stats['generation_count']} 次生成")
     
     print(f"\n🎯 训练过程统计:")
     training_stats = rl_stats['training_stats']
     print(f"   训练步骤: {training_stats['training_step']}")
-    print(f"   经验缓冲区大小: {training_stats['experience_buffer_size']}")
-    print(f"   策略更新次数: {training_stats['policy_updates_count']}")
+    print(f"   当前回合: {rl_stats['current_episode']}")
+    print(f"   经验缓冲区大小: {rl_stats['experience_buffer_size']}")
     
     # 分析性能趋势
     successful_cycles = [h for h in training_history if h.get("status") == "success"]
@@ -373,8 +374,8 @@ def analyze_rl_training_results(rl_framework, training_history):
         print(f"\n🔄 强化学习效果验证:")
         if scores[-1] > scores[0]:
             print(f"   ✅ 性能提升: {((scores[-1] - scores[0]) / scores[0] * 100):.1f}%")
-        print(f"   ✅ 经验积累: {training_stats['experience_buffer_size']} 条经验记录")
-        print(f"   ✅ 参数更新: {llm_info['update_count']} 次全局模型更新")
+        print(f"   ✅ 经验积累: {rl_stats['experience_buffer_size']} 条经验记录")
+        print(f"   ✅ 参数更新: {llm_info['total_updates']} 次全局模型更新")
         print(f"   ✅ 共享学习: 7个LLM节点共享同一模型的学习成果")
 
 
