@@ -6,12 +6,18 @@ SandGraph 演示脚本
 1. 单一LLM的参数共享机制
 2. 复杂工作流图的构建和可视化
 3. 基于强化学习的LLM优化过程
+4. DAG触发流程图可视化
+5. 沙盒状态实时可视化
+6. 权重更新和训练日志记录
 """
 
 import sys
 import json
 import time
-from typing import Dict, Any
+import os
+from typing import Dict, Any, List, Tuple, Optional
+from datetime import datetime
+from collections import defaultdict
 
 # 添加项目路径以便导入
 sys.path.insert(0, '.')
@@ -20,6 +26,410 @@ from sandgraph.core.workflow import WorkflowGraph, WorkflowNode, NodeType
 from sandgraph.core.rl_framework import create_rl_framework
 from sandgraph.sandbox_implementations import Game24Sandbox, SummarizeSandbox
 from sandgraph.examples import UserCaseExamples
+
+# 可视化相关导入
+try:
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as patches
+    from matplotlib.animation import FuncAnimation
+    import networkx as nx
+    VISUALIZATION_AVAILABLE = True
+except ImportError:
+    VISUALIZATION_AVAILABLE = False
+    print("⚠️  matplotlib/networkx 未安装，可视化功能将被禁用")
+
+# 训练日志和权重更新记录
+class TrainingLogger:
+    """训练过程日志记录器"""
+    
+    def __init__(self, log_dir: str = "training_logs"):
+        self.log_dir = log_dir
+        os.makedirs(log_dir, exist_ok=True)
+        
+        # 日志记录
+        self.text_logs = []
+        self.weight_updates = []
+        self.node_states = {}
+        self.execution_timeline = []
+        
+        # 可视化数据
+        self.dag_states = []
+        self.sandbox_states = {}
+        
+    def log_text(self, level: str, message: str, node_id: Optional[str] = None):
+        """记录文本日志"""
+        timestamp = datetime.now().isoformat()
+        log_entry = {
+            "timestamp": timestamp,
+            "level": level,
+            "message": message,
+            "node_id": node_id
+        }
+        self.text_logs.append(log_entry)
+        print(f"[{timestamp}] {level}: {message}" + (f" (节点: {node_id})" if node_id else ""))
+    
+    def log_weight_update(self, node_id: str, gradients: Dict[str, Any], 
+                         learning_rate: float, update_type: str = "gradient"):
+        """记录权重更新"""
+        timestamp = datetime.now().isoformat()
+        update_entry = {
+            "timestamp": timestamp,
+            "node_id": node_id,
+            "update_type": update_type,
+            "learning_rate": learning_rate,
+            "gradients": gradients,
+            "gradient_norm": sum(abs(v) if isinstance(v, (int, float)) else 0 for v in gradients.values())
+        }
+        self.weight_updates.append(update_entry)
+        self.log_text("WEIGHT_UPDATE", f"更新权重 - 梯度范数: {update_entry['gradient_norm']:.4f}", node_id)
+    
+    def log_node_state(self, node_id: str, state: str, metadata: Optional[Dict[str, Any]] = None):
+        """记录节点状态"""
+        if metadata is None:
+            metadata = {}
+        timestamp = datetime.now().isoformat()
+        self.node_states[node_id] = {
+            "state": state,
+            "timestamp": timestamp,
+            "metadata": metadata
+        }
+        
+        # 记录到执行时间线
+        self.execution_timeline.append({
+            "timestamp": timestamp,
+            "node_id": node_id,
+            "state": state,
+            "metadata": metadata
+        })
+    
+    def log_sandbox_state(self, sandbox_id: str, state: str, case_data: Any = None, result: Any = None):
+        """记录沙盒状态"""
+        timestamp = datetime.now().isoformat()
+        if sandbox_id not in self.sandbox_states:
+            self.sandbox_states[sandbox_id] = []
+        
+        state_entry = {
+            "timestamp": timestamp,
+            "state": state,  # "before", "running", "after"
+            "case_data": case_data,
+            "result": result
+        }
+        self.sandbox_states[sandbox_id].append(state_entry)
+        self.log_text("SANDBOX", f"沙盒状态: {state}", sandbox_id)
+    
+    def save_logs(self):
+        """保存所有日志到文件"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # 保存文本日志
+        with open(f"{self.log_dir}/text_logs_{timestamp}.json", "w", encoding="utf-8") as f:
+            json.dump(self.text_logs, f, ensure_ascii=False, indent=2)
+        
+        # 保存权重更新日志
+        with open(f"{self.log_dir}/weight_updates_{timestamp}.json", "w", encoding="utf-8") as f:
+            json.dump(self.weight_updates, f, ensure_ascii=False, indent=2)
+        
+        # 保存节点状态日志
+        with open(f"{self.log_dir}/node_states_{timestamp}.json", "w", encoding="utf-8") as f:
+            json.dump(self.node_states, f, ensure_ascii=False, indent=2)
+        
+        # 保存沙盒状态日志
+        with open(f"{self.log_dir}/sandbox_states_{timestamp}.json", "w", encoding="utf-8") as f:
+            json.dump(self.sandbox_states, f, ensure_ascii=False, indent=2)
+        
+        # 保存执行时间线
+        with open(f"{self.log_dir}/execution_timeline_{timestamp}.json", "w", encoding="utf-8") as f:
+            json.dump(self.execution_timeline, f, ensure_ascii=False, indent=2)
+        
+        return timestamp
+
+
+class DAGVisualizer:
+    """DAG可视化器"""
+    
+    def __init__(self, graph: WorkflowGraph, logger: TrainingLogger):
+        self.graph = graph
+        self.logger = logger
+        self.fig = None
+        self.ax = None
+        self.pos = None
+        self.node_colors = {}
+        self.edge_colors = {}
+        self.nx_graph = None
+        
+    def setup_visualization(self):
+        """设置可视化环境"""
+        if not VISUALIZATION_AVAILABLE:
+            return False
+        
+        # 创建NetworkX图
+        self.nx_graph = nx.DiGraph()
+        
+        # 添加节点
+        for node_id, node in self.graph.nodes.items():
+            self.nx_graph.add_node(node_id, node_type=node.node_type.value)
+        
+        # 添加边
+        for from_node, to_node in self.graph.edges:
+            self.nx_graph.add_edge(from_node, to_node)
+        
+        # 计算布局
+        self.pos = nx.spring_layout(self.nx_graph, k=3, iterations=50)
+        
+        # 初始化颜色
+        self.reset_colors()
+        
+        return True
+    
+    def reset_colors(self):
+        """重置节点和边的颜色"""
+        if self.nx_graph is None:
+            return
+            
+        for node_id in self.nx_graph.nodes():
+            node = self.graph.nodes[node_id]
+            if node.node_type == NodeType.INPUT:
+                self.node_colors[node_id] = '#90EE90'  # 浅绿色
+            elif node.node_type == NodeType.OUTPUT:
+                self.node_colors[node_id] = '#FFB6C1'  # 浅粉色
+            elif node.node_type == NodeType.LLM:
+                self.node_colors[node_id] = '#87CEEB'  # 天蓝色
+            elif node.node_type == NodeType.SANDBOX:
+                self.node_colors[node_id] = '#DDA0DD'  # 梅花色
+            elif node.node_type == NodeType.AGGREGATOR:
+                self.node_colors[node_id] = '#F0E68C'  # 卡其色
+            else:
+                self.node_colors[node_id] = '#D3D3D3'  # 浅灰色
+        
+        for edge in self.nx_graph.edges():
+            self.edge_colors[edge] = '#808080'  # 灰色
+    
+    def update_node_state(self, node_id: str, state: str):
+        """更新节点状态颜色"""
+        if state == "executing":
+            self.node_colors[node_id] = '#FF6347'  # 番茄红色
+        elif state == "completed":
+            self.node_colors[node_id] = '#32CD32'  # 酸橙绿色
+        elif state == "error":
+            self.node_colors[node_id] = '#DC143C'  # 深红色
+        elif state == "waiting":
+            self.node_colors[node_id] = '#FFD700'  # 金色
+    
+    def update_sandbox_state(self, sandbox_id: str, state: str):
+        """更新沙盒状态颜色"""
+        if state == "before":
+            self.node_colors[sandbox_id] = '#DDA0DD'  # 原始梅花色
+        elif state == "running":
+            self.node_colors[sandbox_id] = '#FF4500'  # 橙红色
+        elif state == "after":
+            self.node_colors[sandbox_id] = '#228B22'  # 森林绿色
+    
+    def draw_dag(self, title: str = "SandGraph DAG 执行流程", save_path: Optional[str] = None):
+        """绘制DAG图"""
+        if not VISUALIZATION_AVAILABLE or self.nx_graph is None or self.pos is None:
+            return
+        
+        plt.figure(figsize=(15, 10))
+        
+        # 绘制节点
+        node_colors_list = [self.node_colors[node] for node in self.nx_graph.nodes()]
+        nx.draw_networkx_nodes(self.nx_graph, self.pos, 
+                              node_color=node_colors_list, 
+                              node_size=2000, alpha=0.8)
+        
+        # 绘制边
+        edge_colors_list = [self.edge_colors[edge] for edge in self.nx_graph.edges()]
+        nx.draw_networkx_edges(self.nx_graph, self.pos, 
+                              edge_color=edge_colors_list, 
+                              arrows=True, arrowsize=20, alpha=0.6)
+        
+        # 绘制标签
+        nx.draw_networkx_labels(self.nx_graph, self.pos, font_size=8, font_weight='bold')
+        
+        plt.title(title, fontsize=16, fontweight='bold')
+        
+        # 添加图例
+        legend_elements = [
+            patches.Patch(color='#90EE90', label='输入节点'),
+            patches.Patch(color='#FFB6C1', label='输出节点'),
+            patches.Patch(color='#87CEEB', label='LLM节点'),
+            patches.Patch(color='#DDA0DD', label='沙盒节点(待执行)'),
+            patches.Patch(color='#FF4500', label='沙盒节点(运行中)'),
+            patches.Patch(color='#228B22', label='沙盒节点(已完成)'),
+            patches.Patch(color='#F0E68C', label='聚合节点'),
+            patches.Patch(color='#FF6347', label='执行中'),
+            patches.Patch(color='#32CD32', label='已完成'),
+            patches.Patch(color='#DC143C', label='错误')
+        ]
+        plt.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1, 1))
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            self.logger.log_text("VISUALIZATION", f"DAG图已保存: {save_path}")
+        
+        plt.show()
+    
+    def create_execution_animation(self, execution_sequence: List[str], save_path: Optional[str] = None):
+        """创建执行动画"""
+        if not VISUALIZATION_AVAILABLE or self.nx_graph is None or self.pos is None:
+            return
+        
+        fig, ax = plt.subplots(figsize=(15, 10))
+        
+        def animate(frame):
+            ax.clear()
+            
+            # 更新到当前帧的节点状态
+            for i, node_id in enumerate(execution_sequence[:frame+1]):
+                if i == frame:
+                    self.update_node_state(node_id, "executing")
+                elif i < frame:
+                    self.update_node_state(node_id, "completed")
+            
+            # 绘制图
+            node_colors_list = [self.node_colors[node] for node in self.nx_graph.nodes()]
+            nx.draw_networkx_nodes(self.nx_graph, self.pos, 
+                                  node_color=node_colors_list, 
+                                  node_size=2000, alpha=0.8, ax=ax)
+            
+            edge_colors_list = [self.edge_colors[edge] for edge in self.nx_graph.edges()]
+            nx.draw_networkx_edges(self.nx_graph, self.pos, 
+                                  edge_color=edge_colors_list, 
+                                  arrows=True, arrowsize=20, alpha=0.6, ax=ax)
+            
+            nx.draw_networkx_labels(self.nx_graph, self.pos, font_size=8, font_weight='bold', ax=ax)
+            
+            ax.set_title(f"SandGraph 执行动画 - 步骤 {frame+1}/{len(execution_sequence)}", 
+                        fontsize=16, fontweight='bold')
+        
+        anim = FuncAnimation(fig, animate, frames=len(execution_sequence), 
+                           interval=1000, repeat=True)
+        
+        if save_path:
+            anim.save(save_path, writer='pillow', fps=1)
+            self.logger.log_text("VISUALIZATION", f"执行动画已保存: {save_path}")
+        
+        plt.show()
+        return anim
+
+
+class TrainingVisualizer:
+    """训练过程可视化器"""
+    
+    def __init__(self, logger: TrainingLogger):
+        self.logger = logger
+    
+    def plot_training_metrics(self, training_history: List[Dict], save_path: Optional[str] = None):
+        """绘制训练指标"""
+        if not VISUALIZATION_AVAILABLE or not training_history:
+            return
+        
+        successful_cycles = [h for h in training_history if h.get("status") == "success"]
+        if not successful_cycles:
+            return
+        
+        cycles = [h["cycle"] for h in successful_cycles]
+        scores = [h["average_score"] for h in successful_cycles]
+        rewards = [h["total_reward"] for h in successful_cycles]
+        execution_times = [h["execution_time"] for h in successful_cycles]
+        
+        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 10))
+        
+        # 性能分数趋势
+        ax1.plot(cycles, scores, 'b-o', linewidth=2, markersize=6)
+        ax1.set_title('性能分数趋势', fontsize=12, fontweight='bold')
+        ax1.set_xlabel('训练轮次')
+        ax1.set_ylabel('平均性能分数')
+        ax1.grid(True, alpha=0.3)
+        
+        # 奖励趋势
+        ax2.plot(cycles, rewards, 'g-s', linewidth=2, markersize=6)
+        ax2.set_title('总奖励趋势', fontsize=12, fontweight='bold')
+        ax2.set_xlabel('训练轮次')
+        ax2.set_ylabel('总奖励')
+        ax2.grid(True, alpha=0.3)
+        
+        # 执行时间趋势
+        ax3.plot(cycles, execution_times, 'r-^', linewidth=2, markersize=6)
+        ax3.set_title('执行时间趋势', fontsize=12, fontweight='bold')
+        ax3.set_xlabel('训练轮次')
+        ax3.set_ylabel('执行时间 (秒)')
+        ax3.grid(True, alpha=0.3)
+        
+        # 权重更新统计
+        if self.logger.weight_updates:
+            update_times = [datetime.fromisoformat(u["timestamp"]) for u in self.logger.weight_updates]
+            gradient_norms = [u["gradient_norm"] for u in self.logger.weight_updates]
+            
+            ax4.scatter(range(len(gradient_norms)), gradient_norms, c='purple', alpha=0.6)
+            ax4.set_title('梯度范数分布', fontsize=12, fontweight='bold')
+            ax4.set_xlabel('更新次数')
+            ax4.set_ylabel('梯度范数')
+            ax4.grid(True, alpha=0.3)
+        else:
+            ax4.text(0.5, 0.5, '暂无权重更新数据', ha='center', va='center', transform=ax4.transAxes)
+            ax4.set_title('梯度范数分布', fontsize=12, fontweight='bold')
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            self.logger.log_text("VISUALIZATION", f"训练指标图已保存: {save_path}")
+        
+        plt.show()
+    
+    def plot_node_activity_timeline(self, save_path: Optional[str] = None):
+        """绘制节点活动时间线"""
+        if not VISUALIZATION_AVAILABLE or not self.logger.execution_timeline:
+            return
+        
+        # 按节点分组活动
+        node_activities = defaultdict(list)
+        for entry in self.logger.execution_timeline:
+            node_activities[entry["node_id"]].append(entry)
+        
+        fig, ax = plt.subplots(figsize=(15, 8))
+        
+        y_pos = 0
+        node_positions = {}
+        colors = {'executing': 'red', 'completed': 'green', 'waiting': 'yellow', 'error': 'darkred'}
+        
+        for node_id, activities in node_activities.items():
+            node_positions[node_id] = y_pos
+            
+            for activity in activities:
+                timestamp = datetime.fromisoformat(activity["timestamp"])
+                state = activity["state"]
+                color = colors.get(state, 'gray')
+                
+                ax.scatter(timestamp, y_pos, c=color, s=100, alpha=0.7)
+            
+            ax.text(-0.1, y_pos, node_id, transform=ax.get_yaxis_transform(), 
+                   ha='right', va='center', fontweight='bold')
+            y_pos += 1
+        
+        ax.set_xlabel('时间')
+        ax.set_ylabel('节点')
+        ax.set_title('节点活动时间线', fontsize=14, fontweight='bold')
+        ax.grid(True, alpha=0.3)
+        
+        # 添加图例
+        legend_elements = [patches.Patch(color=color, label=state) for state, color in colors.items()]
+        ax.legend(handles=legend_elements, loc='upper right')
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            self.logger.log_text("VISUALIZATION", f"节点活动时间线已保存: {save_path}")
+        
+        plt.show()
+
+
+# 全局日志记录器
+training_logger = TrainingLogger()
 
 
 def print_separator(title: str, width: int = 60):
