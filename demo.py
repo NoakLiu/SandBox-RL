@@ -655,21 +655,48 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
     
     training_history = []
     
+    # 创建DAG可视化器
+    dag_visualizer = DAGVisualizer(graph, training_logger)
+    if dag_visualizer.setup_visualization():
+        training_logger.log_text("SYSTEM", "DAG可视化器初始化成功")
+    
     for cycle in range(num_cycles):
         print(f"\n--- 第 {cycle + 1} 轮训练 ---")
+        training_logger.log_text("TRAINING", f"开始第 {cycle + 1} 轮训练")
         
         # 开始新的训练回合
         episode_id = rl_framework.start_new_episode()
         
         try:
+            # 记录沙盒状态变化
+            for node_id, node in graph.nodes.items():
+                if node.node_type == NodeType.SANDBOX:
+                    training_logger.log_sandbox_state(node_id, "before", 
+                                                     case_data=f"Cycle {cycle + 1} input")
+                    dag_visualizer.update_sandbox_state(node_id, "before")
+            
             # 执行工作流
             start_time = time.time()
+            training_logger.log_node_state("workflow", "executing", {"cycle": cycle + 1})
+            
             result = graph.execute({
                 "action": "full_cycle",
                 "cycle": cycle + 1,
                 "training_mode": True
             })
             execution_time = time.time() - start_time
+            
+            # 记录沙盒执行完成
+            for node_id, node in graph.nodes.items():
+                if node.node_type == NodeType.SANDBOX:
+                    training_logger.log_sandbox_state(node_id, "running")
+                    dag_visualizer.update_sandbox_state(node_id, "running")
+                    time.sleep(0.1)  # 模拟执行时间
+                    training_logger.log_sandbox_state(node_id, "after", 
+                                                     result=f"Cycle {cycle + 1} completed")
+                    dag_visualizer.update_sandbox_state(node_id, "after")
+            
+            training_logger.log_node_state("workflow", "completed", {"execution_time": execution_time})
             
             # 模拟性能评估和奖励计算
             base_score = 0.6 + cycle * 0.05  # 模拟性能逐渐提升
@@ -684,6 +711,8 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
             
             total_reward = 0
             for node_id in llm_nodes:
+                training_logger.log_node_state(node_id, "executing", {"cycle": cycle + 1})
+                
                 # 创建模拟的训练经验
                 evaluation_result = {
                     "score": cycle_score + (hash(node_id) % 50) / 1000,  # 每个节点略有不同
@@ -707,6 +736,17 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
                     group_id=node_id
                 )
                 total_reward += rewards["total"]
+                
+                # 模拟权重更新
+                if cycle > 0:  # 从第二轮开始记录权重更新
+                    mock_gradients = {
+                        "policy_gradient": rewards["total"] * 0.1,
+                        "value_gradient": evaluation_result["score"] * 0.05,
+                        "entropy_gradient": 0.01
+                    }
+                    training_logger.log_weight_update(node_id, mock_gradients, 3e-4, "rl_update")
+                
+                training_logger.log_node_state(node_id, "completed", {"reward": rewards["total"]})
             
             # 记录训练历史
             cycle_stats = {
@@ -727,15 +767,18 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
             print(f"   ⏱️  执行时间: {execution_time:.3f}s")
             print(f"   📚 经验缓冲区大小: {cycle_stats['experience_buffer_size']}")
             
+            training_logger.log_text("TRAINING", f"第 {cycle + 1} 轮训练完成 - 分数: {cycle_score:.3f}")
+            
         except Exception as e:
             print(f"   ❌ 执行失败: {e}")
+            training_logger.log_text("ERROR", f"第 {cycle + 1} 轮训练失败: {str(e)}")
             training_history.append({
                 "cycle": cycle + 1,
                 "status": "failed",
                 "error": str(e)
             })
     
-    return training_history
+    return training_history, dag_visualizer
 
 
 def analyze_rl_training_results(rl_framework, training_history):
@@ -789,6 +832,8 @@ def main():
     print_separator("🧩 SandGraph RL增强演示", 80)
     print("展示基于强化学习的单一LLM优化 - 多节点参数共享架构")
     
+    training_logger.log_text("SYSTEM", "开始SandGraph RL增强演示")
+    
     try:
         # 1. 创建复杂的RL工作流
         rl_framework, complex_graph = create_complex_rl_workflow()
@@ -796,13 +841,60 @@ def main():
         # 2. 可视化工作流图
         visualize_workflow_graph(complex_graph)
         
-        # 3. 运行RL训练循环
-        training_history = run_rl_training_cycles(rl_framework, complex_graph, num_cycles=5)
+        # 3. 运行RL训练循环（带可视化）
+        training_history, dag_visualizer = run_rl_training_cycles(rl_framework, complex_graph, num_cycles=5)
         
         # 4. 分析训练结果
         analyze_rl_training_results(rl_framework, training_history)
         
-        # 5. 原有演示（基础功能）
+        # 5. 生成可视化图表
+        print_separator("生成可视化图表")
+        
+        # 创建训练可视化器
+        training_visualizer = TrainingVisualizer(training_logger)
+        
+        # 创建输出目录
+        output_dir = "visualization_output"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        if VISUALIZATION_AVAILABLE:
+            # 绘制最终DAG状态
+            dag_visualizer.draw_dag("SandGraph 最终执行状态", 
+                                   f"{output_dir}/final_dag_state.png")
+            
+            # 绘制训练指标
+            training_visualizer.plot_training_metrics(training_history, 
+                                                     f"{output_dir}/training_metrics.png")
+            
+            # 绘制节点活动时间线
+            training_visualizer.plot_node_activity_timeline(f"{output_dir}/node_timeline.png")
+            
+            # 创建执行动画（如果有执行序列）
+            execution_sequence = complex_graph.topological_sort()
+            dag_visualizer.create_execution_animation(execution_sequence, 
+                                                     f"{output_dir}/execution_animation.gif")
+            
+            print("✅ 可视化图表生成完成")
+            print(f"   📁 输出目录: {output_dir}/")
+            print(f"   📊 DAG状态图: final_dag_state.png")
+            print(f"   📈 训练指标图: training_metrics.png")
+            print(f"   ⏰ 节点时间线: node_timeline.png")
+            print(f"   🎬 执行动画: execution_animation.gif")
+        else:
+            print("⚠️  可视化功能不可用，请安装 matplotlib 和 networkx")
+        
+        # 6. 保存日志
+        print_separator("保存训练日志")
+        log_timestamp = training_logger.save_logs()
+        print(f"✅ 训练日志已保存")
+        print(f"   📁 日志目录: training_logs/")
+        print(f"   📝 文本日志: text_logs_{log_timestamp}.json")
+        print(f"   ⚖️  权重更新: weight_updates_{log_timestamp}.json")
+        print(f"   🔄 节点状态: node_states_{log_timestamp}.json")
+        print(f"   🏝️  沙盒状态: sandbox_states_{log_timestamp}.json")
+        print(f"   ⏱️  执行时间线: execution_timeline_{log_timestamp}.json")
+        
+        # 7. 原有演示（基础功能）
         print_separator("基础功能验证")
         
         # 沙盒基础演示
@@ -840,6 +932,9 @@ def main():
         print("✅ 工作流图可视化完成 - 多层级复杂结构")
         print("✅ RL训练循环完成 - 展示参数共享优化过程")
         print("✅ 训练结果分析完成 - 验证性能提升效果")
+        print("✅ DAG可视化完成 - 实时状态变化展示")
+        print("✅ 权重更新记录完成 - 详细梯度信息保存")
+        print("✅ 训练日志保存完成 - 完整执行过程记录")
         print("✅ 基础功能验证完成 - 确保向后兼容")
         
         print(f"\n🎯 核心创新验证:")
@@ -847,12 +942,19 @@ def main():
         print(f"   ✓ 参数共享机制：7个LLM节点共享同一模型参数")
         print(f"   ✓ 复杂执行图：8层多路径工作流图")
         print(f"   ✓ RL优化循环：经验回放→梯度聚合→参数更新")
-        print(f"   ✓ 性能可视化：训练过程和结果的详细分析")
+        print(f"   ✓ 实时可视化：DAG状态变化和沙盒执行过程")
+        print(f"   ✓ 完整日志：权重更新、节点状态、执行时间线")
+        print(f"   ✓ 性能分析：训练指标图表和动画展示")
+        
+        training_logger.log_text("SYSTEM", "SandGraph RL增强演示完成")
         
         return {
             "rl_framework": rl_framework,
             "complex_graph": complex_graph,
             "training_history": training_history,
+            "dag_visualizer": dag_visualizer,
+            "training_visualizer": training_visualizer,
+            "log_timestamp": log_timestamp,
             "basic_demos": {
                 "sandbox": {"case": case, "score": score},
                 "simple_workflow": simple_result,
@@ -862,6 +964,7 @@ def main():
         
     except Exception as e:
         print(f"❌ 演示过程中出现错误: {str(e)}")
+        training_logger.log_text("ERROR", f"演示失败: {str(e)}")
         import traceback
         traceback.print_exc()
         return {"error": str(e)}
