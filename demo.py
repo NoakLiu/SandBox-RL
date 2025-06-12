@@ -81,7 +81,7 @@ class TrainingLogger:
             "gradient_norm": sum(abs(v) if isinstance(v, (int, float)) else 0 for v in gradients.values())
         }
         self.weight_updates.append(update_entry)
-        self.log_text("WEIGHT_UPDATE", f"更新权重 - 梯度范数: {update_entry['gradient_norm']:.4f}", node_id)
+        self.log_text("WEIGHT_UPDATE", f"Update weights - Gradient norm: {update_entry['gradient_norm']:.4f}", node_id)
     
     def log_node_state(self, node_id: str, state: str, metadata: Optional[Dict[str, Any]] = None):
         """记录节点状态"""
@@ -115,7 +115,7 @@ class TrainingLogger:
             "result": result
         }
         self.sandbox_states[sandbox_id].append(state_entry)
-        self.log_text("SANDBOX", f"沙盒状态: {state}", sandbox_id)
+        self.log_text("SANDBOX", f"Sandbox state: {state}", sandbox_id)
     
     def save_logs(self):
         """保存所有日志到文件"""
@@ -224,7 +224,7 @@ class DAGVisualizer:
         elif state == "after":
             self.node_colors[sandbox_id] = '#228B22'  # 森林绿色
     
-    def draw_dag(self, title: str = "SandGraph DAG 执行流程", save_path: Optional[str] = None):
+    def draw_dag(self, title: str = "SandGraph DAG Execution Flow", save_path: Optional[str] = None):
         """绘制DAG图"""
         if not VISUALIZATION_AVAILABLE or self.nx_graph is None or self.pos is None:
             return
@@ -250,16 +250,16 @@ class DAGVisualizer:
         
         # 添加图例
         legend_elements = [
-            patches.Patch(color='#90EE90', label='输入节点'),
-            patches.Patch(color='#FFB6C1', label='输出节点'),
-            patches.Patch(color='#87CEEB', label='LLM节点'),
-            patches.Patch(color='#DDA0DD', label='沙盒节点(待执行)'),
-            patches.Patch(color='#FF4500', label='沙盒节点(运行中)'),
-            patches.Patch(color='#228B22', label='沙盒节点(已完成)'),
-            patches.Patch(color='#F0E68C', label='聚合节点'),
-            patches.Patch(color='#FF6347', label='执行中'),
-            patches.Patch(color='#32CD32', label='已完成'),
-            patches.Patch(color='#DC143C', label='错误')
+            patches.Patch(color='#90EE90', label='Input Node'),
+            patches.Patch(color='#FFB6C1', label='Output Node'),
+            patches.Patch(color='#87CEEB', label='LLM Node'),
+            patches.Patch(color='#DDA0DD', label='Sandbox (Pending)'),
+            patches.Patch(color='#FF4500', label='Sandbox (Running)'),
+            patches.Patch(color='#228B22', label='Sandbox (Completed)'),
+            patches.Patch(color='#F0E68C', label='Aggregator Node'),
+            patches.Patch(color='#FF6347', label='Executing'),
+            patches.Patch(color='#32CD32', label='Completed'),
+            patches.Patch(color='#DC143C', label='Error')
         ]
         plt.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1, 1))
         
@@ -267,7 +267,7 @@ class DAGVisualizer:
         
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            self.logger.log_text("VISUALIZATION", f"DAG图已保存: {save_path}")
+            self.logger.log_text("VISUALIZATION", f"DAG chart saved: {save_path}")
         
         plt.show()
     
@@ -301,7 +301,7 @@ class DAGVisualizer:
             
             nx.draw_networkx_labels(self.nx_graph, self.pos, font_size=8, font_weight='bold', ax=ax)
             
-            ax.set_title(f"SandGraph 执行动画 - 步骤 {frame+1}/{len(execution_sequence)}", 
+            ax.set_title(f"SandGraph Execution Animation - Step {frame+1}/{len(execution_sequence)}", 
                         fontsize=16, fontweight='bold')
         
         anim = FuncAnimation(fig, animate, frames=len(execution_sequence), 
@@ -309,7 +309,7 @@ class DAGVisualizer:
         
         if save_path:
             anim.save(save_path, writer='pillow', fps=1)
-            self.logger.log_text("VISUALIZATION", f"执行动画已保存: {save_path}")
+            self.logger.log_text("VISUALIZATION", f"Execution animation saved: {save_path}")
         
         plt.show()
         return anim
@@ -339,23 +339,23 @@ class TrainingVisualizer:
         
         # 性能分数趋势
         ax1.plot(cycles, scores, 'b-o', linewidth=2, markersize=6)
-        ax1.set_title('性能分数趋势', fontsize=12, fontweight='bold')
-        ax1.set_xlabel('训练轮次')
-        ax1.set_ylabel('平均性能分数')
+        ax1.set_title('Performance Score Trend', fontsize=12, fontweight='bold')
+        ax1.set_xlabel('Training Cycle')
+        ax1.set_ylabel('Average Performance Score')
         ax1.grid(True, alpha=0.3)
         
         # 奖励趋势
         ax2.plot(cycles, rewards, 'g-s', linewidth=2, markersize=6)
-        ax2.set_title('总奖励趋势', fontsize=12, fontweight='bold')
-        ax2.set_xlabel('训练轮次')
-        ax2.set_ylabel('总奖励')
+        ax2.set_title('Total Reward Trend', fontsize=12, fontweight='bold')
+        ax2.set_xlabel('Training Cycle')
+        ax2.set_ylabel('Total Reward')
         ax2.grid(True, alpha=0.3)
         
         # 执行时间趋势
         ax3.plot(cycles, execution_times, 'r-^', linewidth=2, markersize=6)
-        ax3.set_title('执行时间趋势', fontsize=12, fontweight='bold')
-        ax3.set_xlabel('训练轮次')
-        ax3.set_ylabel('执行时间 (秒)')
+        ax3.set_title('Execution Time Trend', fontsize=12, fontweight='bold')
+        ax3.set_xlabel('Training Cycle')
+        ax3.set_ylabel('Execution Time (seconds)')
         ax3.grid(True, alpha=0.3)
         
         # 权重更新统计
@@ -364,19 +364,19 @@ class TrainingVisualizer:
             gradient_norms = [u["gradient_norm"] for u in self.logger.weight_updates]
             
             ax4.scatter(range(len(gradient_norms)), gradient_norms, c='purple', alpha=0.6)
-            ax4.set_title('梯度范数分布', fontsize=12, fontweight='bold')
-            ax4.set_xlabel('更新次数')
-            ax4.set_ylabel('梯度范数')
+            ax4.set_title('Gradient Norm Distribution', fontsize=12, fontweight='bold')
+            ax4.set_xlabel('Update Count')
+            ax4.set_ylabel('Gradient Norm')
             ax4.grid(True, alpha=0.3)
         else:
-            ax4.text(0.5, 0.5, '暂无权重更新数据', ha='center', va='center', transform=ax4.transAxes)
-            ax4.set_title('梯度范数分布', fontsize=12, fontweight='bold')
+            ax4.text(0.5, 0.5, 'No weight update data', ha='center', va='center', transform=ax4.transAxes)
+            ax4.set_title('Gradient Norm Distribution', fontsize=12, fontweight='bold')
         
         plt.tight_layout()
         
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            self.logger.log_text("VISUALIZATION", f"训练指标图已保存: {save_path}")
+            self.logger.log_text("VISUALIZATION", f"Training metrics plot saved: {save_path}")
         
         plt.show()
     
@@ -410,9 +410,9 @@ class TrainingVisualizer:
                    ha='right', va='center', fontweight='bold')
             y_pos += 1
         
-        ax.set_xlabel('时间')
-        ax.set_ylabel('节点')
-        ax.set_title('节点活动时间线', fontsize=14, fontweight='bold')
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Node')
+        ax.set_title('Node Activity Timeline', fontsize=14, fontweight='bold')
         ax.grid(True, alpha=0.3)
         
         # 添加图例
@@ -423,7 +423,7 @@ class TrainingVisualizer:
         
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            self.logger.log_text("VISUALIZATION", f"节点活动时间线已保存: {save_path}")
+            self.logger.log_text("VISUALIZATION", f"Node activity timeline saved: {save_path}")
         
         plt.show()
 
@@ -658,11 +658,11 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
     # 创建DAG可视化器
     dag_visualizer = DAGVisualizer(graph, training_logger)
     if dag_visualizer.setup_visualization():
-        training_logger.log_text("SYSTEM", "DAG可视化器初始化成功")
+        training_logger.log_text("SYSTEM", "DAG visualizer initialized successfully")
     
     for cycle in range(num_cycles):
-        print(f"\n--- 第 {cycle + 1} 轮训练 ---")
-        training_logger.log_text("TRAINING", f"开始第 {cycle + 1} 轮训练")
+        print(f"\n--- Training Cycle {cycle + 1} ---")
+        training_logger.log_text("TRAINING", f"Starting training cycle {cycle + 1}")
         
         # 开始新的训练回合
         episode_id = rl_framework.start_new_episode()
@@ -761,17 +761,17 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
             
             training_history.append(cycle_stats)
             
-            print(f"   ✅ 执行成功")
-            print(f"   📊 平均性能分数: {cycle_score:.3f}")
-            print(f"   🎁 总奖励: {total_reward:.2f}")
-            print(f"   ⏱️  执行时间: {execution_time:.3f}s")
-            print(f"   📚 经验缓冲区大小: {cycle_stats['experience_buffer_size']}")
+            print(f"   ✅ Execution successful")
+            print(f"   📊 Average performance score: {cycle_score:.3f}")
+            print(f"   🎁 Total reward: {total_reward:.2f}")
+            print(f"   ⏱️  Execution time: {execution_time:.3f}s")
+            print(f"   📚 Experience buffer size: {cycle_stats['experience_buffer_size']}")
             
-            training_logger.log_text("TRAINING", f"第 {cycle + 1} 轮训练完成 - 分数: {cycle_score:.3f}")
+            training_logger.log_text("TRAINING", f"Training cycle {cycle + 1} completed - Score: {cycle_score:.3f}")
             
         except Exception as e:
-            print(f"   ❌ 执行失败: {e}")
-            training_logger.log_text("ERROR", f"第 {cycle + 1} 轮训练失败: {str(e)}")
+            print(f"   ❌ Execution failed: {e}")
+            training_logger.log_text("ERROR", f"Training cycle {cycle + 1} failed: {str(e)}")
             training_history.append({
                 "cycle": cycle + 1,
                 "status": "failed",
@@ -848,7 +848,7 @@ def main():
         analyze_rl_training_results(rl_framework, training_history)
         
         # 5. 生成可视化图表
-        print_separator("生成可视化图表")
+        print_separator("Generate Visualization Charts")
         
         # 创建训练可视化器
         training_visualizer = TrainingVisualizer(training_logger)
@@ -859,7 +859,7 @@ def main():
         
         if VISUALIZATION_AVAILABLE:
             # 绘制最终DAG状态
-            dag_visualizer.draw_dag("SandGraph 最终执行状态", 
+            dag_visualizer.draw_dag("SandGraph Final Execution State", 
                                    f"{output_dir}/final_dag_state.png")
             
             # 绘制训练指标
@@ -874,25 +874,25 @@ def main():
             dag_visualizer.create_execution_animation(execution_sequence, 
                                                      f"{output_dir}/execution_animation.gif")
             
-            print("✅ 可视化图表生成完成")
-            print(f"   📁 输出目录: {output_dir}/")
-            print(f"   📊 DAG状态图: final_dag_state.png")
-            print(f"   📈 训练指标图: training_metrics.png")
-            print(f"   ⏰ 节点时间线: node_timeline.png")
-            print(f"   🎬 执行动画: execution_animation.gif")
+            print("✅ Visualization charts generated successfully")
+            print(f"   📁 Output directory: {output_dir}/")
+            print(f"   📊 DAG state chart: final_dag_state.png")
+            print(f"   📈 Training metrics: training_metrics.png")
+            print(f"   ⏰ Node timeline: node_timeline.png")
+            print(f"   🎬 Execution animation: execution_animation.gif")
         else:
-            print("⚠️  可视化功能不可用，请安装 matplotlib 和 networkx")
+            print("⚠️  Visualization unavailable, please install matplotlib and networkx")
         
         # 6. 保存日志
-        print_separator("保存训练日志")
+        print_separator("Save Training Logs")
         log_timestamp = training_logger.save_logs()
-        print(f"✅ 训练日志已保存")
-        print(f"   📁 日志目录: training_logs/")
-        print(f"   📝 文本日志: text_logs_{log_timestamp}.json")
-        print(f"   ⚖️  权重更新: weight_updates_{log_timestamp}.json")
-        print(f"   🔄 节点状态: node_states_{log_timestamp}.json")
-        print(f"   🏝️  沙盒状态: sandbox_states_{log_timestamp}.json")
-        print(f"   ⏱️  执行时间线: execution_timeline_{log_timestamp}.json")
+        print(f"✅ Training logs saved successfully")
+        print(f"   📁 Log directory: training_logs/")
+        print(f"   📝 Text logs: text_logs_{log_timestamp}.json")
+        print(f"   ⚖️  Weight updates: weight_updates_{log_timestamp}.json")
+        print(f"   🔄 Node states: node_states_{log_timestamp}.json")
+        print(f"   🏝️  Sandbox states: sandbox_states_{log_timestamp}.json")
+        print(f"   ⏱️  Execution timeline: execution_timeline_{log_timestamp}.json")
         
         # 7. 原有演示（基础功能）
         print_separator("基础功能验证")
