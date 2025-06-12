@@ -21,7 +21,7 @@ class LLMResponse:
     text: str
     confidence: float = 0.0
     reasoning: str = ""
-    metadata: Dict[str, Any] = None
+    metadata: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
         if self.metadata is None:
@@ -30,6 +30,9 @@ class LLMResponse:
 
 class BaseLLM(ABC):
     """基础LLM抽象类"""
+    
+    def __init__(self, model_name: str):
+        self.model_name = model_name
     
     @abstractmethod
     def generate(self, prompt: str, **kwargs) -> LLMResponse:
@@ -51,7 +54,7 @@ class MockLLM(BaseLLM):
     """模拟LLM实现（用于演示）"""
     
     def __init__(self, model_name: str = "mock_llm"):
-        self.model_name = model_name
+        super().__init__(model_name)
         self.parameters = {
             "embedding_weights": [0.1] * 1000,  # 模拟嵌入层权重
             "attention_weights": [0.2] * 500,   # 模拟注意力权重
@@ -150,14 +153,14 @@ class SharedLLMManager:
         self.lock = threading.Lock()
         
         # 节点注册管理
-        self.registered_nodes = {}
-        self.node_usage_stats = {}
+        self.registered_nodes: Dict[str, Dict[str, Any]] = {}
+        self.node_usage_stats: Dict[str, Dict[str, Any]] = {}
         
         # 全局统计
         self.total_generations = 0
         self.total_updates = 0
         
-    def register_node(self, node_id: str, node_config: Dict[str, Any] = None) -> None:
+    def register_node(self, node_id: str, node_config: Optional[Dict[str, Any]] = None) -> None:
         """注册使用LLM的节点"""
         if node_config is None:
             node_config = {}
@@ -194,8 +197,9 @@ class SharedLLMManager:
             self.total_generations += 1
             
             # 在响应中添加节点信息
-            response.metadata["node_id"] = node_id
-            response.metadata["global_generation_count"] = self.total_generations
+            if response.metadata:
+                response.metadata["node_id"] = node_id
+                response.metadata["global_generation_count"] = self.total_generations
             
             return response
     
