@@ -4,7 +4,7 @@ SandGraph强化学习框架
 实现基于强化学习的LLM优化，支持：
 1. 参数共享的LLM管理
 2. 经验回放和奖励累积
-3. 基于RLHF的梯度更新
+3. 基于PPO/GRPO的梯度更新
 4. 多智能体协作的强化学习
 """
 
@@ -19,6 +19,9 @@ from collections import defaultdict, deque
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
+
+from .llm_interface import SharedLLMManager, create_shared_llm_manager
+from .rl_algorithms import RLTrainer, create_ppo_trainer, create_grpo_trainer, RLAlgorithm
 
 logger = logging.getLogger(__name__)
 
@@ -94,141 +97,6 @@ class ExperienceBuffer:
             self.buffer.clear()
 
 
-class SharedLLMManager:
-    """共享LLM管理器
-    
-    管理多个LLM节点但共享同一个底层模型参数
-    """
-    
-    def __init__(self, model_name: str = "shared_llm"):
-        self.model_name = model_name
-        self.model = None  # 实际的LLM模型实例
-        self.lock = threading.Lock()
-        
-        # 参数管理
-        self.parameters = {}
-        self.gradients = defaultdict(list)
-        self.optimizer_state = {}
-        
-        # 性能监控
-        self.inference_count = 0
-        self.update_count = 0
-        self.performance_history = []
-        
-        # 节点注册
-        self.registered_nodes = {}
-        
-    def register_node(self, node_id: str, node_config: Dict[str, Any]) -> None:
-        """注册LLM节点"""
-        with self.lock:
-            self.registered_nodes[node_id] = {
-                "config": node_config,
-                "inference_count": 0,
-                "last_inference": None,
-                "performance_metrics": {}
-            }
-            logger.info(f"注册LLM节点: {node_id}")
-    
-    def unregister_node(self, node_id: str) -> None:
-        """注销LLM节点"""
-        with self.lock:
-            if node_id in self.registered_nodes:
-                del self.registered_nodes[node_id]
-                logger.info(f"注销LLM节点: {node_id}")
-    
-    def inference(self, node_id: str, prompt: str, **kwargs) -> str:
-        """执行推理（所有节点共享同一模型）"""
-        with self.lock:
-            # 更新节点统计
-            if node_id in self.registered_nodes:
-                self.registered_nodes[node_id]["inference_count"] += 1
-                self.registered_nodes[node_id]["last_inference"] = time.time()
-            
-            self.inference_count += 1
-            
-            # 实际推理（这里需要集成真实的LLM）
-            response = self._actual_inference(prompt, **kwargs)
-            
-            return response
-    
-    def _actual_inference(self, prompt: str, **kwargs) -> str:
-        """实际的LLM推理（需要替换为真实实现）"""
-        # 这里应该调用真实的LLM API或本地模型
-        # 示例：return openai.chat.completions.create(...)
-        
-        # 临时模拟实现
-        return f"LLM响应（共享模型）: {prompt[:50]}..."
-    
-    def accumulate_gradients(self, node_id: str, gradients: Dict[str, Any]) -> None:
-        """累积梯度"""
-        with self.lock:
-            for param_name, grad in gradients.items():
-                self.gradients[param_name].append({
-                    "gradient": grad,
-                    "node_id": node_id,
-                    "timestamp": time.time()
-                })
-    
-    def update_parameters(self, learning_rate: float = 1e-4) -> Dict[str, Any]:
-        """更新全局参数"""
-        with self.lock:
-            if not self.gradients:
-                return {"status": "no_gradients"}
-            
-            # 聚合梯度
-            aggregated_gradients = {}
-            for param_name, grad_list in self.gradients.items():
-                if grad_list:
-                    # 简单平均聚合（可以扩展为更复杂的聚合策略）
-                    avg_grad = np.mean([g["gradient"] for g in grad_list], axis=0)
-                    aggregated_gradients[param_name] = avg_grad
-            
-            # 应用梯度更新（需要集成真实的优化器）
-            update_info = self._apply_parameter_update(aggregated_gradients, learning_rate)
-            
-            # 清空梯度
-            self.gradients.clear()
-            self.update_count += 1
-            
-            logger.info(f"参数更新完成，更新次数: {self.update_count}")
-            
-            return {
-                "status": "updated",
-                "update_count": self.update_count,
-                "parameters_updated": list(aggregated_gradients.keys()),
-                "update_info": update_info
-            }
-    
-    def _apply_parameter_update(self, gradients: Dict[str, Any], learning_rate: float) -> Dict[str, Any]:
-        """应用参数更新（需要集成真实的优化器）"""
-        # 这里应该调用真实的优化器更新参数
-        # 示例：optimizer.step()
-        
-        # 临时模拟实现
-        return {
-            "learning_rate": learning_rate,
-            "gradients_norm": sum(np.linalg.norm(g) for g in gradients.values()) if gradients else 0,
-            "parameters_count": len(gradients)
-        }
-    
-    def get_model_info(self) -> Dict[str, Any]:
-        """获取模型信息"""
-        with self.lock:
-            return {
-                "model_name": self.model_name,
-                "registered_nodes": list(self.registered_nodes.keys()),
-                "inference_count": self.inference_count,
-                "update_count": self.update_count,
-                "node_stats": {
-                    node_id: {
-                        "inference_count": info["inference_count"],
-                        "last_inference": info["last_inference"]
-                    }
-                    for node_id, info in self.registered_nodes.items()
-                }
-            }
-
-
 class RewardCalculator:
     """奖励计算器"""
     
@@ -302,137 +170,18 @@ class RewardCalculator:
         self.reward_functions[reward_type] = reward_func
 
 
-class RLTrainer:
-    """强化学习训练器"""
-    
-    def __init__(self, 
-                 llm_manager: SharedLLMManager,
-                 experience_buffer: ExperienceBuffer,
-                 reward_calculator: RewardCalculator,
-                 batch_size: int = 32,
-                 update_frequency: int = 10):
-        
-        self.llm_manager = llm_manager
-        self.experience_buffer = experience_buffer
-        self.reward_calculator = reward_calculator
-        self.batch_size = batch_size
-        self.update_frequency = update_frequency
-        
-        self.training_step = 0
-        self.policy_updates = []
-        self.performance_metrics = defaultdict(list)
-        
-    def add_experience(self, experience: Experience) -> None:
-        """添加训练经验"""
-        self.experience_buffer.add(experience)
-        
-        # 定期更新策略
-        if self.experience_buffer.size() >= self.batch_size and \
-           self.training_step % self.update_frequency == 0:
-            
-            self._update_policy()  # 改为同步调用
-    
-    def _update_policy(self) -> None:  # 改为同步方法
-        """更新策略"""
-        try:
-            # 采样经验批次
-            experiences = self.experience_buffer.sample(self.batch_size)
-            
-            # 计算策略梯度（需要集成真实的RL算法）
-            gradients = self._compute_policy_gradients(experiences)
-            
-            # 累积梯度到共享LLM
-            for node_id in set(exp.agent_id for exp in experiences):
-                self.llm_manager.accumulate_gradients(node_id, gradients)
-            
-            # 更新参数
-            update_result = self.llm_manager.update_parameters()
-            
-            # 记录更新
-            policy_update = PolicyUpdate(
-                experiences=experiences,
-                loss=gradients.get("loss", 0.0),
-                gradients=gradients,
-                update_timestamp=time.time(),
-                performance_metrics=self._calculate_performance_metrics(experiences)
-            )
-            
-            self.policy_updates.append(policy_update)
-            self.training_step += 1
-            
-            logger.info(f"策略更新完成，训练步骤: {self.training_step}")
-            
-        except Exception as e:
-            logger.error(f"策略更新失败: {e}")
-    
-    def _compute_policy_gradients(self, experiences: List[Experience]) -> Dict[str, Any]:
-        """计算策略梯度（需要集成真实的RL算法）"""
-        # 这里应该实现真实的策略梯度算法，如PPO、REINFORCE等
-        # 示例实现：
-        
-        returns = self._compute_returns(experiences)
-        advantages = self._compute_advantages(experiences, returns)
-        
-        # 模拟梯度计算
-        gradients = {
-            "policy_gradient": np.random.randn(100),  # 模拟梯度
-            "value_gradient": np.random.randn(50),
-            "loss": np.mean([abs(adv) for adv in advantages])
-        }
-        
-        return gradients
-    
-    def _compute_returns(self, experiences: List[Experience]) -> List[float]:
-        """计算回报"""
-        returns = []
-        running_return = 0.0
-        gamma = 0.99  # 折扣因子
-        
-        for exp in reversed(experiences):
-            running_return = exp.reward + gamma * running_return * (1 - exp.done)
-            returns.insert(0, running_return)
-        
-        return returns
-    
-    def _compute_advantages(self, experiences: List[Experience], returns: List[float]) -> List[float]:
-        """计算优势函数"""
-        # 简化的优势计算
-        values = [exp.reward for exp in experiences]  # 简化：使用即时奖励作为价值估计
-        advantages = [ret - val for ret, val in zip(returns, values)]
-        return advantages
-    
-    def _calculate_performance_metrics(self, experiences: List[Experience]) -> Dict[str, float]:
-        """计算性能指标"""
-        rewards = [exp.reward for exp in experiences]
-        
-        return {
-            "average_reward": np.mean(rewards),
-            "reward_std": np.std(rewards),
-            "max_reward": np.max(rewards),
-            "min_reward": np.min(rewards),
-            "completion_rate": sum(1 for exp in experiences if exp.done) / len(experiences)
-        }
-    
-    def get_training_stats(self) -> Dict[str, Any]:
-        """获取训练统计"""
-        return {
-            "training_step": self.training_step,
-            "experience_buffer_size": self.experience_buffer.size(),
-            "policy_updates_count": len(self.policy_updates),
-            "recent_performance": self.policy_updates[-5:] if self.policy_updates else [],
-            "llm_info": self.llm_manager.get_model_info()
-        }
-
-
 class RLWorkflowIntegration:
     """RL与工作流集成"""
     
     def __init__(self, 
                  llm_manager: SharedLLMManager,
-                 rl_trainer: RLTrainer):
+                 rl_trainer: RLTrainer,
+                 reward_calculator: RewardCalculator):
         self.llm_manager = llm_manager
         self.rl_trainer = rl_trainer
+        self.reward_calculator = reward_calculator
         self.episode_id = 0
+        self.experience_buffer = ExperienceBuffer()
         
     def create_rl_enabled_llm_node(self, node_id: str, node_config: Dict[str, Any] = None):
         """创建支持RL的LLM节点"""
@@ -456,30 +205,28 @@ class RLWorkflowIntegration:
             }
             
             # 执行推理
-            response = self.llm_manager.inference(node_id, prompt)
+            response = self.llm_manager.generate_for_node(node_id, prompt)
             
-            # 如果有评估结果，创建经验记录
+            # 如果有评估结果，创建经验记录并训练
             if "evaluation_result" in context:
                 result = context["evaluation_result"]
-                rewards = self.rl_trainer.reward_calculator.calculate_reward(result, context)
+                rewards = self.reward_calculator.calculate_reward(result, context)
                 
-                experience = Experience(
+                # 添加经验到RL训练器
+                self.rl_trainer.add_experience(
                     state=state,
-                    action=response,
+                    action=response.text,
                     reward=rewards["total"],
-                    next_state=context.get("next_state", {}),
                     done=context.get("done", True),
-                    metadata={
-                        "rewards_breakdown": rewards,
-                        "evaluation_result": result
-                    },
-                    agent_id=node_id,
-                    episode_id=str(self.episode_id)
+                    group_id=context.get("group_id", "default")
                 )
                 
-                self.rl_trainer.add_experience(experience)
+                # 尝试更新策略
+                update_result = self.rl_trainer.update_policy()
+                if update_result.get("status") == "updated":
+                    logger.info(f"RL策略更新: {update_result}")
             
-            return response
+            return response.text
         
         return rl_llm_func
     
@@ -495,23 +242,67 @@ class RLWorkflowIntegration:
         return {
             "current_episode": self.episode_id,
             "training_stats": self.rl_trainer.get_training_stats(),
-            "llm_manager_info": self.llm_manager.get_model_info()
+            "llm_manager_info": self.llm_manager.get_global_stats(),
+            "experience_buffer_size": self.experience_buffer.size()
         }
 
 
 # 便利函数
 def create_rl_framework(model_name: str = "shared_llm", 
-                       buffer_size: int = 10000,
-                       batch_size: int = 32) -> RLWorkflowIntegration:
+                       algorithm: RLAlgorithm = RLAlgorithm.PPO,
+                       learning_rate: float = 3e-4) -> RLWorkflowIntegration:
     """创建完整的RL框架"""
     
-    # 创建组件
-    llm_manager = SharedLLMManager(model_name)
-    experience_buffer = ExperienceBuffer(buffer_size)
+    # 创建共享LLM管理器
+    llm_manager = create_shared_llm_manager(model_name)
+    
+    # 创建RL训练器
+    if algorithm == RLAlgorithm.PPO:
+        rl_trainer = create_ppo_trainer(llm_manager, learning_rate)
+    elif algorithm == RLAlgorithm.GRPO:
+        rl_trainer = create_grpo_trainer(llm_manager, learning_rate)
+    else:
+        raise ValueError(f"不支持的算法: {algorithm}")
+    
+    # 创建奖励计算器
     reward_calculator = RewardCalculator()
-    rl_trainer = RLTrainer(llm_manager, experience_buffer, reward_calculator, batch_size)
     
     # 集成到工作流
-    rl_integration = RLWorkflowIntegration(llm_manager, rl_trainer)
+    rl_integration = RLWorkflowIntegration(llm_manager, rl_trainer, reward_calculator)
+    
+    return rl_integration
+
+
+def create_enhanced_rl_framework(model_name: str = "enhanced_shared_llm",
+                               algorithm: RLAlgorithm = RLAlgorithm.GRPO,
+                               learning_rate: float = 2e-4,
+                               robustness_coef: float = 0.15) -> RLWorkflowIntegration:
+    """创建增强的RL框架（推荐用于复杂任务）"""
+    
+    # 创建共享LLM管理器
+    llm_manager = create_shared_llm_manager(model_name)
+    
+    # 创建GRPO训练器（更适合复杂环境）
+    rl_trainer = create_grpo_trainer(llm_manager, learning_rate, robustness_coef)
+    
+    # 创建奖励计算器
+    reward_calculator = RewardCalculator()
+    
+    # 添加额外的奖励函数
+    def complexity_bonus(result: Dict[str, Any]) -> float:
+        """复杂性奖励"""
+        reasoning_depth = result.get("reasoning_depth", 0)
+        return reasoning_depth * 0.5
+    
+    def consistency_bonus(result: Dict[str, Any]) -> float:
+        """一致性奖励"""
+        consistency_score = result.get("consistency", 0.0)
+        return consistency_score * 2.0
+    
+    reward_calculator.register_custom_reward("complexity_bonus", complexity_bonus)
+    reward_calculator.register_custom_reward("consistency_bonus", consistency_bonus)
+    
+    # 集成到工作流
+    rl_integration = RLWorkflowIntegration(llm_manager, rl_trainer, reward_calculator)
     
     return rl_integration 
