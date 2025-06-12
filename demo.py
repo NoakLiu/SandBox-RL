@@ -56,6 +56,12 @@ class TrainingLogger:
         self.dag_states = []
         self.sandbox_states = {}
         
+        # 新增：详细交互记录
+        self.llm_interactions = []  # LLM思考和输出过程
+        self.sandbox_interactions = []  # 沙盒交互详情
+        self.reward_details = []  # 奖励计算详情
+        self.action_sequences = []  # 动作序列
+        
     def log_text(self, level: str, message: str, node_id: Optional[str] = None):
         """记录文本日志"""
         timestamp = datetime.now().isoformat()
@@ -66,7 +72,85 @@ class TrainingLogger:
             "node_id": node_id
         }
         self.text_logs.append(log_entry)
-        print(f"[{timestamp}] {level}: {message}" + (f" (节点: {node_id})" if node_id else ""))
+        print(f"[{timestamp}] {level}: {message}" + (f" (Node: {node_id})" if node_id else ""))
+    
+    def log_llm_interaction(self, node_id: str, prompt: str, response: str, 
+                           thinking_process: Optional[str] = None, 
+                           confidence: float = 0.0, metadata: Optional[Dict[str, Any]] = None):
+        """记录LLM交互过程"""
+        timestamp = datetime.now().isoformat()
+        interaction = {
+            "timestamp": timestamp,
+            "node_id": node_id,
+            "prompt": prompt,
+            "thinking_process": thinking_process or "No explicit thinking recorded",
+            "response": response,
+            "confidence": confidence,
+            "response_length": len(response),
+            "prompt_length": len(prompt),
+            "metadata": metadata or {}
+        }
+        self.llm_interactions.append(interaction)
+        self.log_text("LLM_INTERACTION", f"LLM {node_id} processed prompt (confidence: {confidence:.3f})", node_id)
+    
+    def log_sandbox_interaction(self, sandbox_id: str, state: str, action: str, 
+                               reward: float, next_state: str, done: bool,
+                               case_data: Any = None, result_data: Any = None,
+                               metadata: Optional[Dict[str, Any]] = None):
+        """记录沙盒交互过程"""
+        timestamp = datetime.now().isoformat()
+        interaction = {
+            "timestamp": timestamp,
+            "sandbox_id": sandbox_id,
+            "state": state,
+            "action": action,
+            "reward": reward,
+            "next_state": next_state,
+            "done": done,
+            "case_data": case_data,
+            "result_data": result_data,
+            "metadata": metadata or {}
+        }
+        self.sandbox_interactions.append(interaction)
+        self.log_text("SANDBOX_INTERACTION", 
+                     f"Sandbox {sandbox_id}: {state} -> {action} -> {next_state} (reward: {reward:.3f})", 
+                     sandbox_id)
+    
+    def log_reward_calculation(self, node_id: str, raw_score: float, 
+                              reward_components: Dict[str, float], 
+                              total_reward: float, calculation_details: Optional[Dict[str, Any]] = None):
+        """记录奖励计算详情"""
+        timestamp = datetime.now().isoformat()
+        reward_detail = {
+            "timestamp": timestamp,
+            "node_id": node_id,
+            "raw_score": raw_score,
+            "reward_components": reward_components,
+            "total_reward": total_reward,
+            "calculation_details": calculation_details or {},
+            "component_count": len(reward_components)
+        }
+        self.reward_details.append(reward_detail)
+        self.log_text("REWARD_CALC", 
+                     f"Reward calculated for {node_id}: {total_reward:.3f} (components: {len(reward_components)})", 
+                     node_id)
+    
+    def log_action_sequence(self, sequence_id: str, actions: List[Dict[str, Any]], 
+                           sequence_type: str = "workflow", metadata: Optional[Dict[str, Any]] = None):
+        """记录动作序列"""
+        timestamp = datetime.now().isoformat()
+        sequence = {
+            "timestamp": timestamp,
+            "sequence_id": sequence_id,
+            "sequence_type": sequence_type,
+            "actions": actions,
+            "action_count": len(actions),
+            "metadata": metadata or {}
+        }
+        self.action_sequences.append(sequence)
+        self.log_text("ACTION_SEQUENCE", 
+                     f"Action sequence {sequence_id} recorded: {len(actions)} actions", 
+                     sequence_id)
     
     def log_weight_update(self, node_id: str, gradients: Dict[str, Any], 
                          learning_rate: float, update_type: str = "gradient"):
@@ -117,6 +201,32 @@ class TrainingLogger:
         self.sandbox_states[sandbox_id].append(state_entry)
         self.log_text("SANDBOX", f"Sandbox state: {state}", sandbox_id)
     
+    def get_interaction_summary(self) -> Dict[str, Any]:
+        """获取交互过程摘要"""
+        return {
+            "llm_interactions": {
+                "total_count": len(self.llm_interactions),
+                "nodes_involved": list(set(i["node_id"] for i in self.llm_interactions)),
+                "avg_confidence": sum(i["confidence"] for i in self.llm_interactions) / len(self.llm_interactions) if self.llm_interactions else 0,
+                "total_tokens_processed": sum(i["prompt_length"] + i["response_length"] for i in self.llm_interactions)
+            },
+            "sandbox_interactions": {
+                "total_count": len(self.sandbox_interactions),
+                "sandboxes_involved": list(set(i["sandbox_id"] for i in self.sandbox_interactions)),
+                "total_reward": sum(i["reward"] for i in self.sandbox_interactions),
+                "avg_reward": sum(i["reward"] for i in self.sandbox_interactions) / len(self.sandbox_interactions) if self.sandbox_interactions else 0
+            },
+            "reward_calculations": {
+                "total_count": len(self.reward_details),
+                "total_reward": sum(r["total_reward"] for r in self.reward_details),
+                "avg_components_per_calc": sum(r["component_count"] for r in self.reward_details) / len(self.reward_details) if self.reward_details else 0
+            },
+            "action_sequences": {
+                "total_sequences": len(self.action_sequences),
+                "total_actions": sum(s["action_count"] for s in self.action_sequences)
+            }
+        }
+    
     def save_logs(self):
         """保存所有日志到文件"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -140,6 +250,23 @@ class TrainingLogger:
         # 保存执行时间线
         with open(f"{self.log_dir}/execution_timeline_{timestamp}.json", "w", encoding="utf-8") as f:
             json.dump(self.execution_timeline, f, ensure_ascii=False, indent=2)
+        
+        # 新增：保存详细交互记录
+        with open(f"{self.log_dir}/llm_interactions_{timestamp}.json", "w", encoding="utf-8") as f:
+            json.dump(self.llm_interactions, f, ensure_ascii=False, indent=2)
+        
+        with open(f"{self.log_dir}/sandbox_interactions_{timestamp}.json", "w", encoding="utf-8") as f:
+            json.dump(self.sandbox_interactions, f, ensure_ascii=False, indent=2)
+        
+        with open(f"{self.log_dir}/reward_details_{timestamp}.json", "w", encoding="utf-8") as f:
+            json.dump(self.reward_details, f, ensure_ascii=False, indent=2)
+        
+        with open(f"{self.log_dir}/action_sequences_{timestamp}.json", "w", encoding="utf-8") as f:
+            json.dump(self.action_sequences, f, ensure_ascii=False, indent=2)
+        
+        # 保存交互摘要
+        with open(f"{self.log_dir}/interaction_summary_{timestamp}.json", "w", encoding="utf-8") as f:
+            json.dump(self.get_interaction_summary(), f, ensure_ascii=False, indent=2)
         
         return timestamp
 
@@ -710,13 +837,44 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
             ]
             
             total_reward = 0
+            cycle_actions = []  # 记录本轮的所有动作
+            
             for node_id in llm_nodes:
                 training_logger.log_node_state(node_id, "executing", {"cycle": cycle + 1})
+                
+                # 模拟LLM思考过程
+                thinking_process = f"""
+                Analyzing task for cycle {cycle + 1}:
+                - Node role: {node_id}
+                - Previous performance: {base_score:.3f}
+                - Expected improvement: {cycle * 0.02:.3f}
+                - Strategy: Focus on {node_id.split('_')[0]} optimization
+                """
+                
+                # 构建提示词
+                prompt = f"Execute {node_id} task for training cycle {cycle + 1}. Previous score: {base_score:.3f}"
+                
+                # 模拟LLM响应
+                llm_response = f"Cycle {cycle + 1} optimized response from {node_id} with improved reasoning and enhanced performance targeting {cycle_score:.3f} score"
+                
+                # 记录LLM交互
+                training_logger.log_llm_interaction(
+                    node_id=node_id,
+                    prompt=prompt,
+                    response=llm_response,
+                    thinking_process=thinking_process,
+                    confidence=min(0.9, 0.5 + cycle * 0.1),  # 模拟置信度提升
+                    metadata={
+                        "cycle": cycle + 1,
+                        "node_type": "llm",
+                        "optimization_target": cycle_score
+                    }
+                )
                 
                 # 创建模拟的训练经验
                 evaluation_result = {
                     "score": cycle_score + (hash(node_id) % 50) / 1000,  # 每个节点略有不同
-                    "response": f"Cycle {cycle + 1} response from {node_id}",
+                    "response": llm_response,
                     "improvement": cycle * 0.02,
                     "execution_time": execution_time / len(llm_nodes)
                 }
@@ -726,6 +884,31 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
                     evaluation_result,
                     {"cycle": cycle + 1, "node_role": node_id}
                 )
+                
+                # 记录详细的奖励计算
+                training_logger.log_reward_calculation(
+                    node_id=node_id,
+                    raw_score=evaluation_result["score"],
+                    reward_components=rewards,
+                    total_reward=rewards["total"],
+                    calculation_details={
+                        "base_score": base_score,
+                        "cycle_bonus": cycle * 0.02,
+                        "node_specific_bonus": (hash(node_id) % 50) / 1000,
+                        "improvement_factor": evaluation_result["improvement"]
+                    }
+                )
+                
+                # 记录动作
+                action_detail = {
+                    "action_type": "llm_generation",
+                    "node_id": node_id,
+                    "input": prompt,
+                    "output": llm_response,
+                    "reward": rewards["total"],
+                    "timestamp": datetime.now().isoformat()
+                }
+                cycle_actions.append(action_detail)
                 
                 # 添加经验到RL框架
                 rl_framework.rl_trainer.add_experience(
@@ -747,6 +930,53 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
                     training_logger.log_weight_update(node_id, mock_gradients, 3e-4, "rl_update")
                 
                 training_logger.log_node_state(node_id, "completed", {"reward": rewards["total"]})
+            
+            # 记录沙盒交互详情
+            for node_id, node in graph.nodes.items():
+                if node.node_type == NodeType.SANDBOX:
+                    # 模拟沙盒交互过程
+                    sandbox_state = f"cycle_{cycle + 1}_ready"
+                    sandbox_action = f"process_task_cycle_{cycle + 1}"
+                    sandbox_reward = cycle_score * 2.0  # 沙盒奖励通常更高
+                    sandbox_next_state = f"cycle_{cycle + 1}_completed"
+                    
+                    training_logger.log_sandbox_interaction(
+                        sandbox_id=node_id,
+                        state=sandbox_state,
+                        action=sandbox_action,
+                        reward=sandbox_reward,
+                        next_state=sandbox_next_state,
+                        done=(cycle == num_cycles - 1),
+                        case_data={
+                            "cycle": cycle + 1,
+                            "input_complexity": min(10, cycle + 3),
+                            "expected_difficulty": 0.3 + cycle * 0.1
+                        },
+                        result_data={
+                            "success": True,
+                            "execution_time": execution_time / 2,
+                            "quality_score": cycle_score,
+                            "efficiency_score": max(0.5, 1.0 - execution_time / 10)
+                        },
+                        metadata={
+                            "sandbox_type": node_id,
+                            "cycle": cycle + 1,
+                            "total_cycles": num_cycles
+                        }
+                    )
+            
+            # 记录本轮的动作序列
+            training_logger.log_action_sequence(
+                sequence_id=f"training_cycle_{cycle + 1}",
+                actions=cycle_actions,
+                sequence_type="training_cycle",
+                metadata={
+                    "cycle": cycle + 1,
+                    "total_reward": total_reward,
+                    "execution_time": execution_time,
+                    "performance_score": cycle_score
+                }
+            )
             
             # 记录训练历史
             cycle_stats = {
