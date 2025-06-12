@@ -832,7 +832,7 @@ def main():
     print_separator("🧩 SandGraph RL增强演示", 80)
     print("展示基于强化学习的单一LLM优化 - 多节点参数共享架构")
     
-    training_logger.log_text("SYSTEM", "开始SandGraph RL增强演示")
+    training_logger.log_text("SYSTEM", "Starting SandGraph RL enhanced demo")
     
     try:
         # 1. 创建复杂的RL工作流
@@ -927,26 +927,26 @@ def main():
         print(f"✅ MCP协议: {'可用' if mcp_info['available'] else '不可用'}")
         
         # 总结
-        print_separator("演示总结", 80)
-        print("✅ 复杂RL工作流构建完成 - 7个LLM节点共享1个模型")
-        print("✅ 工作流图可视化完成 - 多层级复杂结构")
-        print("✅ RL训练循环完成 - 展示参数共享优化过程")
-        print("✅ 训练结果分析完成 - 验证性能提升效果")
-        print("✅ DAG可视化完成 - 实时状态变化展示")
-        print("✅ 权重更新记录完成 - 详细梯度信息保存")
-        print("✅ 训练日志保存完成 - 完整执行过程记录")
-        print("✅ 基础功能验证完成 - 确保向后兼容")
+        print_separator("Demo Summary", 80)
+        print("✅ Complex RL workflow construction completed - 7 LLM nodes sharing 1 model")
+        print("✅ Workflow graph visualization completed - Multi-layer complex structure")
+        print("✅ RL training cycles completed - Parameter sharing optimization process")
+        print("✅ Training result analysis completed - Performance improvement verification")
+        print("✅ DAG visualization completed - Real-time state change display")
+        print("✅ Weight update recording completed - Detailed gradient information saved")
+        print("✅ Training log saving completed - Complete execution process recorded")
+        print("✅ Basic function verification completed - Backward compatibility ensured")
         
-        print(f"\n🎯 核心创新验证:")
-        print(f"   ✓ 单一LLM架构：全局只有1个模型被训练优化")
-        print(f"   ✓ 参数共享机制：7个LLM节点共享同一模型参数")
-        print(f"   ✓ 复杂执行图：8层多路径工作流图")
-        print(f"   ✓ RL优化循环：经验回放→梯度聚合→参数更新")
-        print(f"   ✓ 实时可视化：DAG状态变化和沙盒执行过程")
-        print(f"   ✓ 完整日志：权重更新、节点状态、执行时间线")
-        print(f"   ✓ 性能分析：训练指标图表和动画展示")
+        print(f"\n🎯 Core Innovation Verification:")
+        print(f"   ✓ Single LLM Architecture: Only 1 global model trained and optimized")
+        print(f"   ✓ Parameter Sharing Mechanism: 7 LLM nodes share the same model parameters")
+        print(f"   ✓ Complex Execution Graph: 8-layer multi-path workflow graph")
+        print(f"   ✓ RL Optimization Loop: Experience replay → Gradient aggregation → Parameter update")
+        print(f"   ✓ Real-time Visualization: DAG state changes and sandbox execution process")
+        print(f"   ✓ Complete Logging: Weight updates, node states, execution timeline")
+        print(f"   ✓ Performance Analysis: Training metrics charts and animation display")
         
-        training_logger.log_text("SYSTEM", "SandGraph RL增强演示完成")
+        training_logger.log_text("SYSTEM", "SandGraph RL enhanced demo completed")
         
         return {
             "rl_framework": rl_framework,
@@ -963,8 +963,8 @@ def main():
         }
         
     except Exception as e:
-        print(f"❌ 演示过程中出现错误: {str(e)}")
-        training_logger.log_text("ERROR", f"演示失败: {str(e)}")
+        print(f"❌ Error occurred during demo: {str(e)}")
+        training_logger.log_text("ERROR", f"Demo failed: {str(e)}")
         import traceback
         traceback.print_exc()
         return {"error": str(e)}
