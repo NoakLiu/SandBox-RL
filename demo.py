@@ -17,7 +17,7 @@ from typing import Dict, Any
 sys.path.insert(0, '.')
 
 from sandgraph.core.workflow import WorkflowGraph, WorkflowNode, NodeType
-from sandgraph.core.rl_framework import create_rl_framework, Experience
+from sandgraph.core.rl_framework import create_rl_framework
 from sandgraph.sandbox_implementations import Game24Sandbox, SummarizeSandbox
 from sandgraph.examples import UserCaseExamples
 
@@ -288,19 +288,14 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
                     {"cycle": cycle + 1, "node_role": node_id}
                 )
                 
-                # 创建经验记录
-                experience = Experience(
+                # 添加经验到RL框架
+                rl_framework.rl_trainer.add_experience(
                     state={"cycle": cycle + 1, "node_id": node_id, "task_type": "complex_workflow"},
                     action=f"Generated response for {node_id}",
                     reward=rewards["total"],
-                    next_state={"cycle": cycle + 2},
                     done=(cycle == num_cycles - 1),
-                    agent_id=node_id,
-                    episode_id=episode_id
+                    group_id=node_id
                 )
-                
-                # 添加经验到RL框架
-                rl_framework.rl_trainer.add_experience(experience)
                 total_reward += rewards["total"]
             
             # 记录训练历史
