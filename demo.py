@@ -1116,6 +1116,9 @@ def main():
         # 6. 保存日志
         print_separator("Save Training Logs")
         log_timestamp = training_logger.save_logs()
+        
+        # 显示交互摘要
+        interaction_summary = training_logger.get_interaction_summary()
         print(f"✅ Training logs saved successfully")
         print(f"   📁 Log directory: training_logs/")
         print(f"   📝 Text logs: text_logs_{log_timestamp}.json")
@@ -1123,6 +1126,37 @@ def main():
         print(f"   🔄 Node states: node_states_{log_timestamp}.json")
         print(f"   🏝️  Sandbox states: sandbox_states_{log_timestamp}.json")
         print(f"   ⏱️  Execution timeline: execution_timeline_{log_timestamp}.json")
+        
+        # 新增的详细交互日志
+        print(f"\n🔍 Detailed Interaction Logs:")
+        print(f"   🧠 LLM interactions: llm_interactions_{log_timestamp}.json")
+        print(f"   🏝️  Sandbox interactions: sandbox_interactions_{log_timestamp}.json")
+        print(f"   🎁 Reward details: reward_details_{log_timestamp}.json")
+        print(f"   🔄 Action sequences: action_sequences_{log_timestamp}.json")
+        print(f"   📊 Interaction summary: interaction_summary_{log_timestamp}.json")
+        
+        # 显示交互统计
+        print(f"\n📈 Interaction Statistics:")
+        llm_stats = interaction_summary["llm_interactions"]
+        print(f"   🧠 LLM Interactions: {llm_stats['total_count']} total")
+        print(f"      - Nodes involved: {len(llm_stats['nodes_involved'])}")
+        print(f"      - Average confidence: {llm_stats['avg_confidence']:.3f}")
+        print(f"      - Total tokens processed: {llm_stats['total_tokens_processed']}")
+        
+        sandbox_stats = interaction_summary["sandbox_interactions"]
+        print(f"   🏝️  Sandbox Interactions: {sandbox_stats['total_count']} total")
+        print(f"      - Sandboxes involved: {len(sandbox_stats['sandboxes_involved'])}")
+        print(f"      - Total reward: {sandbox_stats['total_reward']:.2f}")
+        print(f"      - Average reward: {sandbox_stats['avg_reward']:.3f}")
+        
+        reward_stats = interaction_summary["reward_calculations"]
+        print(f"   🎁 Reward Calculations: {reward_stats['total_count']} total")
+        print(f"      - Total reward distributed: {reward_stats['total_reward']:.2f}")
+        print(f"      - Average components per calculation: {reward_stats['avg_components_per_calc']:.1f}")
+        
+        action_stats = interaction_summary["action_sequences"]
+        print(f"   🔄 Action Sequences: {action_stats['total_sequences']} sequences")
+        print(f"      - Total actions recorded: {action_stats['total_actions']}")
         
         # 7. 原有演示（基础功能）
         print_separator("基础功能验证")
@@ -1165,6 +1199,7 @@ def main():
         print("✅ DAG visualization completed - Real-time state change display")
         print("✅ Weight update recording completed - Detailed gradient information saved")
         print("✅ Training log saving completed - Complete execution process recorded")
+        print("✅ Detailed interaction logging completed - LLM thinking and sandbox states captured")
         print("✅ Basic function verification completed - Backward compatibility ensured")
         
         print(f"\n🎯 Core Innovation Verification:")
@@ -1174,6 +1209,7 @@ def main():
         print(f"   ✓ RL Optimization Loop: Experience replay → Gradient aggregation → Parameter update")
         print(f"   ✓ Real-time Visualization: DAG state changes and sandbox execution process")
         print(f"   ✓ Complete Logging: Weight updates, node states, execution timeline")
+        print(f"   ✓ Detailed Interaction Tracking: LLM thinking, sandbox states, reward calculations")
         print(f"   ✓ Performance Analysis: Training metrics charts and animation display")
         
         training_logger.log_text("SYSTEM", "SandGraph RL enhanced demo completed")
