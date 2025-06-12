@@ -37,7 +37,7 @@ def create_complex_rl_workflow():
     rl_framework = create_rl_framework("global_shared_llm")
     
     print("🧠 创建全局共享LLM管理器")
-    print(f"   模型名称: {rl_framework.llm_manager.model_name}")
+    print(f"   模型名称: {rl_framework.llm_manager.llm.model_name}")
     print(f"   所有LLM节点都共享这一个模型的参数")
     
     # 创建复杂工作流图
@@ -240,7 +240,7 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
     print_separator("强化学习训练循环")
     
     print(f"🔄 开始 {num_cycles} 轮RL训练")
-    print(f"   全局LLM模型: {rl_framework.llm_manager.model_name}")
+    print(f"   全局LLM模型: {rl_framework.llm_manager.llm.model_name}")
     print(f"   共享该模型的节点数: {len(rl_framework.llm_manager.registered_nodes)}")
     
     training_history = []
