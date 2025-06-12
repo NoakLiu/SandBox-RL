@@ -11,7 +11,6 @@ SandGraph强化学习框架
 from typing import Any, Dict, List, Optional, Callable, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
-import numpy as np
 import logging
 import json
 import time
@@ -19,6 +18,22 @@ from collections import defaultdict, deque
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
+
+# 尝试导入numpy，如果失败则使用替代方案
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    # 创建简单的替代实现
+    class MockNumpy:
+        class random:
+            @staticmethod
+            def choice(size, batch_size, replace=False):
+                import random
+                return random.sample(range(size), min(batch_size, size))
+    
+    np = MockNumpy()
 
 from .llm_interface import SharedLLMManager, create_shared_llm_manager
 from .rl_algorithms import RLTrainer, create_ppo_trainer, create_grpo_trainer, RLAlgorithm
@@ -78,7 +93,10 @@ class ExperienceBuffer:
             if len(self.buffer) < batch_size:
                 return list(self.buffer)
             
-            indices = np.random.choice(len(self.buffer), batch_size, replace=False)
+            if HAS_NUMPY:
+                indices = np.random.choice(len(self.buffer), batch_size, replace=False)
+            else:
+                indices = np.random.choice(len(self.buffer), batch_size, replace=False)
             return [self.buffer[i] for i in indices]
     
     def get_recent(self, n: int) -> List[Experience]:
@@ -140,7 +158,7 @@ class RewardCalculator:
         self.reward_functions[RewardType.EFFICIENCY_BONUS] = efficiency_bonus
         self.reward_functions[RewardType.COLLABORATION_BONUS] = collaboration_bonus
     
-    def calculate_reward(self, result: Dict[str, Any], context: Dict[str, Any] = None) -> Dict[str, float]:
+    def calculate_reward(self, result: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> Dict[str, float]:
         """计算总奖励"""
         if context is None:
             context = {}
@@ -183,7 +201,7 @@ class RLWorkflowIntegration:
         self.episode_id = 0
         self.experience_buffer = ExperienceBuffer()
         
-    def create_rl_enabled_llm_node(self, node_id: str, node_config: Dict[str, Any] = None):
+    def create_rl_enabled_llm_node(self, node_id: str, node_config: Optional[Dict[str, Any]] = None):
         """创建支持RL的LLM节点"""
         if node_config is None:
             node_config = {}
@@ -191,7 +209,7 @@ class RLWorkflowIntegration:
         # 注册到共享LLM管理器
         self.llm_manager.register_node(node_id, node_config)
         
-        def rl_llm_func(prompt: str, context: Dict[str, Any] = None) -> str:
+        def rl_llm_func(prompt: str, context: Optional[Dict[str, Any]] = None) -> str:
             """支持RL的LLM函数"""
             if context is None:
                 context = {}
