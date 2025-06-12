@@ -305,7 +305,7 @@ def run_rl_training_cycles(rl_framework, graph: WorkflowGraph, num_cycles: int =
                 "execution_time": execution_time,
                 "average_score": cycle_score,
                 "total_reward": total_reward,
-                "experience_buffer_size": rl_framework.rl_trainer.experience_buffer.size(),
+                "experience_buffer_size": rl_framework.experience_buffer.size(),
                 "status": "success"
             }
             
