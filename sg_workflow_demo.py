@@ -52,10 +52,20 @@ def demonstrate_traditional_workflow():
     # 创建传统模式工作流图
     graph = SG_Workflow("traditional_demo", WorkflowMode.TRADITIONAL, llm_manager)
     
+    # 创建LLM函数
+    def llm_analyzer_func(prompt: str, context: Dict[str, Any] = None) -> str:
+        """LLM分析器函数"""
+        if context is None:
+            context = {}
+        # 使用LLM管理器生成响应
+        response = llm_manager.generate_for_node("llm_analyzer", prompt)
+        return response.text
+    
     # 添加LLM节点
     llm_node = EnhancedWorkflowNode(
         "llm_analyzer",
         NodeType.LLM,
+        llm_func=llm_analyzer_func,  # 添加LLM函数
         condition=NodeCondition(),
         limits=NodeLimits(resource_cost={"energy": 5, "tokens": 3})
     )
