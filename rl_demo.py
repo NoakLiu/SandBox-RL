@@ -223,7 +223,7 @@ def demo_rl_workflow():
     print(f"\nRL训练统计:")
     print(f"  当前回合: {rl_stats['current_episode']}")
     print(f"  经验缓冲区大小: {rl_stats['experience_buffer_size']}")
-    print(f"  策略更新次数: {rl_stats['training_stats']['policy_updates_count']}")
+    print(f"  策略更新次数: {rl_stats['training_stats'].get('training_step', 0)}")
     print(f"  LLM推理次数: {rl_stats['llm_manager_info']['total_generations']}")
     print(f"  参数更新次数: {rl_stats['llm_manager_info']['update_count']}")
     
