@@ -221,8 +221,11 @@ async def demo_sg_workflow():
     result = sg_workflow.execute_full_workflow()
     
     print("\n📈 执行结果:")
-    print(f"  状态: {result['status']}")
+    print(f"  总步骤: {result['total_steps']}")
     print(f"  执行时间: {result['total_time']:.3f}秒")
+    print(f"  最终得分: {result['final_score']}")
+    print(f"  完成节点数: {result['completed_nodes_count']}")
+    print(f"  剩余资源: {result['final_resources']}")
     
     return sg_workflow
 
