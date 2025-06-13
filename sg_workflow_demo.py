@@ -185,6 +185,75 @@ def demonstrate_sandbox_only_workflow():
         print(f"执行失败: {e}")
 
 
+def create_complex_game_graph(llm_manager) -> SG_Workflow:
+    """创建复杂的游戏规则图"""
+    # 创建游戏图
+    graph = SG_Workflow("complex_game", WorkflowMode.TRADITIONAL, llm_manager)
+    
+    # 添加节点
+    nodes = [
+        ("start", NodeType.INPUT),
+        ("task_analyzer", NodeType.LLM),
+        ("strategy_planner", NodeType.LLM),
+        ("math_solver", NodeType.SANDBOX),
+        ("text_processor", NodeType.SANDBOX),
+        ("result_verifier", NodeType.LLM),
+        ("quality_assessor", NodeType.LLM),
+        ("final_optimizer", NodeType.LLM),
+        ("end", NodeType.OUTPUT)
+    ]
+    
+    # 创建LLM函数
+    def create_llm_func(node_id: str):
+        def llm_func(prompt: str, context: Dict[str, Any] = None) -> str:
+            if context is None:
+                context = {}
+            response = llm_manager.generate_for_node(node_id, prompt)
+            return response.text
+        return llm_func
+    
+    # 添加节点到图
+    for node_id, node_type in nodes:
+        if node_type == NodeType.LLM:
+            node = EnhancedWorkflowNode(
+                node_id,
+                node_type,
+                llm_func=create_llm_func(node_id),
+                condition=NodeCondition(),
+                limits=NodeLimits(resource_cost={"energy": 5, "tokens": 3})
+            )
+        elif node_type == NodeType.SANDBOX:
+            node = EnhancedWorkflowNode(
+                node_id,
+                node_type,
+                sandbox=Game24Sandbox(),
+                condition=NodeCondition(),
+                limits=NodeLimits(max_visits=3, resource_cost={"energy": 10, "tokens": 5})
+            )
+        else:
+            node = EnhancedWorkflowNode(node_id, node_type)
+        
+        graph.add_node(node)
+    
+    # 添加边
+    edges = [
+        ("start", "task_analyzer"),
+        ("task_analyzer", "strategy_planner"),
+        ("strategy_planner", "math_solver"),
+        ("strategy_planner", "text_processor"),
+        ("math_solver", "result_verifier"),
+        ("text_processor", "result_verifier"),
+        ("result_verifier", "quality_assessor"),
+        ("quality_assessor", "final_optimizer"),
+        ("final_optimizer", "end")
+    ]
+    
+    for src, dst in edges:
+        graph.add_edge(src, dst)
+    
+    return graph
+
+
 def demonstrate_complex_game_graph():
     """演示复杂游戏规则图"""
     print_section("复杂游戏规则图演示")
