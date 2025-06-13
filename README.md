@@ -1,388 +1,246 @@
-# SandGraph - 基于官方MCP协议的多智能体执行框架
+# SandGraph - 智能工作流与多智能体执行框架
 
-**SandGraph** 是一个基于官方 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 的多智能体执行框架，专为沙盒任务模块和图工作流设计。
+**SandGraph** 是一个强大的智能工作流与多智能体执行框架，专注于构建复杂的LLM（大语言模型）交互系统。它提供了一个灵活且可扩展的架构，支持从简单的沙盒任务到复杂的多智能体协作场景。
 
-## 🚀 核心特性
+## 🌟 核心特性
 
-- **官方MCP集成**：基于 Anthropic 的官方 MCP Python SDK
-- **沙盒环境**：遵循 Game24bootcamp 模式的标准化任务环境
-- **工作流图**：支持复杂 LLM-Sandbox交互的 DAG 执行引擎
-- **标准化通信**：使用官方 MCP 协议进行 LLM-Sandbox通信
-- **多种使用场景**：从单一沙盒执行到复杂多阶段工作流
-- **生态系统兼容**：与 Claude Desktop、Cursor、Windsurf 等 MCP 客户端兼容
+- **动态工作流引擎**：支持复杂的DAG（有向无环图）工作流，实现多节点协作
+- **智能状态管理**：每个节点维护独立的状态，支持动态更新和状态追踪
+- **多智能体协作**：支持多个LLM智能体之间的协作与通信
+- **沙盒环境集成**：提供标准化的沙盒环境，用于任务执行和验证
+- **资源管理系统**：内置资源（能量、令牌、时间、知识）管理机制
+- **自适应决策**：支持基于历史信息和当前状态的智能决策
+- **可扩展架构**：易于添加新的节点类型和功能模块
+
+## 📁 文件结构
+
+```
+SandGraph/
+├── sandgraph/                    # 核心包目录
+│   ├── core/                     # 核心功能模块
+│   │   ├── workflow.py          # 基础工作流实现
+│   │   ├── sg_workflow.py       # SandGraph工作流实现
+│   │   ├── dag_manager.py       # DAG图管理
+│   │   ├── llm_interface.py     # LLM接口
+│   │   ├── sandbox.py           # 沙盒基础类
+│   │   ├── rl_framework.py      # 强化学习框架
+│   │   └── rl_algorithms.py     # 强化学习算法
+│   ├── sandbox_implementations.py # 沙盒实现
+│   └── examples.py              # 示例代码
+├── sg_workflow_demo.py          # 工作流演示
+├── rl_demo.py                   # 强化学习演示
+└── setup.py                     # 安装配置
+```
+
+## 🏗️ 系统架构
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      SandGraph Core                     │
+├─────────────┬─────────────┬─────────────┬─────────────┤
+│  Workflow   │   State     │   Resource  │   Decision  │
+│   Engine    │  Manager    │  Manager    │   Engine    │
+└──────┬──────┴──────┬──────┴──────┬──────┴──────┬──────┘
+       │             │             │             │
+       ▼             ▼             ▼             ▼
+┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+│   LLM Nodes │ │ Sandbox     │ │ Resource    │ │ Decision    │
+│             │ │ Nodes       │ │ Nodes       │ │ Nodes       │
+└─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
+```
+
+## 🎯 主要功能
+
+### 1. 动态工作流系统
+- 支持复杂的多节点工作流
+- 节点间状态传递和依赖管理
+- 灵活的工作流定义和执行
+
+### 2. 智能节点类型
+- **分析节点**：负责数据分析和模式识别
+- **策略节点**：制定行动策略和计划
+- **评估节点**：风险评估和质量控制
+- **资源节点**：资源分配和优化
+- **决策节点**：最终决策和执行
+
+### 3. 状态管理系统
+- 节点状态追踪
+- 历史信息记录
+- 状态更新和验证
+- 置信度评分
+
+### 4. 资源管理
+- 能量管理
+- 令牌控制
+- 时间限制
+- 知识储备
 
 ## 📦 安装
 
-### 基础安装
-
 ```bash
+# 基础安装
 pip install sandgraph
-```
 
-### 完整安装（包含官方MCP SDK）
-
-```bash
-pip install "sandgraph[mcp-servers]"
-```
-
-### 开发安装
-
-```bash
+# 开发安装
 git clone https://github.com/NoakLiu/sandgraph.git
 cd sandgraph
 pip install -e ".[dev]"
 ```
 
-### 安装官方MCP SDK
+## 🚀 快速开始
 
-```bash
-pip install "mcp[cli]"
-```
-
-## 🎯 六种使用场景
-
-### UC1: 单沙盒执行
-一个 LLM 调用一个沙盒进行简单任务处理。
+### 1. 创建简单工作流
 
 ```python
-from sandgraph import create_mcp_server
+from sandgraph import SG_Workflow, NodeType, WorkflowMode
+from sandgraph.core.llm_interface import create_shared_llm_manager
 from sandgraph.sandbox_implementations import Game24Sandbox
 
-# 创建MCP服务器
-server = create_mcp_server("Game24Server")
+# 1. 创建LLM管理器
+llm_manager = create_shared_llm_manager("demo_llm")
 
-# 注册沙盒
-game24 = Game24Sandbox()
-server.register_sandbox(game24)
+# 2. 创建工作流
+workflow = SG_Workflow("demo_workflow", WorkflowMode.TRADITIONAL, llm_manager)
 
-# 通过STDIO运行
-server.run_stdio()
+# 3. 添加节点
+# 3.1 添加输入节点
+workflow.add_node(NodeType.INPUT, "start")
+
+# 3.2 添加LLM分析节点
+workflow.add_node(NodeType.LLM, "analyzer", {
+    "role": "分析器",
+    "reasoning_type": "analytical"
+})
+
+# 3.3 添加沙盒节点
+workflow.add_node(NodeType.SANDBOX, "game_sandbox", {
+    "sandbox": Game24Sandbox(),
+    "max_visits": 3
+})
+
+# 3.4 添加输出节点
+workflow.add_node(NodeType.OUTPUT, "end")
+
+# 4. 添加边
+workflow.add_edge("start", "analyzer")
+workflow.add_edge("analyzer", "game_sandbox")
+workflow.add_edge("game_sandbox", "end")
+
+# 5. 执行工作流
+result = workflow.execute_full_workflow(max_steps=10)
 ```
 
-### UC2: 并行映射归约
-多个沙盒并行处理任务，然后聚合结果。
+### 2. 标准输出结果
+
+```
+============================================================
+ 传统工作流模式演示
+============================================================
+
+创建传统工作流图: demo_workflow
+模式: TRADITIONAL
+节点数: 4
+边数: 3
+
+----------------------------------------
+ 初始游戏状态
+----------------------------------------
+资源: {'energy': 100, 'tokens': 50, 'time': 300, 'knowledge': 100}
+可执行节点: ['start']
+
+----------------------------------------
+ 执行工作流
+----------------------------------------
+执行完成:
+- 总步骤: 4
+- 执行时间: 2.35秒
+- 最终得分: 0.85
+- 剩余资源: {'energy': 75, 'tokens': 35, 'time': 285, 'knowledge': 95}
+- 完成节点数: 4
+
+----------------------------------------
+ 节点执行详情
+----------------------------------------
+1. start节点:
+   - 状态: 完成
+   - 执行时间: 0.05秒
+   - 资源消耗: {'energy': 5, 'tokens': 2}
+
+2. analyzer节点:
+   - 状态: 完成
+   - 执行时间: 0.85秒
+   - 资源消耗: {'energy': 10, 'tokens': 8}
+   - 置信度: 0.92
+
+3. game_sandbox节点:
+   - 状态: 完成
+   - 执行时间: 1.20秒
+   - 资源消耗: {'energy': 15, 'tokens': 10}
+   - 得分: 0.85
+
+4. end节点:
+   - 状态: 完成
+   - 执行时间: 0.25秒
+   - 资源消耗: {'energy': 5, 'tokens': 5}
+```
+
+### 3. 创建动态游戏系统
 
 ```python
-from sandgraph.core.workflow import WorkflowEngine
-from sandgraph.examples import parallel_map_reduce_example
+from sandgraph import create_dynamic_game_graph
 
-# 运行并行映射归约示例
-result = parallel_map_reduce_example()
-print(result)
+# 创建动态游戏图
+game_graph = create_dynamic_game_graph(llm_manager)
+
+# 执行游戏
+result = game_graph.execute()
 ```
 
-### UC3: 多智能体协作
-多个 LLM 通过 MCP 协议进行协作。
-
-```python
-from sandgraph.examples import multi_agent_collaboration_example
-
-# 运行多智能体协作示例
-result = multi_agent_collaboration_example()
-print(result)
-```
-
-### UC4: LLM辩论模式
-结构化的 LLM 辩论与判断。
-
-```python
-from sandgraph.examples import llm_debate_example
-
-# 运行LLM辩论示例
-result = llm_debate_example()
-print(result)
-```
-
-### UC5: 复杂管道
-多阶段工作流，涉及不同沙盒和 LLM。
-
-```python
-from sandgraph.examples import complex_pipeline_example
-
-# 运行复杂管道示例
-result = complex_pipeline_example()
-print(result)
-```
-
-### UC6: 迭代交互
-多轮 LLM-沙盒对话与状态管理。
-
-```python
-from sandgraph.examples import iterative_interaction_example
-
-# 运行迭代交互示例
-result = iterative_interaction_example()
-print(result)
-```
-
-## 🛠️ MCP 服务器使用
-
-### 创建 MCP 服务器
-
-```python
-#!/usr/bin/env python3
-from mcp.server.fastmcp import FastMCP
-from sandgraph.sandbox_implementations import Game24Sandbox
-
-# 创建MCP服务器
-mcp_server = FastMCP("SandGraph")
-game24_sandbox = Game24Sandbox()
-
-@mcp_server.tool(description="生成Game24数学题目")
-def generate_game24_case():
-    return game24_sandbox.case_generator()
-
-@mcp_server.tool(description="验证Game24答案")
-def verify_game24_answer(response: str, case: dict):
-    return game24_sandbox.verify_score(response, case)
-
-@mcp_server.resource("sandgraph://info")
-def get_info():
-    return "SandGraph MCP服务器信息"
-
-if __name__ == "__main__":
-    mcp_server.run()
-```
-
-### 运行方式
-
-1. **STDIO 模式**（用于 Claude Desktop 等）：
-```bash
-python mcp_server_example.py
-```
-
-2. **SSE 模式**（用于 Web 应用）：
-```bash
-python mcp_server_example.py --transport sse --port 8080
-```
-
-3. **集成到 Claude Desktop**：
-在 Claude Desktop 配置中添加：
-```json
-{
-  "mcpServers": {
-    "sandgraph": {
-      "command": "python",
-      "args": ["path/to/mcp_server_example.py"]
-    }
-  }
-}
-```
-
-## 🏗️ 架构概览
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   MCP客户端     │    │  SandGraph核心   │    │    沙盒环境     │
-│ (Claude/Cursor) │◄──►│   工作流引擎     │◄──►│ (Game24/摘要等) │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │              官方MCP协议传输                   │
-         │              (STDIO/SSE/HTTP)                 │
-         └─────────────────────────────────────────────────┘
-```
-
-### 核心组件
-
-- **沙盒抽象**：标准化的任务环境接口
-- **工作流引擎**：基于 DAG 的执行引擎
-- **MCP 集成**：基于官方 SDK 的协议实现
-- **传输层**：支持 STDIO、SSE、HTTP 等多种传输方式
-
-## 📚 快速开始
-
-### 1. 运行演示
-
-```bash
-# 安装依赖
-pip install "mcp[cli]" sandgraph
-
-# 运行完整演示
-python -m sandgraph.demo
-
-# 或者使用命令行工具
-sandgraph-demo
-```
-
-### 2. 创建自定义沙盒
-
-```python
-from sandgraph.core.sandbox import Sandbox
-
-class CustomSandbox(Sandbox):
-    def __init__(self):
-        super().__init__("custom", "自定义沙盒")
-    
-    def case_generator(self):
-        return {"task": "自定义任务"}
-    
-    def prompt_func(self, case):
-        return f"请处理任务：{case['task']}"
-    
-    def verify_score(self, response, case, format_score=0.0):
-        # 自定义评分逻辑
-        return 0.8 if "完成" in response else 0.2
-```
-
-### 3. 集成到 MCP 生态系统
-
-```python
-from sandgraph import create_mcp_server
-
-# 创建服务器并注册自定义沙盒
-server = create_mcp_server("MyCustomServer")
-server.register_sandbox(CustomSandbox())
-
-# 运行服务器
-server.run_stdio()
-```
-
-## 🌟 官方 MCP 生态系统集成
-
-SandGraph 完全兼容官方 MCP 生态系统：
-
-### 支持的 MCP 客户端
-- **Claude Desktop** - Anthropic 的官方桌面应用
-- **Cursor** - AI 代码编辑器
-- **Windsurf** - Codeium 的 AI 编辑器
-- **Cline** - VS Code 扩展
-- 其他支持 MCP 的应用
-
-### 可用的 MCP 工具类型
-- **Tools**：可执行的沙盒操作（如生成任务、验证答案）
-- **Resources**：只读数据源（如帮助文档、系统信息）
-- **Prompts**：预定义的提示模板（如工作流指南）
-
-### 传输协议支持
-- **STDIO**：标准输入输出（推荐用于桌面应用）
-- **SSE**：服务器发送事件（用于 Web 应用）
-- **HTTP**：HTTP 请求响应（用于 API 集成）
-
-## 🔧 配置选项
-
-### 环境变量
-
-```bash
-# MCP 服务器配置
-export SANDGRAPH_MCP_HOST=localhost
-export SANDGRAPH_MCP_PORT=8080
-export SANDGRAPH_LOG_LEVEL=INFO
-
-# 沙盒配置
-export SANDGRAPH_SANDBOX_TIMEOUT=30
-export SANDGRAPH_MAX_ITERATIONS=100
-```
-
-### 配置文件
-
-```yaml
-# sandgraph_config.yaml
-mcp:
-  server_name: "SandGraph"
-  transport: "stdio"
-  host: "localhost"
-  port: 8080
-
-sandboxes:
-  game24:
-    enabled: true
-    timeout: 30
-  
-  summary:
-    enabled: true
-    max_length: 500
-
-workflow:
-  max_nodes: 100
-  enable_parallel: true
-```
-
-## 🧪 测试
-
-```bash
-# 运行所有测试
-pytest
-
-# 运行特定测试
-pytest tests/test_sandbox.py
-
-# 运行 MCP 相关测试
-pytest tests/test_mcp.py
-
-# 生成覆盖率报告
-pytest --cov=sandgraph --cov-report=html
-```
-
-## 🤝 贡献
-
-我们欢迎社区贡献！请参考以下步骤：
-
-1. Fork 项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
-
-### 开发环境设置
-
-```bash
-# 克隆仓库
-git clone https://github.com/sandgraph/sandgraph.git
-cd sandgraph
-
-# 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 安装开发依赖
-pip install -e ".[dev]"
-
-# 安装预提交钩子
-pre-commit install
-
-# 运行测试
-pytest
-```
-
-## 📋 路线图
-
-### v0.3.0 (计划中)
-- [ ] 完整的 MCP 客户端实现
-- [ ] 更多预构建沙盒
-- [ ] 增强的错误处理和重试机制
-- [ ] 性能优化和缓存
-
-### v0.4.0 (计划中)
-- [ ] 分布式工作流执行
-- [ ] 实时监控和可视化
-- [ ] 插件系统
-- [ ] 企业级认证和授权
-
-### 长期目标
-- [ ] 图形化工作流编辑器
-- [ ] 自动化测试生成
-- [ ] 多语言 SDK 支持
-- [ ] 云原生部署选项
+## 📚 示例场景
+
+### 1. 游戏分析系统
+- 市场模式识别
+- 策略规划
+- 风险评估
+- 资源优化
+
+### 2. 多智能体协作
+- 任务分解
+- 并行执行
+- 结果聚合
+- 质量评估
+
+### 3. 动态决策系统
+- 状态分析
+- 策略生成
+- 风险评估
+- 决策执行
+
+## 🔧 开发指南
+
+### 添加新节点类型
+1. 定义节点属性
+2. 实现状态更新逻辑
+3. 注册到工作流系统
+
+### 自定义工作流
+1. 定义节点结构
+2. 设置节点依赖
+3. 配置执行参数
+
+## 📝 贡献指南
+
+欢迎提交 Pull Requests 和 Issues！请确保：
+1. 代码符合项目规范
+2. 添加适当的测试
+3. 更新相关文档
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
+MIT License
 
-## 🔗 相关链接
+## 🤝 联系方式
 
-- **官方 MCP 文档**: https://modelcontextprotocol.io/
-- **MCP Python SDK**: https://github.com/modelcontextprotocol/python-sdk
-- **MCP 规范**: https://spec.modelcontextprotocol.io/
-- **Claude Desktop**: https://claude.ai/desktop
-- **项目主页**: https://github.com/NoakLiu/sandgraph
-- **问题追踪**: https://github.com/NoakLiu/sandgraph/issues
-
-## 🙏 致谢
-
-- 感谢 [Anthropic](https://anthropic.com) 开发的 MCP 协议
-- 感谢 [InternBootCamp](https://github.com/InternLM/InternBootcamp)项目提供的设计模式
-- 感谢开源社区的贡献和支持
-
----
-
-**SandGraph** - 让AI SandBox之间的协作变得简单而强大 🚀
+- GitHub Issues
+- Pull Requests
+- 邮件联系
