@@ -484,6 +484,18 @@ def demonstrate_integrated_system():
             learning_rate=1e-4
         )
         
+        # 注册所有LLM节点
+        llm_nodes = {
+            "task_analyzer": {"role": "任务分析器", "reasoning_type": "analytical"},
+            "strategy_planner": {"role": "策略规划器", "reasoning_type": "strategic"},
+            "result_verifier": {"role": "结果验证器", "reasoning_type": "verification"},
+            "quality_assessor": {"role": "质量评估器", "reasoning_type": "evaluation"},
+            "final_optimizer": {"role": "最终优化器", "reasoning_type": "optimization"}
+        }
+        
+        for node_id, node_config in llm_nodes.items():
+            rl_framework.llm_manager.register_node(node_id, node_config)
+        
         # 创建复杂游戏图
         game_graph = create_complex_game_graph(rl_framework.llm_manager)
         
@@ -514,6 +526,7 @@ def demonstrate_integrated_system():
             # 执行游戏并收集RL经验
             step_count = 0
             max_steps = 8
+            round_rewards = []
             
             while step_count < max_steps:
                 executable_nodes = game_graph.get_executable_nodes()
@@ -527,22 +540,34 @@ def demonstrate_integrated_system():
                     # 执行节点（会自动进行LLM推理）
                     result = game_graph.execute_node(next_node)
                     
+                    # 计算奖励
+                    reward = result.get("score", 0.0)
+                    if next_node in llm_nodes:
+                        # 为LLM节点添加额外奖励
+                        reward += 0.1 * (step_count + 1)  # 随着步骤增加奖励
+                    
                     # 为RL训练添加经验
                     rl_framework.rl_trainer.add_experience(
                         state={"node": next_node, "round": round_num},
                         action=result.get("llm_response", "默认动作"),
-                        reward=result.get("score", 0.0),
+                        reward=reward,
                         done=step_count == max_steps - 1,
                         group_id=f"round_{round_num}"
                     )
                     
-                    print(f"  步骤 {step_count + 1}: {next_node} -> 得分 {result.get('score', 0):.3f}")
+                    round_rewards.append(reward)
+                    print(f"  步骤 {step_count + 1}: {next_node} -> 得分 {reward:.3f}")
                     
                 except Exception as e:
                     print(f"  步骤 {step_count + 1}: {next_node} -> 失败: {e}")
                     break
                 
                 step_count += 1
+            
+            # 计算轮次平均奖励
+            if round_rewards:
+                avg_reward = sum(round_rewards) / len(round_rewards)
+                print(f"  轮次平均奖励: {avg_reward:.3f}")
             
             # 尝试更新RL策略
             update_result = rl_framework.rl_trainer.update_policy()
