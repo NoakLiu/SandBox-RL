@@ -179,6 +179,7 @@ def demo_rl_workflow():
     
     for round_num in range(3):
         print(f"\n--- 训练轮次 {round_num + 1} ---")
+        print(f"开始执行工作流...")
         
         try:
             # 执行工作流
@@ -193,6 +194,7 @@ def demo_rl_workflow():
                     "improvement": round_num * 0.1
                 }
                 
+                print(f"\n节点执行详情:")
                 # 为每个LLM节点创建经验
                 for node_id in ["planner", "executor", "reviewer"]:
                     context = {
@@ -202,13 +204,37 @@ def demo_rl_workflow():
                     }
                     
                     # 这会触发经验记录和可能的参数更新
-                    _ = rl_framework.llm_manager.generate_for_node(node_id, f"Round {round_num + 1} task")
+                    response = rl_framework.llm_manager.generate_for_node(node_id, f"Round {round_num + 1} task")
+                    
+                    # 计算奖励
+                    rewards = rl_framework.reward_calculator.calculate_reward(
+                        evaluation_result,
+                        {"cycle": round_num + 1, "node_role": node_id}
+                    )
+                    
+                    print(f"  {node_id}:")
+                    print(f"    - 响应: {response.text[:50]}...")
+                    print(f"    - 评估分数: {evaluation_result['score']:.3f}")
+                    print(f"    - 奖励分解: {json.dumps(rewards, indent=2, ensure_ascii=False)}")
+                    
+                    # 尝试更新策略
+                    update_result = rl_framework.rl_trainer.update_policy()
+                    if update_result.get("status") == "updated":
+                        print(f"    - 策略更新: 损失 {update_result.get('total_loss', 0):.4f}")
             
             training_results.append({
                 "round": round_num + 1,
                 "status": "success",
                 "result_keys": list(result.keys()) if result else []
             })
+            
+            # 打印当前轮次的统计信息
+            current_stats = rl_framework.get_rl_stats()
+            print(f"\n当前轮次统计:")
+            print(f"  - 经验缓冲区大小: {current_stats['experience_buffer_size']}")
+            print(f"  - 策略更新次数: {current_stats['training_stats'].get('training_step', 0)}")
+            print(f"  - LLM推理次数: {current_stats['llm_manager_info']['total_generations']}")
+            print(f"  - 参数更新次数: {current_stats['llm_manager_info'].get('total_updates', 0)}")
             
         except Exception as e:
             print(f"训练轮次 {round_num + 1} 失败: {e}")
