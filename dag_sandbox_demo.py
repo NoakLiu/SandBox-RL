@@ -41,28 +41,106 @@ async def demo_large_sandbox_dag():
         )
     
     # 创建多个Sandbox节点
-    sandbox_a = create_sandbox_task("A")
-    sandbox_b = create_sandbox_task("B")
-    sandbox_c = create_sandbox_task("C")
-    sandbox_d = create_sandbox_task("D")
-    sandbox_e = create_sandbox_task("E")
-    sandbox_f = create_sandbox_task("F")
+    sandboxes = {
+        "A": create_sandbox_task("A"),  # 入口节点
+        "B": create_sandbox_task("B"),  # 第一层
+        "C": create_sandbox_task("C"),  # 第一层
+        "D": create_sandbox_task("D"),  # 第二层
+        "E": create_sandbox_task("E"),  # 第二层
+        "F": create_sandbox_task("F"),  # 第二层
+        "G": create_sandbox_task("G"),  # 第三层
+        "H": create_sandbox_task("H"),  # 第三层
+        "I": create_sandbox_task("I"),  # 第三层
+        "J": create_sandbox_task("J"),  # 第三层
+        "K": create_sandbox_task("K"),  # 第四层
+        "L": create_sandbox_task("L"),  # 第四层
+        "M": create_sandbox_task("M"),  # 第四层
+        "N": create_sandbox_task("N"),  # 第五层
+        "O": create_sandbox_task("O"),  # 第五层
+        "P": create_sandbox_task("P"),  # 第五层
+        "Q": create_sandbox_task("Q"),  # 第五层
+        "R": create_sandbox_task("R"),  # 第六层
+        "S": create_sandbox_task("S"),  # 第六层
+        "T": create_sandbox_task("T"),  # 第六层
+        "U": create_sandbox_task("U"),  # 第七层
+        "V": create_sandbox_task("V"),  # 第七层
+        "W": create_sandbox_task("W"),  # 第八层
+        "X": create_sandbox_task("X"),  # 第八层
+        "Y": create_sandbox_task("Y"),  # 第九层
+        "Z": create_sandbox_task("Z"),  # 出口节点
+    }
     
     # 使用DAG_Manager创建工作流
-    dag = (create_dag_manager("large_sandbox_dag", "大型Sandbox DAG示例")
-           .add_task_node("node_a", "节点A", sandbox_a.run_full_cycle)
-           .add_task_node("node_b", "节点B", sandbox_b.run_full_cycle)
-           .add_task_node("node_c", "节点C", sandbox_c.run_full_cycle)
-           .add_task_node("node_d", "节点D", sandbox_d.run_full_cycle)
-           .add_task_node("node_e", "节点E", sandbox_e.run_full_cycle)
-           .add_task_node("node_f", "节点F", sandbox_f.run_full_cycle)
-           .connect("node_a", "node_b")
-           .connect("node_a", "node_c")
-           .connect("node_b", "node_d")
-           .connect("node_c", "node_d")
-           .connect("node_d", "node_e")
-           .connect("node_d", "node_f")
-           .build())
+    dag = create_dag_manager("complex_sandbox_dag", "复杂Sandbox DAG示例")
+    
+    # 添加所有节点
+    for name, sandbox in sandboxes.items():
+        dag.add_task_node(f"node_{name}", f"节点{name}", 
+                         lambda ctx, data, s=sandbox: s.run_full_cycle())
+    
+    # 创建复杂的连接关系
+    # 第一层连接
+    dag.connect("node_A", "node_B")
+    dag.connect("node_A", "node_C")
+    
+    # 第二层连接
+    dag.connect("node_B", "node_D")
+    dag.connect("node_B", "node_E")
+    dag.connect("node_C", "node_E")
+    dag.connect("node_C", "node_F")
+    
+    # 第三层连接
+    dag.connect("node_D", "node_G")
+    dag.connect("node_D", "node_H")
+    dag.connect("node_E", "node_H")
+    dag.connect("node_E", "node_I")
+    dag.connect("node_F", "node_I")
+    dag.connect("node_F", "node_J")
+    
+    # 第四层连接
+    dag.connect("node_G", "node_K")
+    dag.connect("node_H", "node_K")
+    dag.connect("node_H", "node_L")
+    dag.connect("node_I", "node_L")
+    dag.connect("node_I", "node_M")
+    dag.connect("node_J", "node_M")
+    
+    # 第五层连接
+    dag.connect("node_K", "node_N")
+    dag.connect("node_K", "node_O")
+    dag.connect("node_L", "node_O")
+    dag.connect("node_L", "node_P")
+    dag.connect("node_M", "node_P")
+    dag.connect("node_M", "node_Q")
+    
+    # 第六层连接
+    dag.connect("node_N", "node_R")
+    dag.connect("node_O", "node_R")
+    dag.connect("node_O", "node_S")
+    dag.connect("node_P", "node_S")
+    dag.connect("node_P", "node_T")
+    dag.connect("node_Q", "node_T")
+    
+    # 第七层连接
+    dag.connect("node_R", "node_U")
+    dag.connect("node_S", "node_U")
+    dag.connect("node_S", "node_V")
+    dag.connect("node_T", "node_V")
+    
+    # 第八层连接
+    dag.connect("node_U", "node_W")
+    dag.connect("node_U", "node_X")
+    dag.connect("node_V", "node_X")
+    
+    # 第九层连接
+    dag.connect("node_W", "node_Y")
+    dag.connect("node_X", "node_Y")
+    
+    # 最终出口
+    dag.connect("node_Y", "node_Z")
+    
+    # 构建DAG
+    dag = dag.build()
     
     print("\n📊 DAG拓扑结构:")
     print(dag.visualize_graph())
