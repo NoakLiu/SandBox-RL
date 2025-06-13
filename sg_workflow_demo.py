@@ -724,7 +724,11 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             
             # 构建分析提示
             analysis_prompt = f"""
-            作为{node_config['role']}，请基于以下信息进行自主分析和决策：
+            作为{node_config['role']}，请基于以下信息进行自主分析和决策。
+            你必须返回一个JSON格式的响应，包含以下字段：
+            - analysis: 你的分析结果
+            - confidence: 0到1之间的置信度分数
+            - state_update: 要更新的状态信息
 
             节点属性:
             {json.dumps(node_attributes, indent=2)}
@@ -738,35 +742,71 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             全局状态:
             {json.dumps(current_state, indent=2)}
 
-            请基于以上信息，结合你的专业角色和属性特点，提供详细的分析和决策建议。
-            同时，请更新你的状态信息，包括：
-            1. 分析结果或决策
-            2. 置信度或成功率
-            3. 学习进展
-            4. 历史记录更新
+            请确保你的响应是有效的JSON格式，例如：
+            {{
+                "analysis": "基于当前状态和历史信息，我建议...",
+                "confidence": 0.85,
+                "state_update": {{
+                    "analyzed_patterns": ["pattern1", "pattern2"],
+                    "confidence_level": 0.85
+                }}
+            }}
             """
             
             response = llm_manager.generate_for_node(node_id, analysis_prompt)
             
             # 解析响应并更新节点状态
             try:
+                # 尝试直接解析响应
                 response_data = json.loads(response.text)
-                if isinstance(response_data, dict):
-                    # 更新节点状态
-                    for key, value in response_data.get("state_update", {}).items():
-                        if key in node_state:
-                            node_state[key] = value
-                    
-                    # 返回处理后的响应
-                    return json.dumps({
-                        "analysis": response_data.get("analysis", ""),
-                        "confidence": response_data.get("confidence", 0.0),
-                        "state_update": response_data.get("state_update", {})
-                    })
             except:
-                pass
+                # 如果解析失败，尝试提取JSON部分
+                try:
+                    # 查找第一个 { 和最后一个 } 之间的内容
+                    start = response.text.find('{')
+                    end = response.text.rfind('}') + 1
+                    if start >= 0 and end > start:
+                        json_str = response.text[start:end]
+                        response_data = json.loads(json_str)
+                    else:
+                        # 如果找不到JSON，创建默认响应
+                        response_data = {
+                            "analysis": response.text,
+                            "confidence": 0.5,  # 默认置信度
+                            "state_update": {}
+                        }
+                except:
+                    # 如果所有解析都失败，创建默认响应
+                    response_data = {
+                        "analysis": response.text,
+                        "confidence": 0.5,  # 默认置信度
+                        "state_update": {}
+                    }
             
-            return response.text
+            # 确保响应包含所有必要字段
+            if not isinstance(response_data, dict):
+                response_data = {
+                    "analysis": str(response_data),
+                    "confidence": 0.5,
+                    "state_update": {}
+                }
+            
+            # 确保置信度在0-1之间
+            confidence = float(response_data.get("confidence", 0.5))
+            confidence = max(0.0, min(1.0, confidence))
+            
+            # 更新节点状态
+            state_update = response_data.get("state_update", {})
+            for key, value in state_update.items():
+                if key in node_state:
+                    node_state[key] = value
+            
+            # 返回处理后的响应
+            return json.dumps({
+                "analysis": response_data.get("analysis", ""),
+                "confidence": confidence,
+                "state_update": state_update
+            })
         return llm_func
     
     # 添加节点
@@ -881,7 +921,7 @@ def demonstrate_dynamic_game():
                     state_update = response_data.get("state_update", {})
                 except:
                     analysis = str(result)
-                    confidence = 0.0
+                    confidence = 0.5  # 默认置信度
                     state_update = {}
                 
                 # 更新游戏历史
