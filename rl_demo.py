@@ -26,6 +26,7 @@ from sandgraph.core.rl_framework import (
 )
 from sandgraph.core.workflow import WorkflowGraph, WorkflowNode, NodeType
 from sandgraph.sandbox_implementations import Game24Sandbox
+from sandgraph.core.llm_interface import SharedLLMManager, create_shared_llm_manager
 
 
 def print_separator(title: str, width: int = 60):
@@ -40,7 +41,12 @@ def demo_shared_llm_manager():
     print_separator("共享LLM管理器演示")
     
     # 创建共享LLM管理器
-    llm_manager = SharedLLMManager("demo_shared_llm")
+    llm_manager = create_shared_llm_manager(
+        model_name="demo_shared_llm",
+        backend="mock",
+        temperature=0.7,
+        max_length=512
+    )
     
     # 注册多个LLM节点
     nodes = ["planner", "executor", "reviewer", "critic"]
@@ -53,16 +59,16 @@ def demo_shared_llm_manager():
     responses = {}
     for node_id in nodes:
         prompt = f"作为{node_id}，请处理这个任务：解决数学问题"
-        response = llm_manager.inference(node_id, prompt)
+        response = llm_manager.generate_for_node(node_id, prompt)
         responses[node_id] = response
-        print(f"{node_id}: {response}")
+        print(f"{node_id}: {response.text}")
     
     # 显示模型信息
-    model_info = llm_manager.get_model_info()
+    stats = llm_manager.get_global_stats()
     print(f"\n模型统计信息:")
-    print(f"  总推理次数: {model_info['inference_count']}")
-    print(f"  参数更新次数: {model_info['update_count']}")
-    print(f"  节点统计: {json.dumps(model_info['node_stats'], indent=2, ensure_ascii=False)}")
+    print(f"  总生成次数: {stats['total_generations']}")
+    print(f"  参数更新次数: {stats['total_updates']}")
+    print(f"  节点统计: {json.dumps(stats['node_usage_stats'], indent=2, ensure_ascii=False)}")
     
     return llm_manager, responses
 
@@ -98,30 +104,25 @@ def demo_experience_and_rewards():
     print(f"评估分数: {score}")
     
     # 计算奖励
-    rewards = rl_framework.rl_trainer.reward_calculator.calculate_reward(
-        evaluation_result, 
-        {"is_collaboration": False}
+    rewards = rl_framework.reward_calculator.calculate_reward(
+        evaluation_result,
+        {"cycle": 1, "node_role": "executor"}
     )
     
     print(f"奖励分解: {json.dumps(rewards, indent=2, ensure_ascii=False)}")
     
     # 创建经验记录
-    experience = Experience(
-        state={"prompt": prompt, "task": case},
-        action=response,
-        reward=rewards["total"],
-        next_state={},
-        done=True,
-        agent_id="executor",
-        episode_id="episode_1"
+    rl_framework.rl_trainer.add_experience(
+        {"cycle": 1, "node_id": "executor", "task_type": "complex_workflow"},
+        f"Generated response for executor",
+        rewards["total"],
+        True,
+        "executor"
     )
     
-    # 添加到经验缓冲区
-    rl_framework.rl_trainer.add_experience(experience)
+    print(f"经验缓冲区大小: {rl_framework.experience_buffer.size()}")
     
-    print(f"经验缓冲区大小: {rl_framework.rl_trainer.experience_buffer.size()}")
-    
-    return rl_framework, experience
+    return rl_framework, evaluation_result
 
 
 def demo_rl_workflow():
@@ -201,7 +202,7 @@ def demo_rl_workflow():
                     }
                     
                     # 这会触发经验记录和可能的参数更新
-                    _ = rl_framework.llm_manager.inference(node_id, f"Round {round_num + 1} task")
+                    _ = rl_framework.llm_manager.generate_for_node(node_id, f"Round {round_num + 1} task")
             
             training_results.append({
                 "round": round_num + 1,
@@ -221,9 +222,9 @@ def demo_rl_workflow():
     rl_stats = rl_framework.get_rl_stats()
     print(f"\nRL训练统计:")
     print(f"  当前回合: {rl_stats['current_episode']}")
-    print(f"  经验缓冲区大小: {rl_stats['training_stats']['experience_buffer_size']}")
+    print(f"  经验缓冲区大小: {rl_stats['experience_buffer_size']}")
     print(f"  策略更新次数: {rl_stats['training_stats']['policy_updates_count']}")
-    print(f"  LLM推理次数: {rl_stats['llm_manager_info']['inference_count']}")
+    print(f"  LLM推理次数: {rl_stats['llm_manager_info']['total_generations']}")
     print(f"  参数更新次数: {rl_stats['llm_manager_info']['update_count']}")
     
     return rl_framework, training_results
@@ -244,7 +245,7 @@ def demo_multi_agent_collaboration():
         improvement = collab_score - solo_score
         return max(0, improvement * 5.0)  # 协作改善奖励
     
-    rl_framework.rl_trainer.reward_calculator.register_custom_reward(
+    rl_framework.reward_calculator.register_custom_reward(
         "collaboration_improvement", 
         collaboration_improvement_reward
     )
@@ -308,7 +309,7 @@ def demo_multi_agent_collaboration():
             "improvement_over_solo": collaborative_performance - avg_solo_performance
         }
         
-        rewards = rl_framework.rl_trainer.reward_calculator.calculate_reward(
+        rewards = rl_framework.reward_calculator.calculate_reward(
             {"score": collaborative_performance},
             collab_context
         )
@@ -331,7 +332,7 @@ def demo_multi_agent_collaboration():
     print(f"\n协作学习统计:")
     print(f"  参与智能体: {len(agents)}")
     print(f"  协作任务数: {len(tasks)}")
-    print(f"  总经验记录: {final_stats['training_stats']['experience_buffer_size']}")
+    print(f"  总经验记录: {final_stats['experience_buffer_size']}")
     print(f"  平均性能改善: {sum(r['improvement'] for r in collaboration_results) / len(collaboration_results):.3f}")
     
     return rl_framework, collaboration_results
