@@ -769,6 +769,24 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             node_rules = game_rules.get("节点职责", {}).get(node_id, {})
             required_state_updates = node_rules.get("状态更新", [])
             
+            # 打印节点信息
+            print(f"\n{'='*80}")
+            print(f"节点 {node_id} ({node_config['role']}) 开始执行")
+            print(f"{'='*80}")
+            
+            # 打印输入信息
+            print("\n输入信息:")
+            print(f"1. 节点属性:")
+            print(json.dumps(node_attributes, indent=2, ensure_ascii=False))
+            print(f"\n2. 当前状态:")
+            print(json.dumps(node_state, indent=2, ensure_ascii=False))
+            print(f"\n3. 历史信息:")
+            print(json.dumps(history, indent=2, ensure_ascii=False))
+            print(f"\n4. 全局状态:")
+            print(json.dumps(current_state, indent=2, ensure_ascii=False))
+            print(f"\n5. 节点规则:")
+            print(json.dumps(node_rules, indent=2, ensure_ascii=False))
+            
             # 构建分析提示
             analysis_prompt = f"""
             作为{node_config['role']}，请基于以下信息进行自主分析和决策。
@@ -893,12 +911,27 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             }}
             """
             
+            # 打印思考过程
+            print("\n思考过程:")
+            print("1. 分析当前状态和历史信息")
+            print("2. 根据节点职责确定需要更新的状态字段")
+            print("3. 生成具体的状态更新示例")
+            print("4. 计算置信度分数")
+            print("5. 生成完整的分析报告")
+            
+            # 调用LLM
+            print("\n调用LLM生成响应...")
             response = llm_manager.generate_for_node(node_id, analysis_prompt)
+            
+            # 打印原始响应
+            print("\nLLM原始响应:")
+            print(response.text)
             
             # 解析响应并更新节点状态
             try:
                 # 尝试直接解析响应
                 response_data = json.loads(response.text)
+                print("\n成功解析JSON响应")
             except:
                 # 如果解析失败，尝试提取JSON部分
                 try:
@@ -908,6 +941,7 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
                     if start >= 0 and end > start:
                         json_str = response.text[start:end]
                         response_data = json.loads(json_str)
+                        print("\n从文本中提取并解析JSON响应")
                     else:
                         # 如果找不到JSON，创建默认响应
                         response_data = {
@@ -915,6 +949,7 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
                             "confidence": 0.5,
                             "state_update": {}
                         }
+                        print("\n创建默认响应")
                 except:
                     # 如果所有解析都失败，创建默认响应
                     response_data = {
@@ -922,6 +957,7 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
                         "confidence": 0.5,
                         "state_update": {}
                     }
+                    print("\n解析失败，创建默认响应")
             
             # 确保响应包含所有必要字段
             if not isinstance(response_data, dict):
@@ -930,6 +966,7 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
                     "confidence": 0.5,
                     "state_update": {}
                 }
+                print("\n响应不是字典格式，转换为默认格式")
             
             # 确保置信度在0-1之间
             confidence = float(response_data.get("confidence", 0.5))
@@ -939,6 +976,7 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             state_update = response_data.get("state_update", {})
             
             # 确保所有必需的状态更新字段都存在
+            print("\n检查必需的状态更新字段:")
             for field in required_state_updates:
                 if field not in state_update:
                     # 如果字段不存在，添加默认值
@@ -950,18 +988,30 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
                         state_update[field] = {}
                     else:
                         state_update[field] = None
+                    print(f"- 添加默认值到字段: {field}")
             
             # 更新节点状态
+            print("\n更新节点状态:")
             for key, value in state_update.items():
                 if key in node_state:
                     node_state[key] = value
+                    print(f"- 更新 {key}: {value}")
             
-            # 返回处理后的响应
-            return json.dumps({
+            # 打印最终输出
+            print("\n最终输出:")
+            final_response = {
                 "analysis": response_data.get("analysis", ""),
                 "confidence": confidence,
                 "state_update": state_update
-            }, ensure_ascii=False)
+            }
+            print(json.dumps(final_response, indent=2, ensure_ascii=False))
+            
+            print(f"\n{'-'*80}")
+            print(f"节点 {node_id} 执行完成")
+            print(f"{'-'*80}\n")
+            
+            # 返回处理后的响应
+            return json.dumps(final_response, ensure_ascii=False)
         return llm_func
     
     # 添加节点
