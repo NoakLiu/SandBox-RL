@@ -760,9 +760,14 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             # 获取历史信息
             history = context.get("history", [])
             current_state = context.get("current_state", {})
+            game_rules = context.get("game_rules", {})
             node_config = llm_nodes[node_id]
             node_attributes = node_config["attributes"]
             node_state = node_config["state"]
+            
+            # 获取节点规则
+            node_rules = game_rules["节点职责"].get(node_id, {})
+            required_state_updates = node_rules.get("状态更新", [])
             
             # 构建分析提示
             analysis_prompt = f"""
@@ -784,46 +789,108 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             全局状态:
             {json.dumps(current_state, indent=2, ensure_ascii=False)}
 
-            根据你的角色，你必须更新以下状态字段：
+            游戏规则:
+            {json.dumps(game_rules, indent=2, ensure_ascii=False)}
+
+            你必须更新以下状态字段（{', '.join(required_state_updates)}），并提供具体的示例：
             {{
                 "game_analyzer": {{
-                    "analyzed_patterns": ["新发现的模式1", "新发现的模式2"],
+                    "analyzed_patterns": [
+                        "模式1：股票价格在10:30-11:00期间出现大幅波动，波动幅度超过5%",
+                        "模式2：成交量在14:00后突然放大，是前一个小时的2倍以上",
+                        "模式3：某板块股票集体上涨，涨幅超过3%"
+                    ],
                     "confidence_level": 0.85,
-                    "last_analysis": "分析结果摘要"
+                    "last_analysis": "发现3个重要市场模式：早盘波动、尾盘放量、板块联动"
                 }},
                 "strategy_planner": {{
-                    "current_strategy": "当前策略描述",
-                    "strategy_history": ["历史策略1", "历史策略2"],
+                    "current_strategy": "采用网格交易策略，在股票A的50-60元区间设置5个网格，每个网格间距2元",
+                    "strategy_history": [
+                        "策略1：在股票B的30元位置买入1000股，设置35元止盈，28元止损",
+                        "策略2：对股票C采用定投策略，每周一买入500股，持续3个月",
+                        "策略3：对股票D采用波段操作，在25-30元区间高抛低吸"
+                    ],
                     "success_rate": 0.75
                 }},
                 "risk_assessor": {{
-                    "risk_levels": {{"level1": "低风险", "level2": "中风险"}},
-                    "assessment_history": ["历史评估1", "历史评估2"],
-                    "risk_trends": ["上升趋势", "下降趋势"]
+                    "risk_levels": {{
+                        "market_risk": "高风险：市场整体处于高位，存在回调风险",
+                        "sector_risk": "中风险：科技板块估值偏高，但成长性良好",
+                        "stock_risk": "低风险：目标股票基本面稳健，现金流充足"
+                    }},
+                    "assessment_history": [
+                        "评估1：股票A的波动率超过30%，建议降低仓位",
+                        "评估2：股票B的市盈率处于历史低位，风险较小",
+                        "评估3：股票C的负债率过高，存在财务风险"
+                    ],
+                    "risk_trends": [
+                        "趋势1：市场风险正在上升，建议提高现金仓位",
+                        "趋势2：行业风险趋于稳定，可以适度加仓",
+                        "趋势3：个股风险分化，需要精选标的"
+                    ]
                 }},
                 "resource_manager": {{
-                    "resource_allocation": {{"energy": 80, "tokens": 40}},
-                    "optimization_history": ["优化记录1", "优化记录2"],
+                    "resource_allocation": {{
+                        "energy": 80,
+                        "tokens": 40,
+                        "time": 200,
+                        "knowledge": 8
+                    }},
+                    "optimization_history": [
+                        "优化1：将50%的energy用于高频交易策略",
+                        "优化2：分配30%的tokens用于市场分析",
+                        "优化3：使用20%的time进行风险控制"
+                    ],
                     "efficiency_score": 0.85
                 }},
                 "performance_optimizer": {{
-                    "optimization_metrics": {{"speed": 0.9, "efficiency": 0.85}},
-                    "improvement_history": ["改进记录1", "改进记录2"],
-                    "current_focus": "当前优化重点"
+                    "optimization_metrics": {{
+                        "speed": 0.9,
+                        "efficiency": 0.85,
+                        "accuracy": 0.92,
+                        "cost": 0.78
+                    }},
+                    "improvement_history": [
+                        "改进1：优化交易算法，将执行时间缩短30%",
+                        "改进2：改进风控系统，将误报率降低50%",
+                        "改进3：优化资金利用，将资金周转率提高40%"
+                    ],
+                    "current_focus": "重点优化高频交易策略的执行效率"
                 }},
                 "quality_controller": {{
-                    "quality_metrics": {{"accuracy": 0.95, "consistency": 0.9}},
-                    "inspection_history": ["检查记录1", "检查记录2"],
+                    "quality_metrics": {{
+                        "accuracy": 0.95,
+                        "consistency": 0.9,
+                        "reliability": 0.88,
+                        "stability": 0.92
+                    }},
+                    "inspection_history": [
+                        "检查1：交易系统稳定性测试通过，无异常",
+                        "检查2：风控指标符合要求，预警机制正常",
+                        "检查3：资金使用效率达到预期目标"
+                    ],
                     "quality_score": 0.92
                 }},
                 "decision_maker": {{
-                    "decision_history": ["决策1", "决策2"],
+                    "decision_history": [
+                        "决策1：在股票A的45元位置买入2000股，设置50元止盈",
+                        "决策2：对股票B进行减仓操作，降低30%仓位",
+                        "决策3：将股票C的止损位从25元调整到23元"
+                    ],
                     "decision_confidence": 0.88,
                     "learning_progress": 0.75
                 }}
             }}
 
             请确保你的响应是有效的JSON格式，并且包含所有必要的状态更新字段。
+            你的响应必须包含以下格式：
+            {{
+                "analysis": "你的分析结果",
+                "confidence": 0.85,
+                "state_update": {{
+                    // 必须包含所有必需的状态更新字段，并提供具体的示例
+                }}
+            }}
             """
             
             response = llm_manager.generate_for_node(node_id, analysis_prompt)
@@ -845,14 +912,14 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
                         # 如果找不到JSON，创建默认响应
                         response_data = {
                             "analysis": response.text,
-                            "confidence": 0.5,  # 默认置信度
+                            "confidence": 0.5,
                             "state_update": {}
                         }
                 except:
                     # 如果所有解析都失败，创建默认响应
                     response_data = {
                         "analysis": response.text,
-                        "confidence": 0.5,  # 默认置信度
+                        "confidence": 0.5,
                         "state_update": {}
                     }
             
@@ -870,6 +937,21 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             
             # 更新节点状态
             state_update = response_data.get("state_update", {})
+            
+            # 确保所有必需的状态更新字段都存在
+            for field in required_state_updates:
+                if field not in state_update:
+                    # 如果字段不存在，添加默认值
+                    if field.endswith("_history"):
+                        state_update[field] = []
+                    elif field.endswith("_level") or field.endswith("_score") or field.endswith("_rate"):
+                        state_update[field] = 0.5
+                    elif field.endswith("_metrics"):
+                        state_update[field] = {}
+                    else:
+                        state_update[field] = None
+            
+            # 更新节点状态
             for key, value in state_update.items():
                 if key in node_state:
                     node_state[key] = value
@@ -931,6 +1013,59 @@ def demonstrate_dynamic_game():
     """演示动态游戏规则系统"""
     print_section("动态游戏规则系统演示")
     
+    # 游戏规则定义
+    game_rules = {
+        "游戏目标": "通过多个专业节点的协作，完成一个复杂的决策任务",
+        "资源系统": {
+            "energy": "能量值，用于执行节点操作",
+            "tokens": "令牌数，用于LLM调用",
+            "time": "时间限制，用于控制游戏节奏",
+            "knowledge": "知识储备，影响决策质量"
+        },
+        "节点职责": {
+            "game_analyzer": {
+                "角色": "游戏分析专家",
+                "职责": "分析游戏状态和模式",
+                "状态更新": ["analyzed_patterns", "confidence_level", "last_analysis"]
+            },
+            "strategy_planner": {
+                "角色": "策略规划专家",
+                "职责": "制定行动策略",
+                "状态更新": ["current_strategy", "strategy_history", "success_rate"]
+            },
+            "risk_assessor": {
+                "角色": "风险评估专家",
+                "职责": "评估行动风险",
+                "状态更新": ["risk_levels", "assessment_history", "risk_trends"]
+            },
+            "resource_manager": {
+                "角色": "资源管理专家",
+                "职责": "优化资源分配",
+                "状态更新": ["resource_allocation", "optimization_history", "efficiency_score"]
+            },
+            "performance_optimizer": {
+                "角色": "性能优化专家",
+                "职责": "提升系统性能",
+                "状态更新": ["optimization_metrics", "improvement_history", "current_focus"]
+            },
+            "quality_controller": {
+                "角色": "质量控制专家",
+                "职责": "确保决策质量",
+                "状态更新": ["quality_metrics", "inspection_history", "quality_score"]
+            },
+            "decision_maker": {
+                "角色": "决策专家",
+                "职责": "做出最终决策",
+                "状态更新": ["decision_history", "decision_confidence", "learning_progress"]
+            }
+        },
+        "评分规则": {
+            "基础分": "每个节点执行成功获得0.5分",
+            "状态分": "根据状态更新的质量和完整性获得额外分数",
+            "协作分": "节点之间的协作效果影响最终得分"
+        }
+    }
+    
     # 创建共享LLM管理器
     llm_manager = create_shared_llm_manager("dynamic_game_llm")
     
@@ -942,6 +1077,23 @@ def demonstrate_dynamic_game():
         print(f"模式: {game_graph.mode.value}")
         print(f"节点数: {len(game_graph.nodes)}")
         print(f"边数: {len(game_graph.edges)}")
+        
+        # 显示游戏规则
+        print_subsection("游戏规则")
+        print("游戏目标:", game_rules["游戏目标"])
+        print("\n资源系统:")
+        for resource, desc in game_rules["资源系统"].items():
+            print(f"- {resource}: {desc}")
+        
+        print("\n节点职责:")
+        for node_id, node_info in game_rules["节点职责"].items():
+            print(f"\n{node_info['角色']} ({node_id}):")
+            print(f"- 职责: {node_info['职责']}")
+            print(f"- 状态更新: {', '.join(node_info['状态更新'])}")
+        
+        print("\n评分规则:")
+        for rule, desc in game_rules["评分规则"].items():
+            print(f"- {rule}: {desc}")
         
         # 显示游戏结构
         print_subsection("游戏结构")
@@ -965,13 +1117,14 @@ def demonstrate_dynamic_game():
         start_time = time.time()
         
         step_count = 0
-        max_steps = 15  # 增加最大步数
+        max_steps = 15
         game_history = []
         current_state = {
             "resources": stats['game_state']['resources'],
             "completed_nodes": [],
             "current_score": 0.0,
-            "game_phase": "initial"
+            "game_phase": "initial",
+            "game_rules": game_rules  # 添加游戏规则到状态中
         }
         
         while step_count < max_steps:
@@ -989,7 +1142,8 @@ def demonstrate_dynamic_game():
                 context = {
                     "history": game_history,
                     "current_state": current_state,
-                    "step_count": step_count
+                    "step_count": step_count,
+                    "game_rules": game_rules  # 添加游戏规则到上下文
                 }
                 
                 # 执行节点
@@ -1003,7 +1157,7 @@ def demonstrate_dynamic_game():
                     state_update = response_data.get("state_update", {})
                 except:
                     analysis = str(result)
-                    confidence = 0.5  # 默认置信度
+                    confidence = 0.5
                     state_update = {}
                 
                 # 更新游戏历史
