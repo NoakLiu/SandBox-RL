@@ -639,37 +639,332 @@ def demonstrate_integrated_system():
         traceback.print_exc()
 
 
-def main():
-    """主函数"""
-    print("SandGraph增强演示程序")
-    print("展示两种工作流模式和强化学习训练")
+def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
+    """创建动态游戏规则图，LLM节点根据历史信息和属性动态分析"""
+    # 创建游戏图
+    graph = SG_Workflow("dynamic_game", WorkflowMode.TRADITIONAL, llm_manager)
+    
+    # 定义LLM节点配置和初始状态
+    llm_nodes = {
+        "game_analyzer": {
+            "role": "游戏分析专家",
+            "reasoning_type": "analytical",
+            "attributes": {
+                "analysis_depth": 3,
+                "pattern_recognition": True,
+                "historical_context": True,
+                "memory_capacity": 5
+            },
+            "state": {
+                "analyzed_patterns": [],
+                "confidence_level": 0.0,
+                "last_analysis": None
+            }
+        },
+        "strategy_planner": {
+            "role": "策略规划专家",
+            "reasoning_type": "strategic",
+            "attributes": {
+                "planning_horizon": 5,
+                "risk_tolerance": 0.7,
+                "adaptability": 0.8,
+                "strategy_memory": 3
+            },
+            "state": {
+                "current_strategy": None,
+                "strategy_history": [],
+                "success_rate": 0.0
+            }
+        },
+        "resource_manager": {
+            "role": "资源管理专家",
+            "reasoning_type": "resource_optimization",
+            "attributes": {
+                "efficiency": 0.9,
+                "optimization_level": 3,
+                "resource_awareness": True,
+                "prediction_accuracy": 0.8
+            },
+            "state": {
+                "resource_allocation": {},
+                "optimization_history": [],
+                "efficiency_score": 0.0
+            }
+        },
+        "decision_maker": {
+            "role": "决策专家",
+            "reasoning_type": "decision_making",
+            "attributes": {
+                "confidence_threshold": 0.8,
+                "decision_speed": 0.7,
+                "learning_rate": 0.5,
+                "decision_memory": 4
+            },
+            "state": {
+                "decision_history": [],
+                "decision_confidence": 0.0,
+                "learning_progress": 0.0
+            }
+        }
+    }
+    
+    # 注册LLM节点
+    for node_id, node_config in llm_nodes.items():
+        llm_manager.register_node(node_id, node_config)
+    
+    # 创建LLM函数
+    def create_llm_func(node_id: str):
+        def llm_func(prompt: str, context: Dict[str, Any] = {}) -> str:
+            # 获取历史信息
+            history = context.get("history", [])
+            current_state = context.get("current_state", {})
+            node_config = llm_nodes[node_id]
+            node_attributes = node_config["attributes"]
+            node_state = node_config["state"]
+            
+            # 构建分析提示
+            analysis_prompt = f"""
+            作为{node_config['role']}，请基于以下信息进行自主分析和决策：
+
+            节点属性:
+            {json.dumps(node_attributes, indent=2)}
+
+            节点当前状态:
+            {json.dumps(node_state, indent=2)}
+
+            历史信息:
+            {json.dumps(history, indent=2)}
+
+            全局状态:
+            {json.dumps(current_state, indent=2)}
+
+            请基于以上信息，结合你的专业角色和属性特点，提供详细的分析和决策建议。
+            同时，请更新你的状态信息，包括：
+            1. 分析结果或决策
+            2. 置信度或成功率
+            3. 学习进展
+            4. 历史记录更新
+            """
+            
+            response = llm_manager.generate_for_node(node_id, analysis_prompt)
+            
+            # 解析响应并更新节点状态
+            try:
+                response_data = json.loads(response.text)
+                if isinstance(response_data, dict):
+                    # 更新节点状态
+                    for key, value in response_data.get("state_update", {}).items():
+                        if key in node_state:
+                            node_state[key] = value
+                    
+                    # 返回处理后的响应
+                    return json.dumps({
+                        "analysis": response_data.get("analysis", ""),
+                        "confidence": response_data.get("confidence", 0.0),
+                        "state_update": response_data.get("state_update", {})
+                    })
+            except:
+                pass
+            
+            return response.text
+        return llm_func
+    
+    # 添加节点
+    nodes = [
+        ("start", NodeType.INPUT),
+        ("game_analyzer", NodeType.LLM),
+        ("strategy_planner", NodeType.LLM),
+        ("resource_manager", NodeType.LLM),
+        ("decision_maker", NodeType.LLM),
+        ("end", NodeType.OUTPUT)
+    ]
+    
+    for node_id, node_type in nodes:
+        if node_type == NodeType.LLM:
+            node = EnhancedWorkflowNode(
+                node_id,
+                node_type,
+                llm_func=create_llm_func(node_id),
+                condition=NodeCondition(),
+                limits=NodeLimits(resource_cost={"energy": 8, "tokens": 5})
+            )
+        else:
+            node = EnhancedWorkflowNode(node_id, node_type)
+        
+        graph.add_node(node)
+    
+    # 添加边
+    edges = [
+        ("start", "game_analyzer"),
+        ("game_analyzer", "strategy_planner"),
+        ("strategy_planner", "resource_manager"),
+        ("resource_manager", "decision_maker"),
+        ("decision_maker", "end")
+    ]
+    
+    for src, dst in edges:
+        graph.add_edge(src, dst)
+    
+    return graph
+
+
+def demonstrate_dynamic_game():
+    """演示动态游戏规则系统"""
+    print_section("动态游戏规则系统演示")
+    
+    # 创建共享LLM管理器
+    llm_manager = create_shared_llm_manager("dynamic_game_llm")
     
     try:
-        # 1. 传统工作流模式
-        demonstrate_traditional_workflow()
+        # 创建动态游戏图
+        game_graph = create_dynamic_game_graph(llm_manager)
         
-        # 2. 纯沙盒工作流模式
-        demonstrate_sandbox_only_workflow()
+        print(f"创建动态游戏图: {game_graph.graph_id}")
+        print(f"模式: {game_graph.mode.value}")
+        print(f"节点数: {len(game_graph.nodes)}")
+        print(f"边数: {len(game_graph.edges)}")
         
-        # 3. 复杂游戏规则图
-        demonstrate_complex_game_graph()
+        # 显示游戏结构
+        print_subsection("游戏结构")
+        print("节点层级结构:")
+        print("第一层（分析层）: game_analyzer")
+        print("第二层（规划层）: strategy_planner")
+        print("第三层（资源层）: resource_manager")
+        print("第四层（决策层）: decision_maker")
         
-        # 4. 强化学习训练
-        demonstrate_rl_training()
+        # 显示初始状态
+        print_subsection("初始状态")
+        stats = game_graph.get_game_stats()
+        print(f"初始资源: {stats['game_state']['resources']}")
+        print(f"当前可执行节点: {stats['executable_nodes']}")
         
-        # 5. 集成系统
-        demonstrate_integrated_system()
+        # 执行游戏
+        print_subsection("开始游戏")
+        start_time = time.time()
+        
+        step_count = 0
+        max_steps = 10
+        game_history = []
+        current_state = {
+            "resources": stats['game_state']['resources'],
+            "completed_nodes": [],
+            "current_score": 0.0,
+            "game_phase": "initial"
+        }
+        
+        while step_count < max_steps:
+            executable_nodes = game_graph.get_executable_nodes()
+            
+            if not executable_nodes:
+                print("没有可执行的节点，游戏结束")
+                break
+            
+            next_node = executable_nodes[0]
+            print(f"\n步骤 {step_count + 1}: 执行节点 '{next_node}'")
+            
+            try:
+                # 准备上下文信息
+                context = {
+                    "history": game_history,
+                    "current_state": current_state,
+                    "step_count": step_count
+                }
+                
+                # 执行节点
+                result = game_graph.execute_node(next_node, context)
+                
+                # 解析节点响应
+                try:
+                    response_data = json.loads(str(result))
+                    analysis = response_data.get("analysis", "")
+                    confidence = response_data.get("confidence", 0.0)
+                    state_update = response_data.get("state_update", {})
+                except:
+                    analysis = str(result)
+                    confidence = 0.0
+                    state_update = {}
+                
+                # 更新游戏历史
+                game_history.append({
+                    "node": next_node,
+                    "analysis": analysis,
+                    "confidence": confidence,
+                    "state_update": state_update,
+                    "timestamp": time.time()
+                })
+                
+                # 更新当前状态
+                current_state["completed_nodes"].append(next_node)
+                current_state["current_score"] += confidence
+                
+                # 根据节点类型更新游戏阶段
+                if next_node == "game_analyzer":
+                    current_state["game_phase"] = "analysis"
+                elif next_node == "strategy_planner":
+                    current_state["game_phase"] = "planning"
+                elif next_node == "resource_manager":
+                    current_state["game_phase"] = "resource_management"
+                elif next_node == "decision_maker":
+                    current_state["game_phase"] = "decision"
+                
+                print(f"  - 节点分析: {analysis}")
+                print(f"  - 置信度: {confidence:.3f}")
+                print(f"  - 状态更新: {json.dumps(state_update, indent=2)}")
+                print(f"  - 当前得分: {current_state['current_score']:.3f}")
+                print(f"  - 游戏阶段: {current_state['game_phase']}")
+                print(f"  - 剩余资源: {current_state['resources']}")
+                
+            except Exception as e:
+                print(f"  - 执行失败: {e}")
+                break
+            
+            step_count += 1
+            
+            # 短暂延迟以观察冷却机制
+            if step_count % 3 == 0:
+                print("  - 等待冷却...")
+                time.sleep(1)
+        
+        total_time = time.time() - start_time
+        
+        # 显示最终结果
+        print_subsection("游戏结果")
+        print(f"游戏时长: {total_time:.2f}秒")
+        print(f"执行步骤: {step_count}")
+        print(f"最终得分: {current_state['current_score']:.3f}")
+        print(f"完成节点: {len(current_state['completed_nodes'])}")
+        
+        # 显示游戏历史
+        print("\n游戏历史:")
+        for i, entry in enumerate(game_history):
+            print(f"步骤 {i+1}: {entry['node']}")
+            print(f"  分析: {entry['analysis']}")
+            print(f"  置信度: {entry['confidence']:.3f}")
+            print(f"  状态更新: {json.dumps(entry['state_update'], indent=2)}")
+        
+    except Exception as e:
+        print(f"动态游戏演示失败: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+def main():
+    """主函数"""
+    print("SandGraph动态游戏系统")
+    print("展示基于LLM的自主分析和决策")
+    
+    try:
+        # 1. 动态游戏规则系统
+        demonstrate_dynamic_game()
         
         print_section("演示完成")
         print("所有演示已成功完成！")
         print("\n主要特性展示:")
-        print("✓ 传统工作流模式（LLM + Sandbox节点）")
-        print("✓ 纯沙盒工作流模式（Sandbox节点 + LLM推理）")
-        print("✓ 复杂游戏规则图（条件触发 + 访问限制）")
-        print("✓ PPO强化学习算法")
-        print("✓ GRPO强化学习算法")
-        print("✓ 全局共享LLM参数")
-        print("✓ 集成系统（游戏图 + RL训练）")
+        print("✓ 动态游戏规则系统")
+        print("✓ LLM节点自主分析")
+        print("✓ 状态信息追踪")
+        print("✓ 自适应决策")
+        print("✓ 多维度状态管理")
         
     except Exception as e:
         print(f"\n演示过程中出现错误: {e}")
