@@ -53,10 +53,8 @@ def demonstrate_traditional_workflow():
     graph = SG_Workflow("traditional_demo", WorkflowMode.TRADITIONAL, llm_manager)
     
     # 创建LLM函数
-    def llm_analyzer_func(prompt: str, context: Dict[str, Any] = None) -> str:
+    def llm_analyzer_func(prompt: str, context: Dict[str, Any] = {}) -> str:
         """LLM分析器函数"""
-        if context is None:
-            context = {}
         # 使用LLM管理器生成响应
         response = llm_manager.generate_for_node("llm_analyzer", prompt)
         return response.text
@@ -205,9 +203,7 @@ def create_complex_game_graph(llm_manager) -> SG_Workflow:
     
     # 创建LLM函数
     def create_llm_func(node_id: str):
-        def llm_func(prompt: str, context: Dict[str, Any] = None) -> str:
-            if context is None:
-                context = {}
+        def llm_func(prompt: str, context: Dict[str, Any] = {}) -> str:
             response = llm_manager.generate_for_node(node_id, prompt)
             return response.text
         return llm_func
