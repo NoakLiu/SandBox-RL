@@ -162,24 +162,27 @@ class RewardCalculator:
         """计算总奖励"""
         if context is None:
             context = {}
-        
         rewards = {}
         total_reward = 0.0
-        
         for reward_type, reward_func in self.reward_functions.items():
             try:
                 if reward_type == RewardType.COLLABORATION_BONUS:
                     reward = reward_func(context)
                 else:
                     reward = reward_func(result)
-                
-                rewards[reward_type.value] = reward
+                if hasattr(reward_type, 'value'):
+                    key = reward_type.value
+                else:
+                    key = str(reward_type)
+                rewards[key] = reward
                 total_reward += reward
-                
             except Exception as e:
                 logger.warning(f"计算奖励失败 {reward_type}: {e}")
-                rewards[reward_type.value] = 0.0
-        
+                if hasattr(reward_type, 'value'):
+                    key = reward_type.value
+                else:
+                    key = str(reward_type)
+                rewards[key] = 0.0
         rewards["total"] = total_reward
         return rewards
     
