@@ -793,21 +793,10 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             你必须返回一个JSON格式的响应，包含以下字段：
             - analysis: 你的分析结果（使用清晰的语言描述）
             - confidence: 0到1之间的置信度分数
-            - state_update: 要更新的状态信息（必须包含以下字段）
+            - state_update: 必须包含以下状态更新字段：
+                {json.dumps(required_state_updates, indent=2, ensure_ascii=False)}
 
-            节点属性:
-            {json.dumps(node_attributes, indent=2, ensure_ascii=False)}
-
-            节点当前状态:
-            {json.dumps(node_state, indent=2, ensure_ascii=False)}
-
-            历史信息:
-            {json.dumps(history, indent=2, ensure_ascii=False)}
-
-            全局状态:
-            {json.dumps(current_state, indent=2, ensure_ascii=False)}
-
-            游戏规则:
+            当前游戏规则：
             {json.dumps(game_rules, indent=2, ensure_ascii=False)}
 
             你必须更新以下状态字段（{', '.join(required_state_updates)}），并提供具体的示例：
@@ -975,7 +964,7 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             # 更新节点状态
             state_update = response_data.get("state_update", {})
             
-            # 确保所有必需的状态更新字段都存在
+            # 检查必需的状态更新字段
             print("\n检查必需的状态更新字段:")
             for field in required_state_updates:
                 if field not in state_update:
