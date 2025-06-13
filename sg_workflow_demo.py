@@ -770,7 +770,7 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             你必须返回一个JSON格式的响应，包含以下字段：
             - analysis: 你的分析结果（使用清晰的语言描述）
             - confidence: 0到1之间的置信度分数
-            - state_update: 要更新的状态信息
+            - state_update: 要更新的状态信息（必须包含以下字段）
 
             节点属性:
             {json.dumps(node_attributes, indent=2, ensure_ascii=False)}
@@ -784,15 +784,46 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             全局状态:
             {json.dumps(current_state, indent=2, ensure_ascii=False)}
 
-            请确保你的响应是有效的JSON格式，例如：
+            根据你的角色，你必须更新以下状态字段：
             {{
-                "analysis": "基于当前状态和历史信息，我发现...",
-                "confidence": 0.85,
-                "state_update": {{
-                    "analyzed_patterns": ["pattern1", "pattern2"],
-                    "confidence_level": 0.85
+                "game_analyzer": {{
+                    "analyzed_patterns": ["新发现的模式1", "新发现的模式2"],
+                    "confidence_level": 0.85,
+                    "last_analysis": "分析结果摘要"
+                }},
+                "strategy_planner": {{
+                    "current_strategy": "当前策略描述",
+                    "strategy_history": ["历史策略1", "历史策略2"],
+                    "success_rate": 0.75
+                }},
+                "risk_assessor": {{
+                    "risk_levels": {{"level1": "低风险", "level2": "中风险"}},
+                    "assessment_history": ["历史评估1", "历史评估2"],
+                    "risk_trends": ["上升趋势", "下降趋势"]
+                }},
+                "resource_manager": {{
+                    "resource_allocation": {{"energy": 80, "tokens": 40}},
+                    "optimization_history": ["优化记录1", "优化记录2"],
+                    "efficiency_score": 0.85
+                }},
+                "performance_optimizer": {{
+                    "optimization_metrics": {{"speed": 0.9, "efficiency": 0.85}},
+                    "improvement_history": ["改进记录1", "改进记录2"],
+                    "current_focus": "当前优化重点"
+                }},
+                "quality_controller": {{
+                    "quality_metrics": {{"accuracy": 0.95, "consistency": 0.9}},
+                    "inspection_history": ["检查记录1", "检查记录2"],
+                    "quality_score": 0.92
+                }},
+                "decision_maker": {{
+                    "decision_history": ["决策1", "决策2"],
+                    "decision_confidence": 0.88,
+                    "learning_progress": 0.75
                 }}
             }}
+
+            请确保你的响应是有效的JSON格式，并且包含所有必要的状态更新字段。
             """
             
             response = llm_manager.generate_for_node(node_id, analysis_prompt)
