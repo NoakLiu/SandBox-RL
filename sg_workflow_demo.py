@@ -691,6 +691,48 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
                 "efficiency_score": 0.0
             }
         },
+        "risk_assessor": {
+            "role": "风险评估专家",
+            "reasoning_type": "risk_analysis",
+            "attributes": {
+                "risk_threshold": 0.6,
+                "assessment_depth": 4,
+                "historical_learning": True
+            },
+            "state": {
+                "risk_levels": {},
+                "assessment_history": [],
+                "risk_trends": []
+            }
+        },
+        "performance_optimizer": {
+            "role": "性能优化专家",
+            "reasoning_type": "optimization",
+            "attributes": {
+                "optimization_targets": ["speed", "efficiency", "quality"],
+                "learning_rate": 0.3,
+                "adaptation_speed": 0.7
+            },
+            "state": {
+                "optimization_metrics": {},
+                "improvement_history": [],
+                "current_focus": None
+            }
+        },
+        "quality_controller": {
+            "role": "质量控制专家",
+            "reasoning_type": "quality_assurance",
+            "attributes": {
+                "quality_standards": ["accuracy", "consistency", "reliability"],
+                "inspection_depth": 3,
+                "tolerance_level": 0.9
+            },
+            "state": {
+                "quality_metrics": {},
+                "inspection_history": [],
+                "quality_score": 0.0
+            }
+        },
         "decision_maker": {
             "role": "决策专家",
             "reasoning_type": "decision_making",
@@ -726,25 +768,25 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             analysis_prompt = f"""
             作为{node_config['role']}，请基于以下信息进行自主分析和决策。
             你必须返回一个JSON格式的响应，包含以下字段：
-            - analysis: 你的分析结果
+            - analysis: 你的分析结果（使用清晰的语言描述）
             - confidence: 0到1之间的置信度分数
             - state_update: 要更新的状态信息
 
             节点属性:
-            {json.dumps(node_attributes, indent=2)}
+            {json.dumps(node_attributes, indent=2, ensure_ascii=False)}
 
             节点当前状态:
-            {json.dumps(node_state, indent=2)}
+            {json.dumps(node_state, indent=2, ensure_ascii=False)}
 
             历史信息:
-            {json.dumps(history, indent=2)}
+            {json.dumps(history, indent=2, ensure_ascii=False)}
 
             全局状态:
-            {json.dumps(current_state, indent=2)}
+            {json.dumps(current_state, indent=2, ensure_ascii=False)}
 
             请确保你的响应是有效的JSON格式，例如：
             {{
-                "analysis": "基于当前状态和历史信息，我建议...",
+                "analysis": "基于当前状态和历史信息，我发现...",
                 "confidence": 0.85,
                 "state_update": {{
                     "analyzed_patterns": ["pattern1", "pattern2"],
@@ -806,7 +848,7 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
                 "analysis": response_data.get("analysis", ""),
                 "confidence": confidence,
                 "state_update": state_update
-            })
+            }, ensure_ascii=False)
         return llm_func
     
     # 添加节点
@@ -814,7 +856,10 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
         ("start", NodeType.INPUT),
         ("game_analyzer", NodeType.LLM),
         ("strategy_planner", NodeType.LLM),
+        ("risk_assessor", NodeType.LLM),
         ("resource_manager", NodeType.LLM),
+        ("performance_optimizer", NodeType.LLM),
+        ("quality_controller", NodeType.LLM),
         ("decision_maker", NodeType.LLM),
         ("end", NodeType.OUTPUT)
     ]
@@ -837,8 +882,11 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
     edges = [
         ("start", "game_analyzer"),
         ("game_analyzer", "strategy_planner"),
-        ("strategy_planner", "resource_manager"),
-        ("resource_manager", "decision_maker"),
+        ("strategy_planner", "risk_assessor"),
+        ("risk_assessor", "resource_manager"),
+        ("resource_manager", "performance_optimizer"),
+        ("performance_optimizer", "quality_controller"),
+        ("quality_controller", "decision_maker"),
         ("decision_maker", "end")
     ]
     
@@ -869,8 +917,11 @@ def demonstrate_dynamic_game():
         print("节点层级结构:")
         print("第一层（分析层）: game_analyzer")
         print("第二层（规划层）: strategy_planner")
-        print("第三层（资源层）: resource_manager")
-        print("第四层（决策层）: decision_maker")
+        print("第三层（评估层）: risk_assessor")
+        print("第四层（资源层）: resource_manager")
+        print("第五层（优化层）: performance_optimizer")
+        print("第六层（控制层）: quality_controller")
+        print("第七层（决策层）: decision_maker")
         
         # 显示初始状态
         print_subsection("初始状态")
@@ -883,7 +934,7 @@ def demonstrate_dynamic_game():
         start_time = time.time()
         
         step_count = 0
-        max_steps = 10
+        max_steps = 15  # 增加最大步数
         game_history = []
         current_state = {
             "resources": stats['game_state']['resources'],
@@ -942,14 +993,20 @@ def demonstrate_dynamic_game():
                     current_state["game_phase"] = "analysis"
                 elif next_node == "strategy_planner":
                     current_state["game_phase"] = "planning"
+                elif next_node == "risk_assessor":
+                    current_state["game_phase"] = "risk_assessment"
                 elif next_node == "resource_manager":
                     current_state["game_phase"] = "resource_management"
+                elif next_node == "performance_optimizer":
+                    current_state["game_phase"] = "optimization"
+                elif next_node == "quality_controller":
+                    current_state["game_phase"] = "quality_control"
                 elif next_node == "decision_maker":
                     current_state["game_phase"] = "decision"
                 
                 print(f"  - 节点分析: {analysis}")
                 print(f"  - 置信度: {confidence:.3f}")
-                print(f"  - 状态更新: {json.dumps(state_update, indent=2)}")
+                print(f"  - 状态更新: {json.dumps(state_update, indent=2, ensure_ascii=False)}")
                 print(f"  - 当前得分: {current_state['current_score']:.3f}")
                 print(f"  - 游戏阶段: {current_state['game_phase']}")
                 print(f"  - 剩余资源: {current_state['resources']}")
@@ -980,7 +1037,7 @@ def demonstrate_dynamic_game():
             print(f"步骤 {i+1}: {entry['node']}")
             print(f"  分析: {entry['analysis']}")
             print(f"  置信度: {entry['confidence']:.3f}")
-            print(f"  状态更新: {json.dumps(entry['state_update'], indent=2)}")
+            print(f"  状态更新: {json.dumps(entry['state_update'], indent=2, ensure_ascii=False)}")
         
     except Exception as e:
         print(f"动态游戏演示失败: {e}")
