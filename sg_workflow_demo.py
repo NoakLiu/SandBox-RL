@@ -527,6 +527,7 @@ def demonstrate_integrated_system():
             step_count = 0
             max_steps = 8
             round_rewards = []
+            round_score = 0.0
             
             while step_count < max_steps:
                 executable_nodes = game_graph.get_executable_nodes()
@@ -546,6 +547,10 @@ def demonstrate_integrated_system():
                         # 为LLM节点添加额外奖励
                         reward += 0.1 * (step_count + 1)  # 随着步骤增加奖励
                     
+                    # 更新全局得分
+                    round_score += reward
+                    game_graph.game_state.global_score = round_score
+                    
                     # 为RL训练添加经验
                     rl_framework.rl_trainer.add_experience(
                         state={"node": next_node, "round": round_num},
@@ -554,6 +559,9 @@ def demonstrate_integrated_system():
                         done=step_count == max_steps - 1,
                         group_id=f"round_{round_num}"
                     )
+                    
+                    # 更新训练步骤
+                    rl_framework.rl_trainer.training_step += 1
                     
                     round_rewards.append(reward)
                     print(f"  步骤 {step_count + 1}: {next_node} -> 得分 {reward:.3f}")
@@ -576,7 +584,7 @@ def demonstrate_integrated_system():
             
             # 显示轮次结果
             final_stats = game_graph.get_game_stats()
-            print(f"  轮次结果: 得分 {final_stats['game_state']['global_score']:.3f}, "
+            print(f"  轮次结果: 得分 {round_score:.3f}, "
                   f"完成节点 {len(final_stats['game_state']['completed_nodes'])}")
         
         # 显示最终统计
