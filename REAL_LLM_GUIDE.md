@@ -298,7 +298,7 @@ print(f"设备: {stats['llm_internal_stats'].get('device', 'unknown')}")
 python real_llm_demo.py
 
 # 运行增强演示（包含真实LLM支持）
-python enhanced_demo.py
+python sg_workflow_demo.py
 ```
 
 ## 注意事项

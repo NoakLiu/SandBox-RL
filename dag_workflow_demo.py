@@ -11,7 +11,7 @@
 - 执行监控和调试
 
 运行方式：
-python advanced_workflow_demo.py
+python dag_workflow_demo.py
 """
 
 import asyncio
