@@ -248,15 +248,15 @@ class EnhancedWorkflowNode(WorkflowNode):
         return result
 
 
-class EnhancedWorkflowGraph:
-    """增强工作流图"""
+class SG_Workflow:
+    """增强工作流系统"""
     
     def __init__(self, graph_id: str, mode: WorkflowMode, llm_manager: SharedLLMManager):
         self.graph_id = graph_id
         self.mode = mode
         self.llm_manager = llm_manager
         self.nodes: Dict[str, EnhancedWorkflowNode] = {}
-        self.edges: List[Tuple[str, str]] = []
+        self.edges: Dict[str, Set[str]] = defaultdict(set)
         self.game_state = GameState()
         self.execution_history: List[Dict[str, Any]] = []
         
@@ -293,11 +293,11 @@ class EnhancedWorkflowGraph:
         if to_node not in self.nodes:
             raise ValueError(f"目标节点 {to_node} 不存在")
         
-        self.edges.append((from_node, to_node))
+        self.edges[from_node].add(to_node)
         
         # 更新依赖关系
-        if from_node not in self.nodes[to_node].dependencies:
-            self.nodes[to_node].dependencies.append(from_node)
+        if to_node not in self.nodes[from_node].dependencies:
+            self.nodes[from_node].dependencies.append(to_node)
     
     def get_executable_nodes(self) -> List[str]:
         """获取当前可执行的节点"""
@@ -426,11 +426,11 @@ class EnhancedWorkflowGraph:
         }
 
 
-def create_complex_game_graph(llm_manager: SharedLLMManager) -> EnhancedWorkflowGraph:
+def create_complex_game_graph(llm_manager: SharedLLMManager) -> SG_Workflow:
     """创建复杂的游戏规则图"""
     
     # 创建纯沙盒模式的工作流图
-    graph = EnhancedWorkflowGraph("complex_game", WorkflowMode.SANDBOX_ONLY, llm_manager)
+    graph = SG_Workflow("complex_game", WorkflowMode.SANDBOX_ONLY, llm_manager)
     
     # 导入沙盒实现
     try:

@@ -145,7 +145,7 @@ class AdvancedWorkflowNode:
     error: Optional[Exception] = None
     execution_count: int = 0
 
-class AdvancedWorkflowGraph:
+class DAG_Manager:
     """高级DAG工作流图"""
     
     def __init__(self, graph_id: str, name: str = ""):
@@ -587,7 +587,7 @@ class WorkflowBuilder:
     """工作流构建器"""
     
     def __init__(self, graph_id: str, name: str = ""):
-        self.workflow = AdvancedWorkflowGraph(graph_id, name)
+        self.workflow = DAG_Manager(graph_id, name)
     
     def add_task_node(self, node_id: str, name: str, executor: Callable, **kwargs) -> 'WorkflowBuilder':
         """添加任务节点"""
@@ -665,11 +665,11 @@ class WorkflowBuilder:
         self.workflow.max_parallel_tasks = max_tasks
         return self
     
-    def build(self) -> AdvancedWorkflowGraph:
+    def build(self) -> DAG_Manager:
         """构建工作流"""
         return self.workflow
 
 
-def create_advanced_workflow(graph_id: str, name: str = "") -> WorkflowBuilder:
+def create_dag_manager(graph_id: str, name: str = "") -> WorkflowBuilder:
     """创建高级工作流的工厂函数"""
     return WorkflowBuilder(graph_id, name) 
