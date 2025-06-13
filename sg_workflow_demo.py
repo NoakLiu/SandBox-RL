@@ -766,7 +766,7 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
             node_state = node_config["state"]
             
             # 获取节点规则
-            node_rules = game_rules["节点职责"].get(node_id, {})
+            node_rules = game_rules.get("节点职责", {}).get(node_id, {})
             required_state_updates = node_rules.get("状态更新", [])
             
             # 构建分析提示
@@ -987,7 +987,37 @@ def create_dynamic_game_graph(llm_manager) -> SG_Workflow:
                 limits=NodeLimits(resource_cost={"energy": 8, "tokens": 5})
             )
         else:
-            node = EnhancedWorkflowNode(node_id, node_type)
+            # 为start和end节点创建特殊处理函数
+            if node_id == "start":
+                def start_func(prompt: str, context: Dict[str, Any] = {}) -> str:
+                    return json.dumps({
+                        "analysis": "游戏开始，初始化系统状态",
+                        "confidence": 1.0,
+                        "state_update": {}
+                    }, ensure_ascii=False)
+                node = EnhancedWorkflowNode(
+                    node_id,
+                    node_type,
+                    llm_func=start_func,
+                    condition=NodeCondition(),
+                    limits=NodeLimits()
+                )
+            elif node_id == "end":
+                def end_func(prompt: str, context: Dict[str, Any] = {}) -> str:
+                    return json.dumps({
+                        "analysis": "游戏结束，生成最终报告",
+                        "confidence": 1.0,
+                        "state_update": {}
+                    }, ensure_ascii=False)
+                node = EnhancedWorkflowNode(
+                    node_id,
+                    node_type,
+                    llm_func=end_func,
+                    condition=NodeCondition(),
+                    limits=NodeLimits()
+                )
+            else:
+                node = EnhancedWorkflowNode(node_id, node_type)
         
         graph.add_node(node)
     
