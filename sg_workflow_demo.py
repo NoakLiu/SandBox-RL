@@ -59,6 +59,9 @@ def demonstrate_traditional_workflow():
         response = llm_manager.generate_for_node("llm_analyzer", prompt)
         return response.text
     
+    # 注册LLM节点
+    llm_manager.register_node("llm_analyzer", {"role": "分析器", "reasoning_type": "analytical"})
+    
     # 添加LLM节点
     llm_node = EnhancedWorkflowNode(
         "llm_analyzer",
@@ -207,6 +210,18 @@ def create_complex_game_graph(llm_manager) -> SG_Workflow:
             response = llm_manager.generate_for_node(node_id, prompt)
             return response.text
         return llm_func
+    
+    # 注册LLM节点
+    llm_nodes = {
+        "task_analyzer": {"role": "任务分析器", "reasoning_type": "analytical"},
+        "strategy_planner": {"role": "策略规划器", "reasoning_type": "strategic"},
+        "result_verifier": {"role": "结果验证器", "reasoning_type": "verification"},
+        "quality_assessor": {"role": "质量评估器", "reasoning_type": "evaluation"},
+        "final_optimizer": {"role": "最终优化器", "reasoning_type": "optimization"}
+    }
+    
+    for node_id, node_config in llm_nodes.items():
+        llm_manager.register_node(node_id, node_config)
     
     # 添加节点到图
     for node_id, node_type in nodes:
