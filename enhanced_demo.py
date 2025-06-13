@@ -21,11 +21,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sandgraph.core.llm_interface import create_shared_llm_manager
 from sandgraph.core.rl_algorithms import RLAlgorithm, create_ppo_trainer, create_grpo_trainer
 from sandgraph.core.rl_framework import create_rl_framework, create_enhanced_rl_framework
-from sandgraph.core.enhanced_workflow import (
-    EnhancedWorkflowGraph, EnhancedWorkflowNode, WorkflowMode, 
-    NodeCondition, NodeLimits, create_complex_game_graph
+from sandgraph.core.sg_workflow import (
+    SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
+    NodeType, NodeCondition, NodeLimits, GameState
 )
-from sandgraph.core.workflow import NodeType
 from sandgraph.sandbox_implementations import Game24Sandbox, SummarizeSandbox
 
 
@@ -51,7 +50,7 @@ def demonstrate_traditional_workflow():
     llm_manager = create_shared_llm_manager("traditional_llm")
     
     # 创建传统模式工作流图
-    graph = EnhancedWorkflowGraph("traditional_demo", WorkflowMode.TRADITIONAL, llm_manager)
+    graph = SG_Workflow("traditional_demo", WorkflowMode.TRADITIONAL, llm_manager)
     
     # 添加LLM节点
     llm_node = EnhancedWorkflowNode(
@@ -110,7 +109,7 @@ def demonstrate_sandbox_only_workflow():
     llm_manager = create_shared_llm_manager("sandbox_only_llm")
     
     # 创建纯沙盒模式工作流图
-    graph = EnhancedWorkflowGraph("sandbox_only_demo", WorkflowMode.SANDBOX_ONLY, llm_manager)
+    graph = SG_Workflow("sandbox_only_demo", WorkflowMode.SANDBOX_ONLY, llm_manager)
     
     # 添加多个沙盒节点
     nodes_config = [

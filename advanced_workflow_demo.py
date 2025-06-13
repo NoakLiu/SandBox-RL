@@ -24,16 +24,10 @@ from typing import Dict, Any, List
 sys.path.insert(0, '.')
 
 try:
-    from sandgraph.core.advanced_workflow import (
-        AdvancedWorkflowGraph,
-        AdvancedWorkflowNode,
-        WorkflowBuilder,
-        NodeType,
-        ExecutionStatus,
-        StopConditionType,
-        StopCondition,
-        ExecutionContext,
-        create_advanced_workflow
+    from sandgraph.core.dag_manager import (
+        DAG_Manager, create_dag_manager, ExecutionContext,
+        NodeType, ExecutionStatus, StopConditionType,
+        AdvancedWorkflowNode, StopCondition
     )
     from sandgraph import Game24Sandbox
     SANDGRAPH_AVAILABLE = True
@@ -77,7 +71,7 @@ async def demo_basic_dag():
         return "result_D"
     
     # 使用构建器创建工作流
-    workflow = (create_advanced_workflow("basic_dag", "基础DAG演示")
+    workflow = (create_dag_manager("basic_dag", "基础DAG演示")
                 .add_task_node("task_a", "任务A", task_a)
                 .add_task_node("task_b", "任务B", task_b)
                 .add_task_node("task_c", "任务C", task_c)
@@ -113,7 +107,7 @@ async def demo_cycle_detection():
     def dummy_task(context: ExecutionContext, input_data: Any) -> str:
         return "dummy"
     
-    workflow = create_advanced_workflow("cycle_test", "环路检测测试")
+    workflow = create_dag_manager("cycle_test", "环路检测测试")
     
     # 添加节点
     workflow.add_task_node("node1", "节点1", dummy_task)
@@ -167,7 +161,7 @@ async def demo_condition_workflow():
         return "completed"
     
     # 创建条件工作流
-    workflow = (create_advanced_workflow("condition_flow", "条件分支演示")
+    workflow = (create_dag_manager("condition_flow", "条件分支演示")
                 .add_task_node("generate", "生成数字", generate_number)
                 .add_condition_node("check_even", "检查偶数", check_even, 
                                   true_branch="process_even", false_branch="process_odd")
@@ -220,7 +214,7 @@ async def demo_loop_workflow():
         return f"loop_completed_{final_count}"
     
     # 创建循环工作流
-    workflow = (create_advanced_workflow("loop_flow", "循环演示")
+    workflow = (create_dag_manager("loop_flow", "循环演示")
                 .add_task_node("init", "初始化", initialize_counter)
                 .add_loop_node("loop_increment", "递增循环", increment_counter, 
                               loop_condition, max_iterations=10)
@@ -277,7 +271,7 @@ async def demo_parallel_workflow():
         return f"aggregated_{len(parallel_results)}_results"
     
     # 创建并行工作流
-    workflow = (create_advanced_workflow("parallel_flow", "并行执行演示")
+    workflow = (create_dag_manager("parallel_flow", "并行执行演示")
                 .add_task_node("prepare", "准备数据", prepare_data)
                 .add_parallel_node("parallel_tasks", "并行任务", 
                                  [parallel_task_1, parallel_task_2, parallel_task_3])
@@ -310,7 +304,7 @@ async def demo_stop_conditions():
     
     # 演示1: 最大迭代次数停止
     print("🔄 演示1: 最大迭代次数停止条件")
-    workflow1 = (create_advanced_workflow("max_iter_test", "最大迭代测试")
+    workflow1 = (create_dag_manager("max_iter_test", "最大迭代测试")
                  .add_task_node("task", "长时间任务", long_running_task)
                  .add_stop_condition(StopConditionType.MAX_ITERATIONS, 5)
                  .build())
@@ -321,7 +315,7 @@ async def demo_stop_conditions():
     
     # 演示2: 时间限制停止
     print("\n⏰ 演示2: 时间限制停止条件")
-    workflow2 = (create_advanced_workflow("time_limit_test", "时间限制测试")
+    workflow2 = (create_dag_manager("time_limit_test", "时间限制测试")
                  .add_task_node("task", "长时间任务", long_running_task)
                  .add_stop_condition(StopConditionType.TIME_LIMIT, 0.5)  # 0.5秒
                  .build())
@@ -335,7 +329,7 @@ async def demo_stop_conditions():
     def custom_stop_condition(context: ExecutionContext) -> bool:
         return context.current_iteration >= 3
     
-    workflow3 = (create_advanced_workflow("custom_condition_test", "自定义条件测试")
+    workflow3 = (create_dag_manager("custom_condition_test", "自定义条件测试")
                  .add_task_node("task", "长时间任务", long_running_task)
                  .add_stop_condition(StopConditionType.CONDITION_MET, custom_stop_condition)
                  .build())
@@ -366,7 +360,7 @@ async def demo_error_handling():
     
     # 演示1: 重试机制
     print("🔄 演示1: 重试机制")
-    workflow1 = (create_advanced_workflow("retry_test", "重试测试")
+    workflow1 = (create_dag_manager("retry_test", "重试测试")
                  .add_task_node("stable", "稳定任务", stable_task)
                  .add_task_node("unreliable", "不稳定任务", unreliable_task, 
                                retry_count=3, retry_delay=0.1)
@@ -383,7 +377,7 @@ async def demo_error_handling():
     
     # 演示2: 跳过失败节点
     print("\n⏭️ 演示2: 跳过失败节点")
-    workflow2 = (create_advanced_workflow("skip_test", "跳过测试")
+    workflow2 = (create_dag_manager("skip_test", "跳过测试")
                  .add_task_node("stable", "稳定任务", stable_task)
                  .add_task_node("unreliable", "不稳定任务", unreliable_task, 
                                skip_on_failure=True)
@@ -434,7 +428,7 @@ async def demo_sandgraph_integration():
         return f"game24_{result}"
     
     # 创建集成工作流
-    workflow = (create_advanced_workflow("sandgraph_integration", "SandGraph集成演示")
+    workflow = (create_dag_manager("sandgraph_integration", "SandGraph集成演示")
                 .add_task_node("create_task", "创建任务", create_game24_task)
                 .add_task_node("solve_game24", "求解Game24", solve_game24)
                 .add_task_node("verify", "验证解答", verify_solution)
@@ -470,7 +464,7 @@ async def demo_workflow_visualization():
     def dummy_task(context: ExecutionContext, input_data: Any) -> str:
         return "dummy"
     
-    workflow = (create_advanced_workflow("visualization_test", "可视化演示")
+    workflow = (create_dag_manager("visualization_test", "可视化演示")
                 .add_task_node("start", "开始任务", dummy_task)
                 .add_condition_node("check", "条件检查", lambda c, d: True)
                 .add_parallel_node("parallel", "并行处理", [dummy_task, dummy_task])

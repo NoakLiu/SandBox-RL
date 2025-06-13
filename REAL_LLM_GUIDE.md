@@ -143,7 +143,7 @@ print(response.text)
 ### 5. 在工作流中使用真实LLM
 
 ```python
-from sandgraph.core.enhanced_workflow import EnhancedWorkflowGraph, WorkflowMode
+from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode
 from sandgraph.core.llm_interface import create_gpt2_manager
 
 # 创建LLM管理器
@@ -151,7 +151,7 @@ llm_manager = create_gpt2_manager(device="cpu")
 llm_manager.load_model()
 
 # 创建纯沙盒工作流（所有节点都是沙盒，但使用LLM推理）
-graph = EnhancedWorkflowGraph("real_llm_workflow", WorkflowMode.SANDBOX_ONLY, llm_manager)
+graph = SG_Workflow("real_llm_workflow", WorkflowMode.SANDBOX_ONLY, llm_manager)
 
 # 添加节点...
 # 执行工作流...

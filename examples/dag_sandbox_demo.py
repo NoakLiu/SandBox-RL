@@ -6,10 +6,12 @@ DAG_Manager和SG_Workflow示例
 
 import asyncio
 import time
+import json
 from typing import Any, Dict
-from sandgraph.core.advanced_workflow import DAG_Manager, create_dag_manager, ExecutionContext
-from sandgraph.core.enhanced_workflow import SG_Workflow, WorkflowMode
+from sandgraph.core.dag_manager import DAG_Manager, create_dag_manager, ExecutionContext
+from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, EnhancedWorkflowNode, NodeType
 from sandgraph.core.sandbox import Sandbox
+from sandgraph.core.llm_interface import SharedLLMManager, create_shared_llm_manager
 from sandgraph.sandbox_implementations import Game24Sandbox
 
 class SimpleSandbox(Sandbox):
@@ -84,6 +86,14 @@ async def demo_sg_workflow():
     """演示使用SG_Workflow创建纯Sandbox工作流"""
     print("\n=== SG_Workflow纯Sandbox模式示例 ===")
     
+    # 创建LLM管理器
+    llm_manager = create_shared_llm_manager(
+        model_name="mock_llm",
+        backend="mock",
+        temperature=0.7,
+        max_length=512
+    )
+    
     # 创建Sandbox节点
     def create_sandbox_task(name: str) -> SimpleSandbox:
         return SimpleSandbox(
@@ -103,13 +113,19 @@ async def demo_sg_workflow():
     
     # 创建SG_Workflow
     sg_workflow = SG_Workflow(
-        workflow_id="pure_sandbox_workflow",
-        mode=WorkflowMode.SANDBOX_ONLY
+        graph_id="pure_sandbox_workflow",
+        mode=WorkflowMode.SANDBOX_ONLY,
+        llm_manager=llm_manager
     )
     
     # 添加节点和连接
     for name, sandbox in sandboxes.items():
-        sg_workflow.add_node(name, sandbox)
+        node = EnhancedWorkflowNode(
+            node_id=name,
+            node_type=NodeType.SANDBOX,
+            sandbox=sandbox
+        )
+        sg_workflow.add_node(node)
     
     # 创建复杂的连接关系
     sg_workflow.add_edge("A", "B")
@@ -120,14 +136,14 @@ async def demo_sg_workflow():
     sg_workflow.add_edge("D", "F")
     
     print("\n📊 SG_Workflow结构:")
-    print(sg_workflow.visualize())
+    print(json.dumps(sg_workflow.get_game_stats(), indent=2))
     
     # 执行工作流
-    result = await sg_workflow.execute()
+    result = sg_workflow.execute_full_workflow()
     
     print("\n📈 执行结果:")
-    print(f"  状态: {result.status}")
-    print(f"  执行时间: {result.execution_time:.3f}秒")
+    print(f"  状态: {result['status']}")
+    print(f"  执行时间: {result['total_time']:.3f}秒")
     
     return sg_workflow
 

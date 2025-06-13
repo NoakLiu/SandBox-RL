@@ -25,11 +25,10 @@ from sandgraph.core.llm_interface import (
     create_openai_manager, create_shared_llm_manager, LLMBackend
 )
 from sandgraph.core.rl_framework import create_rl_framework, RLAlgorithm
-from sandgraph.core.enhanced_workflow import (
-    EnhancedWorkflowGraph, EnhancedWorkflowNode, WorkflowMode, 
-    NodeCondition, NodeLimits
+from sandgraph.core.sg_workflow import (
+    SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
+    NodeType, NodeCondition, NodeLimits
 )
-from sandgraph.core.workflow import NodeType
 from sandgraph.sandbox_implementations import Game24Sandbox, SummarizeSandbox
 
 
@@ -409,7 +408,7 @@ def demonstrate_workflow_with_real_llm(available_deps: Dict[str, bool]):
             llm_manager.load_model()
         
         # 创建纯沙盒工作流（所有节点都是沙盒，但使用LLM推理）
-        graph = EnhancedWorkflowGraph("real_llm_workflow", WorkflowMode.SANDBOX_ONLY, llm_manager)
+        graph = SG_Workflow("real_llm_workflow", WorkflowMode.SANDBOX_ONLY, llm_manager)
         
         # 添加沙盒节点
         nodes_config = [
