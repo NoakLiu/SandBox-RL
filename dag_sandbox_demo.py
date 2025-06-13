@@ -214,22 +214,8 @@ async def demo_sg_workflow():
     sg_workflow.add_edge("D", "F")
     
     print("\n📊 SG_Workflow结构:")
-    # 将set类型转换为list以支持JSON序列化
     stats = sg_workflow.get_game_stats()
-    serializable_stats = {
-        "nodes": [
-            {
-                "id": node["id"],
-                "type": node["type"],
-                "status": node["status"],
-                "dependencies": list(node["dependencies"]),
-                "successors": list(node["successors"])
-            }
-            for node in stats["nodes"]
-        ],
-        "edges": stats["edges"]
-    }
-    print(json.dumps(serializable_stats, indent=2))
+    print(json.dumps(stats, indent=2, default=str))
     
     # 执行工作流
     result = sg_workflow.execute_full_workflow()
