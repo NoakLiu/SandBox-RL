@@ -461,24 +461,19 @@ class BacktraderSandbox(Sandbox):
                 )
                 
                 def __init__(self):
-                    # 初始化指标字典
-                    self.sma = {}
-                
-                def start(self):
-                    # 在数据加载完成后初始化指标
-                    for d in self.datas:
-                        self.sma[d] = bt.indicators.SimpleMovingAverage(
-                            d.close, period=self.p.period)
+                    # 只处理第一个数据源
+                    self.data = self.datas[0]
+                    self.sma = bt.indicators.SimpleMovingAverage(
+                        self.data.close, period=self.p.period)
                 
                 def next(self):
                     # 交易逻辑
-                    for d in self.datas:
-                        if not self.getposition(d):
-                            if d.close[0] > self.sma[d][0]:
-                                self.buy(data=d)
-                        else:
-                            if d.close[0] < self.sma[d][0]:
-                                self.sell(data=d)
+                    if not self.getposition():
+                        if self.data.close[0] > self.sma[0]:
+                            self.buy()
+                    else:
+                        if self.data.close[0] < self.sma[0]:
+                            self.sell()
             
             self.bt = bt
             self.strategy = BasicStrategy
