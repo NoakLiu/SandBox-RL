@@ -453,7 +453,30 @@ class BacktraderSandbox(Sandbox):
         # 初始化 Backtrader
         try:
             import backtrader as bt  # type: ignore
+            
+            # 定义基本策略
+            class BasicStrategy(bt.Strategy):
+                params = (
+                    ('period', 20),
+                )
+                
+                def __init__(self):
+                    self.sma = {}
+                    for d in self.datas:
+                        self.sma[d] = bt.indicators.SimpleMovingAverage(
+                            d.close, period=self.params.period)
+                
+                def next(self):
+                    for d in self.datas:
+                        if not self.position:
+                            if d.close[0] > self.sma[d][0]:
+                                self.buy(data=d)
+                        else:
+                            if d.close[0] < self.sma[d][0]:
+                                self.sell(data=d)
+            
             self.bt = bt
+            self.strategy = BasicStrategy
             self.cerebro = bt.Cerebro()
             self.cerebro.broker.setcash(initial_cash)
             self.cerebro.broker.setcommission(commission=commission)
@@ -472,6 +495,7 @@ class BacktraderSandbox(Sandbox):
             self.cerebro = self.bt.Cerebro()
             self.cerebro.broker.setcash(self.initial_cash)
             self.cerebro.broker.setcommission(commission=self.commission)
+            self.cerebro.addstrategy(self.strategy)
             
             # 添加数据源
             for symbol in self.symbols:
