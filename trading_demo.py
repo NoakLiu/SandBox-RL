@@ -148,11 +148,31 @@ def run_trading_demo(strategy_type: str = "backtrader"):
     
     # 3. 执行工作流
     print("\n3. 执行交易工作流")
-    result = workflow.execute_full_workflow(max_steps=10)
-    
-    # 4. 输出结果
-    print("\n4. 交易结果")
-    print(json.dumps(result, indent=2, ensure_ascii=False))
+    try:
+        result = workflow.execute_full_workflow(max_steps=10)
+        
+        # 4. 输出结果
+        print("\n4. 交易结果")
+        
+        # 处理结果中的集合类型
+        def convert_sets(obj):
+            if isinstance(obj, set):
+                return list(obj)
+            elif isinstance(obj, dict):
+                return {k: convert_sets(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_sets(item) for item in obj]
+            return obj
+        
+        # 转换结果中的集合为列表
+        serializable_result = convert_sets(result)
+        print(json.dumps(serializable_result, indent=2, ensure_ascii=False))
+        
+    except Exception as e:
+        print(f"\n执行过程中出现错误: {str(e)}")
+        print("\n详细错误信息:")
+        import traceback
+        traceback.print_exc()
 
 
 def main():

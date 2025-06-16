@@ -6,8 +6,9 @@
 
 import random
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from .core.sandbox import Sandbox
+from datetime import datetime, timedelta
 
 
 class Game24Sandbox(Sandbox):
@@ -425,9 +426,9 @@ class BacktraderSandbox(Sandbox):
                  initial_cash: float = 100000.0,
                  commission: float = 0.001,
                  data_source: str = "yahoo",
-                 symbols: List[str] = None,
-                 start_date: str = None,
-                 end_date: str = None,
+                 symbols: Optional[List[str]] = None,
+                 start_date: Optional[str] = None,
+                 end_date: Optional[str] = None,
                  seed: int = 42):
         """初始化 Backtrader 沙盒
         
@@ -444,9 +445,9 @@ class BacktraderSandbox(Sandbox):
         self.initial_cash = initial_cash
         self.commission = commission
         self.data_source = data_source
-        self.symbols = symbols if symbols is not None else ["AAPL", "GOOGL", "MSFT", "AMZN"]
-        self.start_date = start_date
-        self.end_date = end_date
+        self.symbols: List[str] = symbols if symbols is not None else ["AAPL", "GOOGL", "MSFT", "AMZN"]
+        self.start_date = start_date or (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
+        self.end_date = end_date or datetime.now().strftime("%Y-%m-%d")
         self.random = random.Random(seed)
         
         # 初始化 Backtrader
@@ -494,11 +495,21 @@ class BacktraderSandbox(Sandbox):
             }
         else:
             # 模拟市场数据
+            prices = {symbol: self.random.uniform(100, 1000) for symbol in self.symbols}
             return {
                 "state": {
                     "cash": self.initial_cash,
                     "positions": {},
-                    "prices": {symbol: self.random.uniform(100, 1000) for symbol in self.symbols}
+                    "prices": prices,
+                    "market_data": {
+                        symbol: {
+                            "open": prices[symbol] * 0.99,
+                            "high": prices[symbol] * 1.01,
+                            "low": prices[symbol] * 0.98,
+                            "close": prices[symbol],
+                            "volume": self.random.randint(1000, 10000)
+                        } for symbol in self.symbols
+                    }
                 },
                 "symbols": self.symbols,
                 "initial_cash": self.initial_cash,
@@ -565,22 +576,38 @@ class BacktraderSandbox(Sandbox):
                 if action["action"] == "HOLD":
                     return 0.5
                 elif action["action"] in ["BUY", "SELL"]:
-                    return 0.7
+                    # 模拟交易结果
+                    symbol = action["symbol"]
+                    amount = action["amount"]
+                    price = case["state"]["prices"][symbol]
+                    
+                    if action["action"] == "BUY":
+                        cost = price * amount * (1 + self.commission)
+                        if cost <= case["state"]["cash"]:
+                            return 0.7
+                    else:  # SELL
+                        if symbol in case["state"]["positions"] and amount <= case["state"]["positions"][symbol]:
+                            return 0.7
+                    return 0.3  # 交易失败
                 else:
-                    return 0.0
+                    return 0.0  # 无效决策
             except:
                 return 0.0
     
-    def _get_data(self, symbol: str) -> Any:
+    def _get_data(self, symbol: str) -> Optional[Any]:
         """获取市场数据"""
         if self.data_source == "yahoo":
             try:
-                import yfinance as yf
+                import yfinance as yf  # type: ignore
                 data = yf.download(symbol, 
                                  start=self.start_date,
                                  end=self.end_date)
                 return self.bt.feeds.PandasData(dataname=data)
-            except:
+            except ImportError:
+                print("警告：yfinance 未安装，无法获取市场数据。请运行: pip install yfinance")
+                return None
+            except Exception as e:
+                print(f"获取市场数据失败: {str(e)}")
                 return None
         return None
     
