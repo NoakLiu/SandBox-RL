@@ -202,6 +202,121 @@ game_graph = create_dynamic_game_graph(llm_manager)
 result = game_graph.execute()
 ```
 
+### 4. 量化交易系统
+- 市场数据分析
+- 交易策略生成
+- 实时交易执行
+- 风险控制
+- 投资组合管理
+
+#### 4.1 交易环境集成
+SandGraph 提供了与 Trading Gym 和 Backtrader 的集成，支持：
+- 实时市场数据获取（Yahoo Finance, Alpaca）
+- 交易执行和回测
+- 投资组合管理
+- 风险控制
+- 性能评估
+
+使用示例：
+```python
+from sandgraph import SG_Workflow, NodeType, WorkflowMode
+from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandgraph.sandbox_implementations import BacktraderSandbox
+from datetime import datetime, timedelta
+
+# 创建LLM管理器
+llm_manager = create_shared_llm_manager("trading_llm")
+
+# 创建工作流
+workflow = SG_Workflow("trading_workflow", WorkflowMode.TRADITIONAL, llm_manager)
+
+# 添加交易执行节点
+workflow.add_node(NodeType.SANDBOX, "trading_executor", {
+    "sandbox": BacktraderSandbox(
+        initial_cash=100000.0,
+        commission=0.001,
+        data_source="yahoo",
+        symbols=["AAPL", "GOOGL", "MSFT", "AMZN"],
+        start_date=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
+        end_date=datetime.now().strftime("%Y-%m-%d")
+    ),
+    "max_visits": 5
+})
+
+# 执行工作流
+result = workflow.execute_full_workflow(max_steps=10)
+```
+
+#### 4.2 交易功能
+- **市场数据**：支持实时和历史市场数据获取
+- **交易执行**：支持市价单、限价单等交易类型
+- **投资组合**：支持多资产组合管理
+- **风险控制**：支持止损、仓位控制等风险管理
+- **性能评估**：支持夏普比率、最大回撤等指标计算
+
+#### 4.3 数据源支持
+- Yahoo Finance
+- Alpaca Trading API
+- 自定义数据源
+
+#### 4.4 交易策略
+- 趋势跟踪
+- 均值回归
+- 套利策略
+- 机器学习策略
+
+#### 4.5 Backtrader 集成
+SandGraph 集成了 Backtrader 框架，提供以下功能：
+- **历史数据回测**：支持多周期、多资产回测
+- **实时交易**：支持实时市场数据交易
+- **多策略组合**：支持多个交易策略的组合
+- **性能分析**：内置多种性能分析指标
+  - 夏普比率
+  - 最大回撤
+  - 年化收益率
+  - 交易统计
+- **可视化**：支持交易结果可视化
+  - 资产曲线
+  - 交易点位
+  - 技术指标
+  - 性能指标
+
+使用 Backtrader 的示例：
+```python
+from sandgraph.sandbox_implementations import BacktraderSandbox
+
+# 创建 Backtrader 沙盒
+sandbox = BacktraderSandbox(
+    initial_cash=100000.0,
+    commission=0.001,
+    data_source="yahoo",
+    symbols=["AAPL", "GOOGL", "MSFT", "AMZN"],
+    start_date="2023-01-01",
+    end_date="2023-12-31"
+)
+
+# 执行回测
+result = sandbox.execute_backtest()
+print(f"回测结果：\n{result}")
+```
+
+#### 4.6 性能指标
+- **收益指标**
+  - 总收益率
+  - 年化收益率
+  - 月度收益率
+  - 胜率
+- **风险指标**
+  - 夏普比率
+  - 最大回撤
+  - 波动率
+  - 信息比率
+- **交易指标**
+  - 交易次数
+  - 平均持仓时间
+  - 盈亏比
+  - 手续费成本
+
 ## 📚 示例场景
 
 ### 1. 游戏分析系统
@@ -230,7 +345,7 @@ result = game_graph.execute()
 - 投资组合管理
 
 #### 4.1 交易环境集成
-SandGraph 提供了与 Trading Gym 的集成，支持：
+SandGraph 提供了与 Trading Gym 和 Backtrader 的集成，支持：
 - 实时市场数据获取（Yahoo Finance, Alpaca）
 - 交易执行和回测
 - 投资组合管理
@@ -241,7 +356,8 @@ SandGraph 提供了与 Trading Gym 的集成，支持：
 ```python
 from sandgraph import SG_Workflow, NodeType, WorkflowMode
 from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.sandbox_implementations import TradingGymSandbox
+from sandgraph.sandbox_implementations import BacktraderSandbox
+from datetime import datetime, timedelta
 
 # 创建LLM管理器
 llm_manager = create_shared_llm_manager("trading_llm")
@@ -251,11 +367,13 @@ workflow = SG_Workflow("trading_workflow", WorkflowMode.TRADITIONAL, llm_manager
 
 # 添加交易执行节点
 workflow.add_node(NodeType.SANDBOX, "trading_executor", {
-    "sandbox": TradingGymSandbox(
-        initial_balance=100000.0,
-        trading_fee=0.001,
-        max_position=0.2,
-        symbols=["AAPL", "GOOGL", "MSFT", "AMZN"]
+    "sandbox": BacktraderSandbox(
+        initial_cash=100000.0,
+        commission=0.001,
+        data_source="yahoo",
+        symbols=["AAPL", "GOOGL", "MSFT", "AMZN"],
+        start_date=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
+        end_date=datetime.now().strftime("%Y-%m-%d")
     ),
     "max_visits": 5
 })
@@ -281,6 +399,58 @@ result = workflow.execute_full_workflow(max_steps=10)
 - 均值回归
 - 套利策略
 - 机器学习策略
+
+#### 4.5 Backtrader 集成
+SandGraph 集成了 Backtrader 框架，提供以下功能：
+- **历史数据回测**：支持多周期、多资产回测
+- **实时交易**：支持实时市场数据交易
+- **多策略组合**：支持多个交易策略的组合
+- **性能分析**：内置多种性能分析指标
+  - 夏普比率
+  - 最大回撤
+  - 年化收益率
+  - 交易统计
+- **可视化**：支持交易结果可视化
+  - 资产曲线
+  - 交易点位
+  - 技术指标
+  - 性能指标
+
+使用 Backtrader 的示例：
+```python
+from sandgraph.sandbox_implementations import BacktraderSandbox
+
+# 创建 Backtrader 沙盒
+sandbox = BacktraderSandbox(
+    initial_cash=100000.0,
+    commission=0.001,
+    data_source="yahoo",
+    symbols=["AAPL", "GOOGL", "MSFT", "AMZN"],
+    start_date="2023-01-01",
+    end_date="2023-12-31"
+)
+
+# 执行回测
+result = sandbox.execute_backtest()
+print(f"回测结果：\n{result}")
+```
+
+#### 4.6 性能指标
+- **收益指标**
+  - 总收益率
+  - 年化收益率
+  - 月度收益率
+  - 胜率
+- **风险指标**
+  - 夏普比率
+  - 最大回撤
+  - 波动率
+  - 信息比率
+- **交易指标**
+  - 交易次数
+  - 平均持仓时间
+  - 盈亏比
+  - 手续费成本
 
 ## 🔧 开发指南
 

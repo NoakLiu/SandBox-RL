@@ -411,13 +411,249 @@ class TradingGymSandbox(Sandbox):
         return min(1.0, max(0.0, score))
 
 
+class BacktraderSandbox(Sandbox):
+    """Backtrader 交易环境沙盒
+    
+    基于 Backtrader 的交易环境，支持：
+    1. 历史数据回测
+    2. 实时交易
+    3. 多策略组合
+    4. 性能分析
+    """
+    
+    def __init__(self, 
+                 initial_cash: float = 100000.0,
+                 commission: float = 0.001,
+                 data_source: str = "yahoo",
+                 symbols: List[str] = None,
+                 start_date: str = None,
+                 end_date: str = None,
+                 seed: int = 42):
+        """初始化 Backtrader 沙盒
+        
+        Args:
+            initial_cash: 初始资金
+            commission: 交易手续费率
+            data_source: 数据源 (yahoo, alpaca, etc.)
+            symbols: 交易标的列表
+            start_date: 回测开始日期
+            end_date: 回测结束日期
+            seed: 随机种子
+        """
+        super().__init__("backtrader", "Backtrader交易环境沙盒")
+        self.initial_cash = initial_cash
+        self.commission = commission
+        self.data_source = data_source
+        self.symbols = symbols if symbols is not None else ["AAPL", "GOOGL", "MSFT", "AMZN"]
+        self.start_date = start_date
+        self.end_date = end_date
+        self.random = random.Random(seed)
+        
+        # 初始化 Backtrader
+        try:
+            import backtrader as bt  # type: ignore
+            self.bt = bt
+            self.cerebro = bt.Cerebro()
+            self.cerebro.broker.setcash(initial_cash)
+            self.cerebro.broker.setcommission(commission=commission)
+            self.cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe')
+            self.cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
+            self.cerebro.addanalyzer(bt.analyzers.Returns, _name='returns')
+            self.bt_available = True
+        except ImportError:
+            print("警告：Backtrader 未安装，使用模拟实现。请运行: pip install backtrader")
+            self.bt_available = False
+    
+    def case_generator(self) -> Dict[str, Any]:
+        """生成交易任务实例"""
+        if self.bt_available:
+            # 重置 Backtrader 环境
+            self.cerebro = self.bt.Cerebro()
+            self.cerebro.broker.setcash(self.initial_cash)
+            self.cerebro.broker.setcommission(commission=self.commission)
+            
+            # 添加数据源
+            for symbol in self.symbols:
+                data = self._get_data(symbol)
+                if data:
+                    self.cerebro.adddata(data)
+            
+            # 获取当前状态
+            state = {
+                "cash": self.cerebro.broker.getvalue(),
+                "positions": self.cerebro.broker.positions,
+                "symbols": self.symbols,
+                "commission": self.commission
+            }
+            
+            return {
+                "state": state,
+                "symbols": self.symbols,
+                "initial_cash": self.initial_cash,
+                "commission": self.commission
+            }
+        else:
+            # 模拟市场数据
+            return {
+                "state": {
+                    "cash": self.initial_cash,
+                    "positions": {},
+                    "prices": {symbol: self.random.uniform(100, 1000) for symbol in self.symbols}
+                },
+                "symbols": self.symbols,
+                "initial_cash": self.initial_cash,
+                "commission": self.commission
+            }
+    
+    def prompt_func(self, case: Dict[str, Any]) -> str:
+        """构造交易提示文本"""
+        state = case["state"]
+        symbols = case["symbols"]
+        
+        # 构建市场数据摘要
+        market_summary = "\n".join([
+            f"{symbol}: 价格={state['prices'][symbol]:.2f}"
+            for symbol in symbols
+        ])
+        
+        # 构建投资组合摘要
+        portfolio_summary = (
+            f"现金: {state['cash']:.2f}\n" +
+            "持仓:\n" + "\n".join([
+                f"{symbol}: {amount} 股"
+                for symbol, amount in state['positions'].items()
+            ])
+        )
+        
+        return (
+            f"当前市场状态：\n{market_summary}\n\n"
+            f"当前投资组合：\n{portfolio_summary}\n\n"
+            f"请分析市场数据并做出交易决策。您可以：\n"
+            f"1. 买入股票：使用 'BUY <symbol> <amount>' 格式\n"
+            f"2. 卖出股票：使用 'SELL <symbol> <amount>' 格式\n"
+            f"3. 持有观望：使用 'HOLD' 格式\n\n"
+            f"请注意：\n"
+            f"- 交易手续费率：{self.commission * 100}%\n"
+            f"- 请确保决策合理且符合风险控制要求"
+        )
+    
+    def verify_score(self, response: str, case: Dict[str, Any], format_score: float = 0.0) -> float:
+        """验证交易决策并评分"""
+        if self.bt_available:
+            try:
+                # 解析交易决策
+                action = self._parse_action(response)
+                
+                # 执行交易
+                if action["action"] != "HOLD":
+                    self._execute_trade(action)
+                
+                # 运行回测
+                results = self.cerebro.run()
+                strat = results[0]
+                
+                # 计算评分
+                score = self._calculate_score(strat)
+                return score
+            except Exception as e:
+                print(f"交易执行错误: {str(e)}")
+                return 0.0
+        else:
+            # 模拟评分
+            try:
+                action = self._parse_action(response)
+                if action["action"] == "HOLD":
+                    return 0.5
+                elif action["action"] in ["BUY", "SELL"]:
+                    return 0.7
+                else:
+                    return 0.0
+            except:
+                return 0.0
+    
+    def _get_data(self, symbol: str) -> Any:
+        """获取市场数据"""
+        if self.data_source == "yahoo":
+            try:
+                import yfinance as yf
+                data = yf.download(symbol, 
+                                 start=self.start_date,
+                                 end=self.end_date)
+                return self.bt.feeds.PandasData(dataname=data)
+            except:
+                return None
+        return None
+    
+    def _execute_trade(self, action: Dict[str, Any]):
+        """执行交易"""
+        if action["action"] == "BUY":
+            self.cerebro.broker.buy(
+                symbol=action["symbol"],
+                size=action["amount"]
+            )
+        elif action["action"] == "SELL":
+            self.cerebro.broker.sell(
+                symbol=action["symbol"],
+                size=action["amount"]
+            )
+    
+    def _calculate_score(self, strat: Any) -> float:
+        """计算交易评分"""
+        # 获取分析结果
+        sharpe = strat.analyzers.sharpe.get_analysis()
+        drawdown = strat.analyzers.drawdown.get_analysis()
+        returns = strat.analyzers.returns.get_analysis()
+        
+        # 计算基础分数
+        score = 0.0
+        
+        # 夏普比率贡献
+        if 'sharperatio' in sharpe:
+            score += min(1.0, (sharpe['sharperatio'] + 2) / 4) * 0.4
+        
+        # 最大回撤贡献
+        if 'max' in drawdown:
+            score += (1 - drawdown['max'] / 100) * 0.3
+        
+        # 收益率贡献
+        if 'rtot' in returns:
+            score += min(1.0, (returns['rtot'] + 1) / 2) * 0.3
+        
+        return min(1.0, max(0.0, score))
+    
+    def _parse_action(self, response: str) -> Dict[str, Any]:
+        """解析交易决策"""
+        response = response.strip().upper()
+        
+        if response == "HOLD":
+            return {"action": "HOLD"}
+        
+        parts = response.split()
+        if len(parts) != 3 or parts[0] not in ["BUY", "SELL"]:
+            raise ValueError("无效的交易决策格式")
+        
+        action_type = parts[0]
+        symbol = parts[1]
+        amount = float(parts[2])
+        
+        if symbol not in self.symbols:
+            raise ValueError(f"未知的交易标的: {symbol}")
+        
+        return {
+            "action": action_type,
+            "symbol": symbol,
+            "amount": amount
+        }
+
+
 # 沙盒注册表，方便动态创建
 SANDBOX_REGISTRY = {
     "game24": Game24Sandbox,
     "summarize": SummarizeSandbox,
     "code_execute": CodeExecuteSandbox,
     "debate": DebateSandbox,
-    "trading_gym": TradingGymSandbox
+    "trading_gym": TradingGymSandbox,
+    "backtrader": BacktraderSandbox  # 添加 Backtrader 沙盒
 }
 
 

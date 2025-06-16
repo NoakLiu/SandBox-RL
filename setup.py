@@ -54,6 +54,7 @@ setup(
         "matplotlib>=3.4.0",
         "gym>=0.21.0",
         "trading-gym>=0.1.0",
+        "backtrader>=1.9.76.123",  # 添加 Backtrader 依赖
         "yfinance>=0.1.70",  # 用于获取Yahoo Finance数据
         "alpaca-trade-api>=2.0.0",  # 用于Alpaca交易API
     ],

@@ -2,7 +2,7 @@
 """
 SandGraph 交易环境演示
 
-展示如何使用 TradingGymSandbox 进行交易决策和回测：
+展示如何使用 TradingGym 或 Backtrader 进行交易决策和回测：
 1. 基础交易环境设置
 2. 市场数据获取
 3. 交易决策执行
@@ -14,7 +14,9 @@ import sys
 import os
 import time
 import json
-from typing import Dict, Any, List
+import argparse
+from typing import Dict, Any, List, Union
+from datetime import datetime, timedelta
 
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +26,7 @@ from sandgraph.core.sg_workflow import (
     SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
     NodeType, NodeCondition, NodeLimits, GameState
 )
-from sandgraph.sandbox_implementations import TradingGymSandbox
+from sandgraph.sandbox_implementations import TradingGymSandbox, BacktraderSandbox
 
 
 def print_section(title: str):
@@ -34,8 +36,13 @@ def print_section(title: str):
     print(f"{'='*60}")
 
 
-def create_trading_workflow(llm_manager) -> SG_Workflow:
-    """创建交易工作流"""
+def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> SG_Workflow:
+    """创建交易工作流
+    
+    Args:
+        llm_manager: LLM管理器
+        strategy_type: 策略类型，可选 "trading_gym" 或 "backtrader"
+    """
     
     # 创建工作流
     workflow = SG_Workflow("trading_workflow", WorkflowMode.TRADITIONAL, llm_manager)
@@ -55,13 +62,25 @@ def create_trading_workflow(llm_manager) -> SG_Workflow:
     })
     
     # 添加交易执行节点
-    workflow.add_node(NodeType.SANDBOX, "trading_executor", {
-        "sandbox": TradingGymSandbox(
+    if strategy_type == "trading_gym":
+        sandbox = TradingGymSandbox(
             initial_balance=100000.0,
             trading_fee=0.001,
             max_position=0.2,
             symbols=["AAPL", "GOOGL", "MSFT", "AMZN"]
-        ),
+        )
+    else:  # backtrader
+        sandbox = BacktraderSandbox(
+            initial_cash=100000.0,
+            commission=0.001,
+            data_source="yahoo",
+            symbols=["AAPL", "GOOGL", "MSFT", "AMZN"],
+            start_date=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
+            end_date=datetime.now().strftime("%Y-%m-%d")
+        )
+    
+    workflow.add_node(NodeType.SANDBOX, "trading_executor", {
+        "sandbox": sandbox,
         "max_visits": 5,
         "description": "执行交易决策"
     })
@@ -81,10 +100,14 @@ def create_trading_workflow(llm_manager) -> SG_Workflow:
     return workflow
 
 
-def run_trading_demo():
-    """运行交易演示"""
+def run_trading_demo(strategy_type: str = "backtrader"):
+    """运行交易演示
     
-    print_section("交易环境演示")
+    Args:
+        strategy_type: 策略类型，可选 "trading_gym" 或 "backtrader"
+    """
+    
+    print_section(f"交易环境演示 - {strategy_type.upper()}")
     
     # 1. 创建LLM管理器
     print("\n1. 创建LLM管理器")
@@ -92,7 +115,7 @@ def run_trading_demo():
     
     # 2. 创建工作流
     print("\n2. 创建交易工作流")
-    workflow = create_trading_workflow(llm_manager)
+    workflow = create_trading_workflow(llm_manager, strategy_type)
     
     # 3. 执行工作流
     print("\n3. 执行交易工作流")
@@ -103,5 +126,20 @@ def run_trading_demo():
     print(json.dumps(result, indent=2, ensure_ascii=False))
 
 
+def main():
+    """主函数"""
+    parser = argparse.ArgumentParser(description="SandGraph 交易环境演示")
+    parser.add_argument(
+        "--strategy",
+        type=str,
+        choices=["trading_gym", "backtrader"],
+        default="backtrader",
+        help="选择交易策略类型 (trading_gym 或 backtrader)"
+    )
+    args = parser.parse_args()
+    
+    run_trading_demo(args.strategy)
+
+
 if __name__ == "__main__":
-    run_trading_demo() 
+    main() 
