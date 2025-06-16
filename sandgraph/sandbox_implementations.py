@@ -461,8 +461,11 @@ class BacktraderSandbox(Sandbox):
                 )
                 
                 def __init__(self):
-                    # 初始化指标
+                    # 初始化指标字典
                     self.sma = {}
+                
+                def start(self):
+                    # 在数据加载完成后初始化指标
                     for d in self.datas:
                         self.sma[d] = bt.indicators.SimpleMovingAverage(
                             d.close, period=self.p.period)
