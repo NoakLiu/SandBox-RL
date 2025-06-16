@@ -222,6 +222,66 @@ result = game_graph.execute()
 - 风险评估
 - 决策执行
 
+### 4. 量化交易系统
+- 市场数据分析
+- 交易策略生成
+- 实时交易执行
+- 风险控制
+- 投资组合管理
+
+#### 4.1 交易环境集成
+SandGraph 提供了与 Trading Gym 的集成，支持：
+- 实时市场数据获取（Yahoo Finance, Alpaca）
+- 交易执行和回测
+- 投资组合管理
+- 风险控制
+- 性能评估
+
+使用示例：
+```python
+from sandgraph import SG_Workflow, NodeType, WorkflowMode
+from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandgraph.sandbox_implementations import TradingGymSandbox
+
+# 创建LLM管理器
+llm_manager = create_shared_llm_manager("trading_llm")
+
+# 创建工作流
+workflow = SG_Workflow("trading_workflow", WorkflowMode.TRADITIONAL, llm_manager)
+
+# 添加交易执行节点
+workflow.add_node(NodeType.SANDBOX, "trading_executor", {
+    "sandbox": TradingGymSandbox(
+        initial_balance=100000.0,
+        trading_fee=0.001,
+        max_position=0.2,
+        symbols=["AAPL", "GOOGL", "MSFT", "AMZN"]
+    ),
+    "max_visits": 5
+})
+
+# 执行工作流
+result = workflow.execute_full_workflow(max_steps=10)
+```
+
+#### 4.2 交易功能
+- **市场数据**：支持实时和历史市场数据获取
+- **交易执行**：支持市价单、限价单等交易类型
+- **投资组合**：支持多资产组合管理
+- **风险控制**：支持止损、仓位控制等风险管理
+- **性能评估**：支持夏普比率、最大回撤等指标计算
+
+#### 4.3 数据源支持
+- Yahoo Finance
+- Alpaca Trading API
+- 自定义数据源
+
+#### 4.4 交易策略
+- 趋势跟踪
+- 均值回归
+- 套利策略
+- 机器学习策略
+
 ## 🔧 开发指南
 
 ### 添加新节点类型
