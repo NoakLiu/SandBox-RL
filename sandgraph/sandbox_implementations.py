@@ -252,13 +252,13 @@ class TradingGymSandbox(Sandbox):
         self.trading_fee = trading_fee
         self.max_position = max_position
         self.data_source = data_source
-        self.symbols = symbols or ["AAPL", "GOOGL", "MSFT", "AMZN"]
+        self.symbols = symbols if symbols is not None else ["AAPL", "GOOGL", "MSFT", "AMZN"]
         self.random = random.Random(seed)
         
         # 初始化交易环境
         try:
-            import gym
-            from trading_gym import TradingGym
+            import gym  # type: ignore
+            from trading_gym import TradingGym  # type: ignore
             self.env = TradingGym(
                 initial_balance=initial_balance,
                 trading_fee=trading_fee,
@@ -363,9 +363,9 @@ class TradingGymSandbox(Sandbox):
             # 模拟评分
             try:
                 action = self._parse_action(response)
-                if action == "HOLD":
+                if isinstance(action, dict) and action.get("action") == "HOLD":
                     return 0.5  # 持有观望得分
-                elif action.startswith(("BUY", "SELL")):
+                elif isinstance(action, dict) and action.get("action") in ["BUY", "SELL"]:
                     return 0.7  # 交易决策得分
                 else:
                     return 0.0  # 无效决策
