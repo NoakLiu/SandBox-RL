@@ -1,0 +1,690 @@
+(base) root@dsw-238653-865576d59c-b6jt5:/mnt/workspace/liudong/SandGraph# python trading_demo.py 
+
+============================================================
+ 交易环境演示 - TRADING_GYM
+============================================================
+
+1. 创建LLM管理器
+
+2. 创建交易工作流
+警告：Trading Gym 未安装，使用模拟实现。请运行: pip install trading-gym
+
+3. 执行交易工作流
+
+4. 交易结果
+{
+  "graph_id": "trading_workflow",
+  "mode": "traditional",
+  "executed_nodes": [
+    {
+      "node_id": "market_analyzer",
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 1",
+        "prompt": "",
+        "node_id": "market_analyzer"
+      },
+      "step": 0
+    },
+    {
+      "node_id": "strategy_generator",
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 2",
+        "prompt": "",
+        "node_id": "strategy_generator"
+      },
+      "step": 1
+    },
+    {
+      "node_id": "trading_executor",
+      "result": {
+        "sandbox_id": "trading_gym",
+        "case": {
+          "state": {
+            "prices": {
+              "AAPL": 675.4841186120954,
+              "GOOGL": 122.50967970040024,
+              "MSFT": 347.5263865322073,
+              "AMZN": 300.88966433394046
+            },
+            "portfolio": {
+              "cash": 100000.0,
+              "positions": {}
+            },
+            "market_data": {
+              "AAPL": {
+                "open": 762.8240927476112,
+                "high": 709.0295386806201,
+                "low": 902.9616109343609,
+                "close": 178.24494936647454,
+                "volume": 7912
+              },
+              "GOOGL": {
+                "open": 128.60441153360523,
+                "high": 184.32571587543322,
+                "low": 309.39480405166563,
+                "close": 641.8168561449822,
+                "volume": 4257
+              },
+              "MSFT": {
+                "open": 744.4176516301632,
+                "high": 731.1924762312124,
+                "low": 477.5678388654929,
+                "close": 504.2881416554682,
+                "volume": 5557
+              },
+              "AMZN": {
+                "open": 828.487411010044,
+                "high": 105.84888371025491,
+                "low": 825.2373266495271,
+                "close": 728.3254554894041,
+                "volume": 6574
+              }
+            }
+          },
+          "symbols": [
+            "AAPL",
+            "GOOGL",
+            "MSFT",
+            "AMZN"
+          ],
+          "initial_balance": 100000.0,
+          "trading_fee": 0.001,
+          "max_position": 0.2
+        },
+        "prompt": "当前市场状态：\nAAPL: 价格=675.48, 开盘=762.82, 最高=709.03, 最低=902.96, 收盘=178.24, 成交量=7912\nGOOGL: 价格=122.51, 开盘=128.60, 最高=184.33, 最低=309.39, 收盘=641.82, 成交量=4257\nMSFT: 价格=347.53, 开盘=744.42, 最高=731.19, 最低=477.57, 收盘=504.29, 成交量=5557\nAMZN: 价格=300.89, 开盘=828.49, 最高=105.85, 最低=825.24, 收盘=728.33, 成交量=6574\n\n当前投资组合：\n现金: 100000.00\n持仓:\n\n\n请分析市场数据并做出交易决策。您可以：\n1. 买入股票：使用 'BUY <symbol> <amount>' 格式\n2. 卖出股票：使用 'SELL <symbol> <amount>' 格式\n3. 持有观望：使用 'HOLD' 格式\n\n请注意：\n- 交易手续费率：0.1%\n- 最大持仓比例：20.0%\n- 请确保决策合理且符合风险控制要求",
+        "node_id": "trading_executor"
+      },
+      "step": 2
+    },
+    {
+      "node_id": "risk_assessor",
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 3",
+        "prompt": "",
+        "node_id": "risk_assessor"
+      },
+      "step": 3
+    }
+  ],
+  "total_steps": 4,
+  "total_time": 0.00012993812561035156,
+  "final_score": 0.0,
+  "final_resources": {
+    "energy": 75,
+    "tokens": 36,
+    "time": 300,
+    "knowledge": 10
+  },
+  "completed_nodes_count": 4,
+  "execution_history": [
+    {
+      "node_id": "market_analyzer",
+      "execution_time": 2.2649765014648438e-05,
+      "inputs": {},
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 1",
+        "prompt": "",
+        "node_id": "market_analyzer"
+      },
+      "game_state_snapshot": {
+        "resources": {
+          "energy": 75,
+          "tokens": 36,
+          "time": 300,
+          "knowledge": 10
+        },
+        "node_visits": {
+          "market_analyzer": 1,
+          "strategy_generator": 1,
+          "trading_executor": 1,
+          "risk_assessor": 1
+        },
+        "node_last_visit": {
+          "market_analyzer": 1750071634.8934965,
+          "strategy_generator": 1750071634.8935263,
+          "trading_executor": 1750071634.8935406,
+          "risk_assessor": 1750071634.8936038
+        },
+        "completed_nodes": [
+          "risk_assessor",
+          "strategy_generator",
+          "market_analyzer",
+          "trading_executor"
+        ],
+        "node_scores": {},
+        "global_score": 0.0,
+        "game_time": 1750071634.893486
+      },
+      "status": "success",
+      "timestamp": 1750071634.8935194
+    },
+    {
+      "node_id": "strategy_generator",
+      "execution_time": 9.059906005859375e-06,
+      "inputs": {},
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 2",
+        "prompt": "",
+        "node_id": "strategy_generator"
+      },
+      "game_state_snapshot": {
+        "resources": {
+          "energy": 75,
+          "tokens": 36,
+          "time": 300,
+          "knowledge": 10
+        },
+        "node_visits": {
+          "market_analyzer": 1,
+          "strategy_generator": 1,
+          "trading_executor": 1,
+          "risk_assessor": 1
+        },
+        "node_last_visit": {
+          "market_analyzer": 1750071634.8934965,
+          "strategy_generator": 1750071634.8935263,
+          "trading_executor": 1750071634.8935406,
+          "risk_assessor": 1750071634.8936038
+        },
+        "completed_nodes": [
+          "risk_assessor",
+          "strategy_generator",
+          "market_analyzer",
+          "trading_executor"
+        ],
+        "node_scores": {},
+        "global_score": 0.0,
+        "game_time": 1750071634.893486
+      },
+      "status": "success",
+      "timestamp": 1750071634.8935354
+    },
+    {
+      "node_id": "trading_executor",
+      "execution_time": 5.7697296142578125e-05,
+      "inputs": {},
+      "result": {
+        "sandbox_id": "trading_gym",
+        "case": {
+          "state": {
+            "prices": {
+              "AAPL": 675.4841186120954,
+              "GOOGL": 122.50967970040024,
+              "MSFT": 347.5263865322073,
+              "AMZN": 300.88966433394046
+            },
+            "portfolio": {
+              "cash": 100000.0,
+              "positions": {}
+            },
+            "market_data": {
+              "AAPL": {
+                "open": 762.8240927476112,
+                "high": 709.0295386806201,
+                "low": 902.9616109343609,
+                "close": 178.24494936647454,
+                "volume": 7912
+              },
+              "GOOGL": {
+                "open": 128.60441153360523,
+                "high": 184.32571587543322,
+                "low": 309.39480405166563,
+                "close": 641.8168561449822,
+                "volume": 4257
+              },
+              "MSFT": {
+                "open": 744.4176516301632,
+                "high": 731.1924762312124,
+                "low": 477.5678388654929,
+                "close": 504.2881416554682,
+                "volume": 5557
+              },
+              "AMZN": {
+                "open": 828.487411010044,
+                "high": 105.84888371025491,
+                "low": 825.2373266495271,
+                "close": 728.3254554894041,
+                "volume": 6574
+              }
+            }
+          },
+          "symbols": [
+            "AAPL",
+            "GOOGL",
+            "MSFT",
+            "AMZN"
+          ],
+          "initial_balance": 100000.0,
+          "trading_fee": 0.001,
+          "max_position": 0.2
+        },
+        "prompt": "当前市场状态：\nAAPL: 价格=675.48, 开盘=762.82, 最高=709.03, 最低=902.96, 收盘=178.24, 成交量=7912\nGOOGL: 价格=122.51, 开盘=128.60, 最高=184.33, 最低=309.39, 收盘=641.82, 成交量=4257\nMSFT: 价格=347.53, 开盘=744.42, 最高=731.19, 最低=477.57, 收盘=504.29, 成交量=5557\nAMZN: 价格=300.89, 开盘=828.49, 最高=105.85, 最低=825.24, 收盘=728.33, 成交量=6574\n\n当前投资组合：\n现金: 100000.00\n持仓:\n\n\n请分析市场数据并做出交易决策。您可以：\n1. 买入股票：使用 'BUY <symbol> <amount>' 格式\n2. 卖出股票：使用 'SELL <symbol> <amount>' 格式\n3. 持有观望：使用 'HOLD' 格式\n\n请注意：\n- 交易手续费率：0.1%\n- 最大持仓比例：20.0%\n- 请确保决策合理且符合风险控制要求",
+        "node_id": "trading_executor"
+      },
+      "game_state_snapshot": {
+        "resources": {
+          "energy": 75,
+          "tokens": 36,
+          "time": 300,
+          "knowledge": 10
+        },
+        "node_visits": {
+          "market_analyzer": 1,
+          "strategy_generator": 1,
+          "trading_executor": 1,
+          "risk_assessor": 1
+        },
+        "node_last_visit": {
+          "market_analyzer": 1750071634.8934965,
+          "strategy_generator": 1750071634.8935263,
+          "trading_executor": 1750071634.8935406,
+          "risk_assessor": 1750071634.8936038
+        },
+        "completed_nodes": [
+          "risk_assessor",
+          "strategy_generator",
+          "market_analyzer",
+          "trading_executor"
+        ],
+        "node_scores": {},
+        "global_score": 0.0,
+        "game_time": 1750071634.893486
+      },
+      "status": "success",
+      "timestamp": 1750071634.8935988
+    },
+    {
+      "node_id": "risk_assessor",
+      "execution_time": 1.0728836059570312e-05,
+      "inputs": {},
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 3",
+        "prompt": "",
+        "node_id": "risk_assessor"
+      },
+      "game_state_snapshot": {
+        "resources": {
+          "energy": 75,
+          "tokens": 36,
+          "time": 300,
+          "knowledge": 10
+        },
+        "node_visits": {
+          "market_analyzer": 1,
+          "strategy_generator": 1,
+          "trading_executor": 1,
+          "risk_assessor": 1
+        },
+        "node_last_visit": {
+          "market_analyzer": 1750071634.8934965,
+          "strategy_generator": 1750071634.8935263,
+          "trading_executor": 1750071634.8935406,
+          "risk_assessor": 1750071634.8936038
+        },
+        "completed_nodes": [
+          "risk_assessor",
+          "strategy_generator",
+          "market_analyzer",
+          "trading_executor"
+        ],
+        "node_scores": {},
+        "global_score": 0.0,
+        "game_time": 1750071634.893486
+      },
+      "status": "success",
+      "timestamp": 1750071634.8936145
+    }
+  ]
+}
+(base) root@dsw-238653-865576d59c-b6jt5:/mnt/workspace/liudong/SandGraph# git pull origin main
+remote: Enumerating objects: 4, done.
+remote: Counting objects: 100% (4/4), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 3 (delta 1), reused 3 (delta 1), pack-reused 0 (from 0)
+展开对象中: 100% (3/3), 3.07 KiB | 31.00 KiB/s, 完成.
+来自 https://github.com/NoakLiu/SandGraph
+ * branch            main       -> FETCH_HEAD
+   3185d86..2592aaa  main       -> origin/main
+更新 3185d86..2592aaa
+Fast-forward
+ Trading_SandGraph.md | 276 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 276 insertions(+)
+ create mode 100644 Trading_SandGraph.md
+(base) root@dsw-238653-865576d59c-b6jt5:/mnt/workspace/liudong/SandGraph# python trading_demo.py 
+
+============================================================
+ 交易环境演示 - TRADING_GYM
+============================================================
+
+1. 创建LLM管理器
+
+2. 创建交易工作流
+警告：Trading Gym 未安装，使用模拟实现。请运行: pip install trading-gym
+
+3. 执行交易工作流
+
+4. 交易结果
+{
+  "graph_id": "trading_workflow",
+  "mode": "traditional",
+  "executed_nodes": [
+    {
+      "node_id": "market_analyzer",
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 1",
+        "prompt": "",
+        "node_id": "market_analyzer"
+      },
+      "step": 0
+    },
+    {
+      "node_id": "strategy_generator",
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 2",
+        "prompt": "",
+        "node_id": "strategy_generator"
+      },
+      "step": 1
+    },
+    {
+      "node_id": "trading_executor",
+      "result": {
+        "sandbox_id": "trading_gym",
+        "case": {
+          "state": {
+            "prices": {
+              "AAPL": 675.4841186120954,
+              "GOOGL": 122.50967970040024,
+              "MSFT": 347.5263865322073,
+              "AMZN": 300.88966433394046
+            },
+            "portfolio": {
+              "cash": 100000.0,
+              "positions": {}
+            },
+            "market_data": {
+              "AAPL": {
+                "open": 762.8240927476112,
+                "high": 709.0295386806201,
+                "low": 902.9616109343609,
+                "close": 178.24494936647454,
+                "volume": 7912
+              },
+              "GOOGL": {
+                "open": 128.60441153360523,
+                "high": 184.32571587543322,
+                "low": 309.39480405166563,
+                "close": 641.8168561449822,
+                "volume": 4257
+              },
+              "MSFT": {
+                "open": 744.4176516301632,
+                "high": 731.1924762312124,
+                "low": 477.5678388654929,
+                "close": 504.2881416554682,
+                "volume": 5557
+              },
+              "AMZN": {
+                "open": 828.487411010044,
+                "high": 105.84888371025491,
+                "low": 825.2373266495271,
+                "close": 728.3254554894041,
+                "volume": 6574
+              }
+            }
+          },
+          "symbols": [
+            "AAPL",
+            "GOOGL",
+            "MSFT",
+            "AMZN"
+          ],
+          "initial_balance": 100000.0,
+          "trading_fee": 0.001,
+          "max_position": 0.2
+        },
+        "prompt": "当前市场状态：\nAAPL: 价格=675.48, 开盘=762.82, 最高=709.03, 最低=902.96, 收盘=178.24, 成交量=7912\nGOOGL: 价格=122.51, 开盘=128.60, 最高=184.33, 最低=309.39, 收盘=641.82, 成交量=4257\nMSFT: 价格=347.53, 开盘=744.42, 最高=731.19, 最低=477.57, 收盘=504.29, 成交量=5557\nAMZN: 价格=300.89, 开盘=828.49, 最高=105.85, 最低=825.24, 收盘=728.33, 成交量=6574\n\n当前投资组合：\n现金: 100000.00\n持仓:\n\n\n请分析市场数据并做出交易决策。您可以：\n1. 买入股票：使用 'BUY <symbol> <amount>' 格式\n2. 卖出股票：使用 'SELL <symbol> <amount>' 格式\n3. 持有观望：使用 'HOLD' 格式\n\n请注意：\n- 交易手续费率：0.1%\n- 最大持仓比例：20.0%\n- 请确保决策合理且符合风险控制要求",
+        "node_id": "trading_executor"
+      },
+      "step": 2
+    },
+    {
+      "node_id": "risk_assessor",
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 3",
+        "prompt": "",
+        "node_id": "risk_assessor"
+      },
+      "step": 3
+    }
+  ],
+  "total_steps": 4,
+  "total_time": 0.00012922286987304688,
+  "final_score": 0.0,
+  "final_resources": {
+    "energy": 75,
+    "tokens": 36,
+    "time": 300,
+    "knowledge": 10
+  },
+  "completed_nodes_count": 4,
+  "execution_history": [
+    {
+      "node_id": "market_analyzer",
+      "execution_time": 2.1457672119140625e-05,
+      "inputs": {},
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 1",
+        "prompt": "",
+        "node_id": "market_analyzer"
+      },
+      "game_state_snapshot": {
+        "resources": {
+          "energy": 75,
+          "tokens": 36,
+          "time": 300,
+          "knowledge": 10
+        },
+        "node_visits": {
+          "market_analyzer": 1,
+          "strategy_generator": 1,
+          "trading_executor": 1,
+          "risk_assessor": 1
+        },
+        "node_last_visit": {
+          "market_analyzer": 1750072358.7602692,
+          "strategy_generator": 1750072358.760298,
+          "trading_executor": 1750072358.7603137,
+          "risk_assessor": 1750072358.7603767
+        },
+        "completed_nodes": [
+          "strategy_generator",
+          "trading_executor",
+          "market_analyzer",
+          "risk_assessor"
+        ],
+        "node_scores": {},
+        "global_score": 0.0,
+        "game_time": 1750072358.760259
+      },
+      "status": "success",
+      "timestamp": 1750072358.7602906
+    },
+    {
+      "node_id": "strategy_generator",
+      "execution_time": 1.0728836059570312e-05,
+      "inputs": {},
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 2",
+        "prompt": "",
+        "node_id": "strategy_generator"
+      },
+      "game_state_snapshot": {
+        "resources": {
+          "energy": 75,
+          "tokens": 36,
+          "time": 300,
+          "knowledge": 10
+        },
+        "node_visits": {
+          "market_analyzer": 1,
+          "strategy_generator": 1,
+          "trading_executor": 1,
+          "risk_assessor": 1
+        },
+        "node_last_visit": {
+          "market_analyzer": 1750072358.7602692,
+          "strategy_generator": 1750072358.760298,
+          "trading_executor": 1750072358.7603137,
+          "risk_assessor": 1750072358.7603767
+        },
+        "completed_nodes": [
+          "strategy_generator",
+          "trading_executor",
+          "market_analyzer",
+          "risk_assessor"
+        ],
+        "node_scores": {},
+        "global_score": 0.0,
+        "game_time": 1750072358.760259
+      },
+      "status": "success",
+      "timestamp": 1750072358.7603085
+    },
+    {
+      "node_id": "trading_executor",
+      "execution_time": 5.698204040527344e-05,
+      "inputs": {},
+      "result": {
+        "sandbox_id": "trading_gym",
+        "case": {
+          "state": {
+            "prices": {
+              "AAPL": 675.4841186120954,
+              "GOOGL": 122.50967970040024,
+              "MSFT": 347.5263865322073,
+              "AMZN": 300.88966433394046
+            },
+            "portfolio": {
+              "cash": 100000.0,
+              "positions": {}
+            },
+            "market_data": {
+              "AAPL": {
+                "open": 762.8240927476112,
+                "high": 709.0295386806201,
+                "low": 902.9616109343609,
+                "close": 178.24494936647454,
+                "volume": 7912
+              },
+              "GOOGL": {
+                "open": 128.60441153360523,
+                "high": 184.32571587543322,
+                "low": 309.39480405166563,
+                "close": 641.8168561449822,
+                "volume": 4257
+              },
+              "MSFT": {
+                "open": 744.4176516301632,
+                "high": 731.1924762312124,
+                "low": 477.5678388654929,
+                "close": 504.2881416554682,
+                "volume": 5557
+              },
+              "AMZN": {
+                "open": 828.487411010044,
+                "high": 105.84888371025491,
+                "low": 825.2373266495271,
+                "close": 728.3254554894041,
+                "volume": 6574
+              }
+            }
+          },
+          "symbols": [
+            "AAPL",
+            "GOOGL",
+            "MSFT",
+            "AMZN"
+          ],
+          "initial_balance": 100000.0,
+          "trading_fee": 0.001,
+          "max_position": 0.2
+        },
+        "prompt": "当前市场状态：\nAAPL: 价格=675.48, 开盘=762.82, 最高=709.03, 最低=902.96, 收盘=178.24, 成交量=7912\nGOOGL: 价格=122.51, 开盘=128.60, 最高=184.33, 最低=309.39, 收盘=641.82, 成交量=4257\nMSFT: 价格=347.53, 开盘=744.42, 最高=731.19, 最低=477.57, 收盘=504.29, 成交量=5557\nAMZN: 价格=300.89, 开盘=828.49, 最高=105.85, 最低=825.24, 收盘=728.33, 成交量=6574\n\n当前投资组合：\n现金: 100000.00\n持仓:\n\n\n请分析市场数据并做出交易决策。您可以：\n1. 买入股票：使用 'BUY <symbol> <amount>' 格式\n2. 卖出股票：使用 'SELL <symbol> <amount>' 格式\n3. 持有观望：使用 'HOLD' 格式\n\n请注意：\n- 交易手续费率：0.1%\n- 最大持仓比例：20.0%\n- 请确保决策合理且符合风险控制要求",
+        "node_id": "trading_executor"
+      },
+      "game_state_snapshot": {
+        "resources": {
+          "energy": 75,
+          "tokens": 36,
+          "time": 300,
+          "knowledge": 10
+        },
+        "node_visits": {
+          "market_analyzer": 1,
+          "strategy_generator": 1,
+          "trading_executor": 1,
+          "risk_assessor": 1
+        },
+        "node_last_visit": {
+          "market_analyzer": 1750072358.7602692,
+          "strategy_generator": 1750072358.760298,
+          "trading_executor": 1750072358.7603137,
+          "risk_assessor": 1750072358.7603767
+        },
+        "completed_nodes": [
+          "strategy_generator",
+          "trading_executor",
+          "market_analyzer",
+          "risk_assessor"
+        ],
+        "node_scores": {},
+        "global_score": 0.0,
+        "game_time": 1750072358.760259
+      },
+      "status": "success",
+      "timestamp": 1750072358.760371
+    },
+    {
+      "node_id": "risk_assessor",
+      "execution_time": 1.0728836059570312e-05,
+      "inputs": {},
+      "result": {
+        "response": "通过逻辑推理，我得出了合理的结论。生成次数: 3",
+        "prompt": "",
+        "node_id": "risk_assessor"
+      },
+      "game_state_snapshot": {
+        "resources": {
+          "energy": 75,
+          "tokens": 36,
+          "time": 300,
+          "knowledge": 10
+        },
+        "node_visits": {
+          "market_analyzer": 1,
+          "strategy_generator": 1,
+          "trading_executor": 1,
+          "risk_assessor": 1
+        },
+        "node_last_visit": {
+          "market_analyzer": 1750072358.7602692,
+          "strategy_generator": 1750072358.760298,
+          "trading_executor": 1750072358.7603137,
+          "risk_assessor": 1750072358.7603767
+        },
+        "completed_nodes": [
+          "strategy_generator",
+          "trading_executor",
+          "market_analyzer",
+          "risk_assessor"
+        ],
+        "node_scores": {},
+        "global_score": 0.0,
+        "game_time": 1750072358.760259
+      },
+      "status": "success",
+      "timestamp": 1750072358.7603867
+    }
+  ]
+}
