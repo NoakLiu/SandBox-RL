@@ -47,19 +47,42 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
     # 创建工作流
     workflow = SG_Workflow("trading_workflow", WorkflowMode.TRADITIONAL, llm_manager)
     
+    # 创建LLM函数
+    def create_llm_func(node_id: str):
+        def llm_func(prompt: str, context: Dict[str, Any] = {}) -> str:
+            response = llm_manager.generate_for_node(node_id, prompt)
+            return response.text
+        return llm_func
+    
+    # 注册LLM节点
+    llm_nodes = {
+        "market_analyzer": {"role": "市场分析师", "reasoning_type": "analytical"},
+        "strategy_generator": {"role": "策略生成器", "reasoning_type": "strategic"},
+        "risk_assessor": {"role": "风险评估师", "reasoning_type": "analytical"}
+    }
+    
+    for node_id, node_config in llm_nodes.items():
+        llm_manager.register_node(node_id, node_config)
+    
     # 添加市场分析节点
-    workflow.add_node(NodeType.LLM, "market_analyzer", {
-        "role": "市场分析师",
-        "reasoning_type": "analytical",
-        "description": "分析市场数据和趋势"
-    })
+    market_analyzer = EnhancedWorkflowNode(
+        "market_analyzer",
+        NodeType.LLM,
+        llm_func=create_llm_func("market_analyzer"),
+        condition=NodeCondition(),
+        limits=NodeLimits(resource_cost={"energy": 5, "tokens": 3})
+    )
+    workflow.add_node(market_analyzer)
     
     # 添加策略生成节点
-    workflow.add_node(NodeType.LLM, "strategy_generator", {
-        "role": "策略生成器",
-        "reasoning_type": "strategic",
-        "description": "生成交易策略"
-    })
+    strategy_generator = EnhancedWorkflowNode(
+        "strategy_generator",
+        NodeType.LLM,
+        llm_func=create_llm_func("strategy_generator"),
+        condition=NodeCondition(),
+        limits=NodeLimits(resource_cost={"energy": 5, "tokens": 3})
+    )
+    workflow.add_node(strategy_generator)
     
     # 添加交易执行节点
     if strategy_type == "trading_gym":
@@ -79,18 +102,24 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
             end_date=datetime.now().strftime("%Y-%m-%d")
         )
     
-    workflow.add_node(NodeType.SANDBOX, "trading_executor", {
-        "sandbox": sandbox,
-        "max_visits": 5,
-        "description": "执行交易决策"
-    })
+    trading_executor = EnhancedWorkflowNode(
+        "trading_executor",
+        NodeType.SANDBOX,
+        sandbox=sandbox,
+        condition=NodeCondition(),
+        limits=NodeLimits(max_visits=5, resource_cost={"energy": 10, "tokens": 5})
+    )
+    workflow.add_node(trading_executor)
     
     # 添加风险评估节点
-    workflow.add_node(NodeType.LLM, "risk_assessor", {
-        "role": "风险评估师",
-        "reasoning_type": "analytical",
-        "description": "评估交易风险"
-    })
+    risk_assessor = EnhancedWorkflowNode(
+        "risk_assessor",
+        NodeType.LLM,
+        llm_func=create_llm_func("risk_assessor"),
+        condition=NodeCondition(),
+        limits=NodeLimits(resource_cost={"energy": 5, "tokens": 3})
+    )
+    workflow.add_node(risk_assessor)
     
     # 添加边
     workflow.add_edge("market_analyzer", "strategy_generator")
