@@ -182,7 +182,7 @@ def main():
         "--strategy",
         type=str,
         choices=["trading_gym", "backtrader"],
-        default="backtrader",
+        default="trading_gym",
         help="选择交易策略类型 (trading_gym 或 backtrader)"
     )
     args = parser.parse_args()
