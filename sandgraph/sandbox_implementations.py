@@ -461,26 +461,13 @@ class BacktraderSandbox(Sandbox):
                 )
                 
                 def __init__(self):
-                    # 初始化指标字典
+                    # 初始化指标
                     self.sma = {}
-                    # 等待数据加载完成
-                    self.wait_for_data = True
-                
-                def notify_data(self, data, status, *args, **kwargs):
-                    if status == data.LIVE:
-                        self.wait_for_data = False
+                    for d in self.datas:
+                        self.sma[d] = bt.indicators.SimpleMovingAverage(
+                            d.close, period=self.p.period)
                 
                 def next(self):
-                    # 如果数据还没准备好，跳过
-                    if self.wait_for_data:
-                        return
-                    
-                    # 为每个数据源创建指标（如果还没有）
-                    for d in self.datas:
-                        if d not in self.sma:
-                            self.sma[d] = bt.indicators.SimpleMovingAverage(
-                                d.close, period=self.params.period)
-                    
                     # 交易逻辑
                     for d in self.datas:
                         if not self.getposition(d):
