@@ -300,7 +300,48 @@ result = sandbox.execute_backtest()
 print(f"回测结果：\n{result}")
 ```
 
-#### 4.6 性能指标
+#### 4.6 命令行使用
+SandGraph 提供了命令行工具来运行交易演示：
+
+1. 使用 Backtrader 策略（默认）：
+```bash
+python trading_demo.py
+```
+
+2. 使用 TradingGym 策略：
+```bash
+python trading_demo.py --strategy trading_gym
+```
+
+3. 查看帮助信息：
+```bash
+python trading_demo.py --help
+```
+
+输出：
+```
+usage: trading_demo.py [-h] [--strategy {trading_gym,backtrader}]
+
+SandGraph 交易环境演示
+
+options:
+  -h, --help            显示帮助信息并退出
+  --strategy {trading_gym,backtrader}
+                        选择交易策略类型 (trading_gym 或 backtrader)
+```
+
+4. 开发环境安装和运行：
+```bash
+# 安装开发版本
+pip install -e ".[dev]"
+
+# 运行演示
+python trading_demo.py --strategy backtrader  # 使用 Backtrader
+# 或
+python trading_demo.py --strategy trading_gym  # 使用 TradingGym
+```
+
+#### 4.7 性能指标
 - **收益指标**
   - 总收益率
   - 年化收益率
