@@ -43,13 +43,15 @@ def create_trading_workflow(llm_manager) -> SG_Workflow:
     # 添加市场分析节点
     workflow.add_node(NodeType.LLM, "market_analyzer", {
         "role": "市场分析师",
-        "reasoning_type": "analytical"
+        "reasoning_type": "analytical",
+        "description": "分析市场数据和趋势"
     })
     
     # 添加策略生成节点
     workflow.add_node(NodeType.LLM, "strategy_generator", {
         "role": "策略生成器",
-        "reasoning_type": "strategic"
+        "reasoning_type": "strategic",
+        "description": "生成交易策略"
     })
     
     # 添加交易执行节点
@@ -60,13 +62,15 @@ def create_trading_workflow(llm_manager) -> SG_Workflow:
             max_position=0.2,
             symbols=["AAPL", "GOOGL", "MSFT", "AMZN"]
         ),
-        "max_visits": 5
+        "max_visits": 5,
+        "description": "执行交易决策"
     })
     
     # 添加风险评估节点
     workflow.add_node(NodeType.LLM, "risk_assessor", {
         "role": "风险评估师",
-        "reasoning_type": "analytical"
+        "reasoning_type": "analytical",
+        "description": "评估交易风险"
     })
     
     # 添加边
