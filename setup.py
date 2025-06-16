@@ -47,6 +47,15 @@ setup(
         "mcp[cli]>=1.0.0",  # 官方MCP SDK
         "rich>=12.0.0",
         "colorama>=0.4.4",
+        "anthropic>=0.3.0",
+        "numpy>=1.21.0",
+        "pandas>=1.3.0",
+        "networkx>=2.6.0",
+        "matplotlib>=3.4.0",
+        "gym>=0.21.0",
+        "trading-gym>=0.1.0",
+        "yfinance>=0.1.70",  # 用于获取Yahoo Finance数据
+        "alpaca-trade-api>=2.0.0",  # 用于Alpaca交易API
     ],
     extras_require={
         "dev": [
@@ -56,6 +65,7 @@ setup(
             "flake8>=4.0.0",
             "mypy>=0.950",
             "pre-commit>=2.15.0",
+            "isort>=5.0",
         ],
         "docs": [
             "sphinx>=4.0.0",
