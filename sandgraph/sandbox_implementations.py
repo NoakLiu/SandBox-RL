@@ -461,14 +461,29 @@ class BacktraderSandbox(Sandbox):
                 )
                 
                 def __init__(self):
+                    # 初始化指标字典
                     self.sma = {}
-                    for d in self.datas:
-                        self.sma[d] = bt.indicators.SimpleMovingAverage(
-                            d.close, period=self.params.period)
+                    # 等待数据加载完成
+                    self.wait_for_data = True
+                
+                def notify_data(self, data, status, *args, **kwargs):
+                    if status == data.LIVE:
+                        self.wait_for_data = False
                 
                 def next(self):
+                    # 如果数据还没准备好，跳过
+                    if self.wait_for_data:
+                        return
+                    
+                    # 为每个数据源创建指标（如果还没有）
                     for d in self.datas:
-                        if not self.position:
+                        if d not in self.sma:
+                            self.sma[d] = bt.indicators.SimpleMovingAverage(
+                                d.close, period=self.params.period)
+                    
+                    # 交易逻辑
+                    for d in self.datas:
+                        if not self.getposition(d):
                             if d.close[0] > self.sma[d][0]:
                                 self.buy(data=d)
                         else:
@@ -498,10 +513,16 @@ class BacktraderSandbox(Sandbox):
             self.cerebro.addstrategy(self.strategy)
             
             # 添加数据源
+            data_added = False
             for symbol in self.symbols:
                 data = self._get_data(symbol)
                 if data:
                     self.cerebro.adddata(data)
+                    data_added = True
+            
+            if not data_added:
+                print("警告：无法获取任何市场数据，使用模拟数据")
+                return self._generate_simulated_state()
             
             # 获取当前状态
             state = {
@@ -518,27 +539,30 @@ class BacktraderSandbox(Sandbox):
                 "commission": self.commission
             }
         else:
-            # 模拟市场数据
-            prices = {symbol: self.random.uniform(100, 1000) for symbol in self.symbols}
-            return {
-                "state": {
-                    "cash": self.initial_cash,
-                    "positions": {},
-                    "prices": prices,
-                    "market_data": {
-                        symbol: {
-                            "open": prices[symbol] * 0.99,
-                            "high": prices[symbol] * 1.01,
-                            "low": prices[symbol] * 0.98,
-                            "close": prices[symbol],
-                            "volume": self.random.randint(1000, 10000)
-                        } for symbol in self.symbols
-                    }
-                },
-                "symbols": self.symbols,
-                "initial_cash": self.initial_cash,
-                "commission": self.commission
-            }
+            return self._generate_simulated_state()
+    
+    def _generate_simulated_state(self) -> Dict[str, Any]:
+        """生成模拟市场数据状态"""
+        prices = {symbol: self.random.uniform(100, 1000) for symbol in self.symbols}
+        return {
+            "state": {
+                "cash": self.initial_cash,
+                "positions": {},
+                "prices": prices,
+                "market_data": {
+                    symbol: {
+                        "open": prices[symbol] * 0.99,
+                        "high": prices[symbol] * 1.01,
+                        "low": prices[symbol] * 0.98,
+                        "close": prices[symbol],
+                        "volume": self.random.randint(1000, 10000)
+                    } for symbol in self.symbols
+                }
+            },
+            "symbols": self.symbols,
+            "initial_cash": self.initial_cash,
+            "commission": self.commission
+        }
     
     def prompt_func(self, case: Dict[str, Any]) -> str:
         """构造交易提示文本"""
