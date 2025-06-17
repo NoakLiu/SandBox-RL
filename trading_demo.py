@@ -50,21 +50,74 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
     # 创建LLM函数
     def create_llm_func(node_id: str):
         def llm_func(prompt: str, context: Dict[str, Any] = {}) -> str:
+            # 根据不同节点类型构造不同的提示
+            if node_id == "market_analyzer":
+                prompt = f"""作为市场分析师，请分析以下市场数据并提供见解：
+{prompt}
+
+请从以下方面进行分析：
+1. 价格趋势
+2. 成交量分析
+3. 市场情绪
+4. 潜在机会和风险
+
+请给出详细的分析报告。"""
+            
+            elif node_id == "strategy_generator":
+                prompt = f"""作为策略生成器，请基于以下市场分析生成交易策略：
+{prompt}
+
+请考虑以下因素：
+1. 市场趋势
+2. 风险控制
+3. 资金管理
+4. 具体执行计划
+
+请给出详细的交易策略。"""
+            
+            elif node_id == "risk_assessor":
+                prompt = f"""作为风险评估师，请评估以下交易策略的风险：
+{prompt}
+
+请从以下方面进行评估：
+1. 市场风险
+2. 操作风险
+3. 资金风险
+4. 风险控制建议
+
+请给出详细的风险评估报告。"""
+            
             response = llm_manager.generate_for_node(node_id, prompt)
             return response.text
         return llm_func
     
     # 注册LLM节点
     llm_nodes = {
-        "market_analyzer": {"role": "市场分析师", "reasoning_type": "analytical"},
-        "strategy_generator": {"role": "策略生成器", "reasoning_type": "strategic"},
-        "risk_assessor": {"role": "风险评估师", "reasoning_type": "analytical"}
+        "market_analyzer": {
+            "role": "市场分析师",
+            "reasoning_type": "analytical",
+            "temperature": 0.7,
+            "max_tokens": 1000
+        },
+        "strategy_generator": {
+            "role": "策略生成器",
+            "reasoning_type": "strategic",
+            "temperature": 0.8,
+            "max_tokens": 1500
+        },
+        "risk_assessor": {
+            "role": "风险评估师",
+            "reasoning_type": "analytical",
+            "temperature": 0.6,
+            "max_tokens": 1000
+        }
     }
     
+    # 注册所有LLM节点
     for node_id, node_config in llm_nodes.items():
         llm_manager.register_node(node_id, node_config)
     
-    # 添加市场分析节点
+    # 添加市场分析节点（LLM节点）
     market_analyzer = EnhancedWorkflowNode(
         "market_analyzer",
         NodeType.LLM,
@@ -74,7 +127,7 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
     )
     workflow.add_node(market_analyzer)
     
-    # 添加策略生成节点
+    # 添加策略生成节点（LLM节点）
     strategy_generator = EnhancedWorkflowNode(
         "strategy_generator",
         NodeType.LLM,
@@ -84,7 +137,7 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
     )
     workflow.add_node(strategy_generator)
     
-    # 添加交易执行节点
+    # 添加交易执行节点（唯一的SANDBOX节点）
     if strategy_type == "trading_gym":
         sandbox = TradingGymSandbox(
             initial_balance=100000.0,
@@ -104,14 +157,14 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
     
     trading_executor = EnhancedWorkflowNode(
         "trading_executor",
-        NodeType.SANDBOX,
+        NodeType.SANDBOX,  # 唯一的SANDBOX类型节点
         sandbox=sandbox,
         condition=NodeCondition(),
         limits=NodeLimits(max_visits=5, resource_cost={"energy": 10, "tokens": 5})
     )
     workflow.add_node(trading_executor)
     
-    # 添加风险评估节点
+    # 添加风险评估节点（LLM节点）
     risk_assessor = EnhancedWorkflowNode(
         "risk_assessor",
         NodeType.LLM,
