@@ -56,25 +56,24 @@ SandGraph/
 
 ## 📦 安装
 
-```bash
-# 基础安装
-pip install sandgraph
+### 使用 Conda 安装（推荐）
 
-# 开发安装
-git clone https://github.com/NoakLiu/sandgraph.git
-cd sandgraph
-pip install -e ".[dev]"
-```
-
-安装环境
 ```bash
+# 1. 创建新的 conda 环境
 conda create -n sandgraph python=3.11
 conda activate sandgraph
+
+# 2. 克隆仓库
+git clone https://github.com/NoakLiu/sandgraph.git
+cd sandgraph
+
+# 3. 运行安装脚本
 chmod +x quick_install.sh
 ./quick_install.sh
 ```
 
-验证安装环境
+### 验证安装
+
 ```bash
 # 验证 MCP SDK
 python -c "from mcp.server.fastmcp import FastMCP; print('MCP SDK 安装成功')"
@@ -82,6 +81,13 @@ python -c "from mcp.server.fastmcp import FastMCP; print('MCP SDK 安装成功')
 # 验证 SandGraph
 python -c "from sandgraph import check_mcp_availability; print(check_mcp_availability())"
 ```
+
+### 注意事项
+
+1. 确保使用 Python 3.8 或更高版本
+2. 建议使用 conda 环境以避免依赖冲突
+3. 如果遇到权限问题，请确保使用虚拟环境而不是 root 用户
+4. 安装完成后，每次使用前都需要激活环境：`conda activate sandgraph`
 
 ## 🚀 快速开始
 
