@@ -11,7 +11,7 @@
 
 # 检查 Python 版本
 python_version=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-if (( $(echo "$python_version < 3.8" | bc -l) )); then
+if (( $(echo "$python_version < 3.8" | python3 -c "import sys; print(float(sys.stdin.read()) < 3.8)") )); then
     echo "错误: 需要 Python 3.8 或更高版本，当前版本: $python_version"
     exit 1
 fi
@@ -20,7 +20,7 @@ echo "🚀 开始安装 SandGraph + 官方MCP SDK..."
 
 # 1. 安装基础依赖
 echo "📦 安装基础依赖..."
-conda install -y numpy pandas scipy networkx matplotlib || { echo "错误: conda 基础依赖安装失败"; exit 1; }
+pip install numpy pandas scipy networkx matplotlib || { echo "错误: 基础依赖安装失败"; exit 1; }
 
 # 2. 安装官方MCP SDK
 echo "📦 安装官方MCP SDK..."
