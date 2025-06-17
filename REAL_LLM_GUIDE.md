@@ -295,10 +295,10 @@ print(f"设备: {stats['llm_internal_stats'].get('device', 'unknown')}")
 
 ```bash
 # 运行真实LLM演示
-python real_llm_demo.py
+python demo/real_llm_demo.py
 
 # 运行增强演示（包含真实LLM支持）
-python sg_workflow_demo.py
+python demo/sg_workflow_demo.py
 ```
 
 ## 注意事项

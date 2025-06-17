@@ -288,22 +288,22 @@ SandGraph 提供了命令行工具来运行交易演示：
 
 1. 使用 Backtrader 策略（默认）：
 ```bash
-python trading_demo.py
+python demo/trading_demo.py
 ```
 
 2. 使用 TradingGym 策略：
 ```bash
-python trading_demo.py --strategy trading_gym
+python demo/trading_demo.py --strategy trading_gym
 ```
 
 3. 查看帮助信息：
 ```bash
-python trading_demo.py --help
+python demo/trading_demo.py --help
 ```
 
 输出：
 ```
-usage: trading_demo.py [-h] [--strategy {trading_gym,backtrader}]
+usage: demo/trading_demo.py [-h] [--strategy {trading_gym,backtrader}]
 
 SandGraph 交易环境演示
 
@@ -319,9 +319,9 @@ options:
 pip install -e ".[dev]"
 
 # 运行演示
-python trading_demo.py --strategy backtrader  # 使用 Backtrader
+python demo/trading_demo.py --strategy backtrader  # 使用 Backtrader
 # 或
-python trading_demo.py --strategy trading_gym  # 使用 TradingGym
+python demo/trading_demo.py --strategy trading_gym  # 使用 TradingGym
 ```
 
 #### 4.7 性能指标

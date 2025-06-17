@@ -1,3 +1,5 @@
+# a general definition of SandGraphX usercase
+
 from sandgraph.core.workflow import WorkflowGraph, WorkflowNode, NodeType
 from sandgraph.core.llm_interface import create_shared_llm_manager
 from sandgraph.core.sandbox import Sandbox

@@ -38,7 +38,7 @@ def main():
     print("\n" + "=" * 50)
     if success_count == len(packages):
         print("🎉 所有可视化依赖安装完成！")
-        print("现在可以运行 python demo.py 来体验完整的可视化功能")
+        print("现在可以运行 python demo/sandbox_optimization.py 来体验完整的可视化功能")
     else:
         print(f"⚠️  {len(packages) - success_count} 个包安装失败")
         print("请检查网络连接或手动安装失败的包")

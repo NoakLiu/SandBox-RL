@@ -43,7 +43,7 @@ pip install matplotlib>=3.5.0 networkx>=2.8.0 pillow>=8.0.0
 ### 运行演示
 
 ```bash
-python demo.py
+python demo/sandbox_optimization.py
 ```
 
 ## 📊 输出文件

@@ -53,6 +53,6 @@ echo "python -c \"from mcp.server.fastmcp import FastMCP; print('MCP SDK 安装�
 echo "python -c \"from sandgraph import check_mcp_availability; print(check_mcp_availability())\""
 echo ""
 echo "🎯 下一步："
-echo "1. 运行演示: python demo.py"
-echo "2. 启动MCP服务器: python mcp_server_example.py"
+echo "1. 运行演示: python demo/sandbox_optimization.py"
+echo "2. 启动MCP服务器: python demo/mcp_server_example.py"
 echo "3. 查看文档: cat README.md" 
