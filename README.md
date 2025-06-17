@@ -32,8 +32,19 @@ SandGraph/
 │   │   └── rl_algorithms.py     # 强化学习算法
 │   ├── sandbox_implementations.py # 沙盒实现
 │   └── examples.py              # 示例代码
-├── sg_workflow_demo.py          # 工作流演示
-├── rl_demo.py                   # 强化学习演示
+├── demo/                        # 示例代码目录
+│   ├── sandbox_optimization.py  # 沙盒优化示例
+│   ├── trading_demo.py         # 交易系统示例
+│   ├── sg_workflow_demo.py     # 工作流演示
+│   ├── rl_demo.py              # 强化学习演示
+│   ├── dag_sandbox_demo.py     # DAG沙盒演示
+│   ├── dag_workflow_demo.py    # DAG工作流演示
+│   ├── real_llm_demo.py        # 真实LLM演示
+│   ├── demo.py                 # 基础演示
+│   ├── interaction_demo.py     # 交互演示
+│   ├── internbootcamp_demo.py  # InternBootcamp演示
+│   ├── internbootcamp_mcp_server.py # InternBootcamp MCP服务器
+│   └── mcp_server_example.py   # MCP服务器示例
 └── setup.py                     # 安装配置
 ```
 
@@ -215,32 +226,8 @@ SandGraph 提供了与 Trading Gym 和 Backtrader 的集成，支持：
 
 使用示例：
 ```python
-from sandgraph import SG_Workflow, NodeType, WorkflowMode
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.sandbox_implementations import BacktraderSandbox
-from datetime import datetime, timedelta
-
-# 创建LLM管理器
-llm_manager = create_shared_llm_manager("trading_llm")
-
-# 创建工作流
-workflow = SG_Workflow("trading_workflow", WorkflowMode.TRADITIONAL, llm_manager)
-
-# 添加交易执行节点
-workflow.add_node(NodeType.SANDBOX, "trading_executor", {
-    "sandbox": BacktraderSandbox(
-        initial_cash=100000.0,
-        commission=0.001,
-        data_source="yahoo",
-        symbols=["AAPL", "GOOGL", "MSFT", "AMZN"],
-        start_date=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
-        end_date=datetime.now().strftime("%Y-%m-%d")
-    ),
-    "max_visits": 5
-})
-
-# 执行工作流
-result = workflow.execute_full_workflow(max_steps=10)
+# 运行交易演示
+python demo/trading_demo.py
 ```
 
 #### 4.2 交易功能
