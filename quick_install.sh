@@ -34,11 +34,9 @@ pip install backtrader==1.9.76.123 mplfinance==0.12.10b0 yfinance==0.2.36 alpaca
 echo "📦 安装其他依赖..."
 pip install anthropic==0.3.0 colorama==0.4.6 || { echo "错误: 其他依赖安装失败"; exit 1; }
 
-# 4.1 安装 gym
-echo "📦 安装 gym..."
-pip install numpy cloudpickle || { echo "错误: gym 依赖安装失败"; exit 1; }
-pip install "gym==0.21.0" --no-deps || { echo "错误: gym 核心包安装失败"; exit 1; }
-pip install "gym[all]==0.21.0" || { echo "错误: gym 完整包安装失败"; exit 1; }
+# 4.1 安装 gymnasium (替代 gym)
+echo "📦 安装 gymnasium..."
+pip install gymnasium || { echo "错误: gymnasium 安装失败"; exit 1; }
 
 # 4.2 安装 trading-gym
 pip install trading-gym==0.1.8 || { echo "错误: trading-gym 安装失败"; exit 1; }
