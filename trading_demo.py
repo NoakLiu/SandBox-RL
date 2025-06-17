@@ -91,7 +91,7 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
             response = llm_manager.generate_for_node(
                 node_id, 
                 prompt,
-                model="qwen3",  # 指定使用 Qwen3 模型
+                model_name="qwen3",  # 使用 model_name 而不是 model
                 temperature=0.7,
                 max_tokens=2000
             )
@@ -103,21 +103,21 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
         "market_analyzer": {
             "role": "市场分析师",
             "reasoning_type": "analytical",
-            "model": "qwen3",  # 指定使用 Qwen3 模型
+            "model_name": "qwen3",  # 使用 model_name 而不是 model
             "temperature": 0.7,
             "max_tokens": 2000
         },
         "strategy_generator": {
             "role": "策略生成器",
             "reasoning_type": "strategic",
-            "model": "qwen3",  # 指定使用 Qwen3 模型
+            "model_name": "qwen3",  # 使用 model_name 而不是 model
             "temperature": 0.8,
             "max_tokens": 2000
         },
         "risk_assessor": {
             "role": "风险评估师",
             "reasoning_type": "analytical",
-            "model": "qwen3",  # 指定使用 Qwen3 模型
+            "model_name": "qwen3",  # 使用 model_name 而不是 model
             "temperature": 0.6,
             "max_tokens": 2000
         }
@@ -205,9 +205,9 @@ def run_trading_demo(strategy_type: str = "backtrader"):
     print("\n1. 创建LLM管理器")
     llm_manager = create_shared_llm_manager(
         "trading_llm",
-        model="qwen3",  # 指定使用 Qwen3 模型
-        api_key=os.getenv("QWEN_API_KEY"),  # 从环境变量获取 API key
-        api_base=os.getenv("QWEN_API_BASE")  # 从环境变量获取 API base URL
+        model_name="qwen3",  # 使用 model_name 而不是 model
+        api_key=os.getenv("QWEN_API_KEY"),
+        api_base=os.getenv("QWEN_API_BASE")
     )
     
     # 2. 创建工作流
