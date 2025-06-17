@@ -5,16 +5,15 @@
 ## 🌟 核心特性
 
 - **官方MCP集成**：基于 Anthropic 的官方 MCP Python SDK
-- **沙盒环境**：遵循 Game24bootcamp 模式的标准化任务环境
-- **工作流图**：支持复杂 LLM-Sandbox交互的 DAG 执行引擎
-- **标准化通信**：使用官方 MCP 协议进行 LLM-Sandbox通信
-- **多种使用场景**：从单一沙盒执行到复杂多阶段工作流
+- **沙盒环境**：遵循 InternBootCamp 模式的标准化任务环境
+- **工作流图**：支持Sandbox DAG Workflow
+- **标准化通信**：使用官方 MCP 协议进行 Sandbox通信与LLM进行计算
+- **多种使用场景**：从单一沙盒(single node)执行到复杂多阶段(multiple node, large DAGs)工作流
 - **生态系统兼容**：与 Claude Desktop、Cursor、Windsurf 等 MCP 客户端兼容
 - **动态工作流引擎**：支持复杂的DAG（有向无环图）工作流，实现多节点协作
 - **智能状态管理**：每个节点维护独立的状态，支持动态更新和状态追踪
-- **多智能体协作**：支持多个LLM智能体之间的协作与通信
-- **沙盒环境集成**：提供标准化的沙盒环境，用于任务执行和验证
-- **资源管理系统**：内置资源（能量、令牌、时间、知识）管理机制
+- **沙盒(SandBox)环境集成**：提供标准化的沙盒环境，用于任务执行和验证
+- **资源管理系统**：资源（能量、令牌、时间、知识）管理机制
 - **自适应决策**：支持基于历史信息和当前状态的智能决策
 - **可扩展架构**：易于添加新的节点类型和功能模块
 
@@ -55,32 +54,6 @@ SandGraph/
 └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
 ```
 
-## 🎯 主要功能
-
-### 1. 动态工作流系统
-- 支持复杂的多节点工作流
-- 节点间状态传递和依赖管理
-- 灵活的工作流定义和执行
-
-### 2. 智能节点类型
-- **分析节点**：负责数据分析和模式识别
-- **策略节点**：制定行动策略和计划
-- **评估节点**：风险评估和质量控制
-- **资源节点**：资源分配和优化
-- **决策节点**：最终决策和执行
-
-### 3. 状态管理系统
-- 节点状态追踪
-- 历史信息记录
-- 状态更新和验证
-- 置信度评分
-
-### 4. 资源管理
-- 能量管理
-- 令牌控制
-- 时间限制
-- 知识储备
-
 ## 📦 安装
 
 ```bash
@@ -91,6 +64,23 @@ pip install sandgraph
 git clone https://github.com/NoakLiu/sandgraph.git
 cd sandgraph
 pip install -e ".[dev]"
+```
+
+安装环境
+```bash
+conda create -n sandgraph python=3.11
+conda activate sandgraph
+chmod +x quick_install.sh
+./quick_install.sh
+```
+
+验证安装环境
+```bash
+# 验证 MCP SDK
+python -c "from mcp.server.fastmcp import FastMCP; print('MCP SDK 安装成功')"
+
+# 验证 SandGraph
+python -c "from sandgraph import check_mcp_availability; print(check_mcp_availability())"
 ```
 
 ## 🚀 快速开始

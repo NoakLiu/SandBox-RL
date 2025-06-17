@@ -1,5 +1,13 @@
 #!/bin/bash
 # SandGraph + MCP 快速安装脚本
+#
+# 使用 Conda 安装步骤：
+# 1. 创建新的 conda 环境：
+#    conda create -n sandgraph python=3.8
+# 2. 激活环境：
+#    conda activate sandgraph
+# 3. 运行此脚本：
+#    ./quick_install.sh
 
 # 检查 Python 版本
 python_version=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
