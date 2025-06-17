@@ -1,6 +1,6 @@
-# SandGraph - 智能工作流与多智能体执行框架
+# SandGraphX
 
-**SandGraph** 是一个强大的智能工作流与多智能体执行框架，专注于构建复杂的LLM（大语言模型）交互系统。它提供了一个灵活且可扩展的架构，支持从简单的沙盒任务到复杂的多智能体协作场景。
+**SandGraphX** 基于对于environment subsets的抽象（SandBox）和最终的优化目标（Optimization Goal）的优化框架，该框架会基于SandBox Workflow Graph进行计算。
 
 ## 🌟 核心特性
 
@@ -515,9 +515,6 @@ print(f"回测结果：\n{result}")
 ## 📄 许可证
 
 MIT License
-
 ## 🤝 联系方式
 
-- GitHub Issues
-- Pull Requests
-- 邮件联系
+- 邮件联系 - dong.liu.dl2367@yale.edu
