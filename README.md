@@ -1,6 +1,35 @@
 # SandGraphX
 
-**SandGraphX** 基于对于environment subsets的抽象（SandBox）和最终的优化目标（Optimization Goal）的优化框架，该框架会基于SandBox Workflow Graph进行计算。
+<div align="center">
+  <img src="assets/logo.png" alt="SandGraphX Logo" width="200"/>
+</div>
+
+SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化目标（Optimization Goal）的智能优化框架。它通过 SandBox Workflow Graph 来协调 LLM 决策和 RL 权重更新，实现复杂任务的自动化优化。
+
+## 🌟 核心概念
+
+### 1. 环境子集（Environment Subsets）
+- 将复杂环境分解为可管理的子集
+- 每个子集都是一个独立的 SandBox
+- 支持自定义状态空间和动作空间
+- 提供标准化的执行和评估接口
+
+### 2. 优化目标（Optimization Goal）
+- 定义任务的具体优化目标
+- 可以是单一目标或多目标优化
+- 支持自定义评分函数
+- 提供目标达成度的量化评估
+
+### 3. SandBox Workflow Graph
+- 将任务分解为多个 SandBox 节点
+- 通过有向无环图（DAG）组织节点关系
+- 支持并行和串行执行
+- 实现节点间的状态传递和结果聚合
+
+### 4. 智能决策系统
+- **RL 权重更新**：优化决策策略
+- **状态管理**：追踪和更新系统状态
+- **与LLM和资源分离交互**：SandBox作为workflow graph节点与LLM（计算）和计算资源隔绝，SandGraphX对后两者全局托管。
 
 ## 🌟 核心特性
 
@@ -65,6 +94,59 @@ SandGraph/
 └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
 ```
 
+## 🚀 快速开始
+
+### 1. 定义环境子集
+```python
+from sandgraph import SandBox
+
+class MyEnvironment(SandBox):
+    def __init__(self):
+        super().__init__()
+        self.state_space = {...}  # 定义状态空间
+        self.action_space = {...}  # 定义动作空间
+    
+    def execute(self, action):
+        # 实现环境执行逻辑
+        return next_state, reward, done
+    
+    def get_state(self):
+        # 返回当前状态
+        return self.current_state
+```
+
+### 2. 定义优化目标
+```python
+def optimization_goal(state, action, next_state):
+    # 实现优化目标函数
+    score = calculate_score(state, action, next_state)
+    return score
+```
+
+### 3. 创建工作流
+```python
+from sandgraph import SG_Workflow, NodeType
+
+# 创建LLM管理器
+llm_manager = create_shared_llm_manager("my_llm")
+
+# 创建工作流
+workflow = SG_Workflow("my_workflow", WorkflowMode.TRADITIONAL, llm_manager)
+
+# 添加节点
+workflow.add_node(NodeType.SANDBOX, "env", {"sandbox": MyEnvironment()})
+workflow.add_node(NodeType.LLM, "decision", {"role": "决策器"})
+workflow.add_node(NodeType.RL, "optimizer", {"algorithm": "PPO"})
+
+# 连接节点
+workflow.add_edge("env", "decision")
+workflow.add_edge("decision", "optimizer")
+workflow.add_edge("optimizer", "env")
+
+# 执行工作流
+result = workflow.execute_full_workflow()
+```
+
 ## 📦 安装
 
 ### 使用 Conda 安装（推荐）
@@ -100,381 +182,32 @@ python -c "from sandgraph import check_mcp_availability; print(check_mcp_availab
 3. 如果遇到权限问题，请确保使用虚拟环境而不是 root 用户
 4. 安装完成后，每次使用前都需要激活环境：`conda activate sandgraph`
 
-## 🚀 快速开始
-
-### 1. 创建简单工作流
-
-```python
-from sandgraph import SG_Workflow, NodeType, WorkflowMode
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.sandbox_implementations import Game24Sandbox
-
-# 1. 创建LLM管理器
-llm_manager = create_shared_llm_manager("demo_llm")
-
-# 2. 创建工作流
-workflow = SG_Workflow("demo_workflow", WorkflowMode.TRADITIONAL, llm_manager)
-
-# 3. 添加节点
-# 3.1 添加输入节点
-workflow.add_node(NodeType.INPUT, "start")
-
-# 3.2 添加LLM分析节点
-workflow.add_node(NodeType.LLM, "analyzer", {
-    "role": "分析器",
-    "reasoning_type": "analytical"
-})
-
-# 3.3 添加沙盒节点
-workflow.add_node(NodeType.SANDBOX, "game_sandbox", {
-    "sandbox": Game24Sandbox(),
-    "max_visits": 3
-})
-
-# 3.4 添加输出节点
-workflow.add_node(NodeType.OUTPUT, "end")
-
-# 4. 添加边
-workflow.add_edge("start", "analyzer")
-workflow.add_edge("analyzer", "game_sandbox")
-workflow.add_edge("game_sandbox", "end")
-
-# 5. 执行工作流
-result = workflow.execute_full_workflow(max_steps=10)
-```
-
-### 2. 标准输出结果
-
-```
-============================================================
- 传统工作流模式演示
-============================================================
-
-创建传统工作流图: demo_workflow
-模式: TRADITIONAL
-节点数: 4
-边数: 3
-
-----------------------------------------
- 初始游戏状态
-----------------------------------------
-资源: {'energy': 100, 'tokens': 50, 'time': 300, 'knowledge': 100}
-可执行节点: ['start']
-
-----------------------------------------
- 执行工作流
-----------------------------------------
-执行完成:
-- 总步骤: 4
-- 执行时间: 2.35秒
-- 最终得分: 0.85
-- 剩余资源: {'energy': 75, 'tokens': 35, 'time': 285, 'knowledge': 95}
-- 完成节点数: 4
-
-----------------------------------------
- 节点执行详情
-----------------------------------------
-1. start节点:
-   - 状态: 完成
-   - 执行时间: 0.05秒
-   - 资源消耗: {'energy': 5, 'tokens': 2}
-
-2. analyzer节点:
-   - 状态: 完成
-   - 执行时间: 0.85秒
-   - 资源消耗: {'energy': 10, 'tokens': 8}
-   - 置信度: 0.92
-
-3. game_sandbox节点:
-   - 状态: 完成
-   - 执行时间: 1.20秒
-   - 资源消耗: {'energy': 15, 'tokens': 10}
-   - 得分: 0.85
-
-4. end节点:
-   - 状态: 完成
-   - 执行时间: 0.25秒
-   - 资源消耗: {'energy': 5, 'tokens': 5}
-```
-
-### 3. 创建动态游戏系统
-
-```python
-from sandgraph import create_dynamic_game_graph
-
-# 创建动态游戏图
-game_graph = create_dynamic_game_graph(llm_manager)
-
-# 执行游戏
-result = game_graph.execute()
-```
-
-### 4. 量化交易系统
-- 市场数据分析
-- 交易策略生成
-- 实时交易执行
-- 风险控制
-- 投资组合管理
-
-#### 4.1 交易环境集成
-SandGraph 提供了与 Trading Gym 和 Backtrader 的集成，支持：
-- 实时市场数据获取（Yahoo Finance, Alpaca）
-- 交易执行和回测
-- 投资组合管理
-- 风险控制
-- 性能评估
-
-使用示例：
-```python
-# 运行交易演示
-python demo/trading_demo.py
-```
-
-#### 4.2 交易功能
-- **市场数据**：支持实时和历史市场数据获取
-- **交易执行**：支持市价单、限价单等交易类型
-- **投资组合**：支持多资产组合管理
-- **风险控制**：支持止损、仓位控制等风险管理
-- **性能评估**：支持夏普比率、最大回撤等指标计算
-
-#### 4.3 数据源支持
-- Yahoo Finance
-- Alpaca Trading API
-- 自定义数据源
-
-#### 4.4 交易策略
-- 趋势跟踪
-- 均值回归
-- 套利策略
-- 机器学习策略
-
-#### 4.5 Backtrader 集成
-SandGraph 集成了 Backtrader 框架，提供以下功能：
-- **历史数据回测**：支持多周期、多资产回测
-- **实时交易**：支持实时市场数据交易
-- **多策略组合**：支持多个交易策略的组合
-- **性能分析**：内置多种性能分析指标
-  - 夏普比率
-  - 最大回撤
-  - 年化收益率
-  - 交易统计
-- **可视化**：支持交易结果可视化
-  - 资产曲线
-  - 交易点位
-  - 技术指标
-  - 性能指标
-
-使用 Backtrader 的示例：
-```python
-from sandgraph.sandbox_implementations import BacktraderSandbox
-
-# 创建 Backtrader 沙盒
-sandbox = BacktraderSandbox(
-    initial_cash=100000.0,
-    commission=0.001,
-    data_source="yahoo",
-    symbols=["AAPL", "GOOGL", "MSFT", "AMZN"],
-    start_date="2023-01-01",
-    end_date="2023-12-31"
-)
-
-# 执行回测
-result = sandbox.execute_backtest()
-print(f"回测结果：\n{result}")
-```
-
-#### 4.6 命令行使用
-SandGraph 提供了命令行工具来运行交易演示：
-
-1. 使用 Backtrader 策略（默认）：
-```bash
-python demo/trading_demo.py
-```
-
-2. 使用 TradingGym 策略：
-```bash
-python demo/trading_demo.py --strategy trading_gym
-```
-
-3. 查看帮助信息：
-```bash
-python demo/trading_demo.py --help
-```
-
-输出：
-```
-usage: demo/trading_demo.py [-h] [--strategy {trading_gym,backtrader}]
-
-SandGraph 交易环境演示
-
-options:
-  -h, --help            显示帮助信息并退出
-  --strategy {trading_gym,backtrader}
-                        选择交易策略类型 (trading_gym 或 backtrader)
-```
-
-4. 开发环境安装和运行：
-```bash
-# 安装开发版本
-pip install -e ".[dev]"
-
-# 运行演示
-python demo/trading_demo.py --strategy backtrader  # 使用 Backtrader
-# 或
-python demo/trading_demo.py --strategy trading_gym  # 使用 TradingGym
-```
-
-#### 4.7 性能指标
-- **收益指标**
-  - 总收益率
-  - 年化收益率
-  - 月度收益率
-  - 胜率
-- **风险指标**
-  - 夏普比率
-  - 最大回撤
-  - 波动率
-  - 信息比率
-- **交易指标**
-  - 交易次数
-  - 平均持仓时间
-  - 盈亏比
-  - 手续费成本
-
 ## 📚 示例场景
 
 ### 1. 游戏分析系统
-- 市场模式识别
-- 策略规划
+- 状态分析
+- 策略生成
 - 风险评估
 - 资源优化
 
-### 2. 多智能体协作
-- 任务分解
-- 并行执行
-- 结果聚合
-- 质量评估
-
-### 3. 动态决策系统
+### 2. 动态决策系统
 - 状态分析
 - 策略生成
 - 风险评估
 - 决策执行
 
-### 4. 量化交易系统
+### 3. 量化交易系统
 - 市场数据分析
 - 交易策略生成
 - 实时交易执行
 - 风险控制
 - 投资组合管理
 
-#### 4.1 交易环境集成
-SandGraph 提供了与 Trading Gym 和 Backtrader 的集成，支持：
-- 实时市场数据获取（Yahoo Finance, Alpaca）
-- 交易执行和回测
-- 投资组合管理
-- 风险控制
-- 性能评估
-
-使用示例：
-```python
-from sandgraph import SG_Workflow, NodeType, WorkflowMode
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.sandbox_implementations import BacktraderSandbox
-from datetime import datetime, timedelta
-
-# 创建LLM管理器
-llm_manager = create_shared_llm_manager("trading_llm")
-
-# 创建工作流
-workflow = SG_Workflow("trading_workflow", WorkflowMode.TRADITIONAL, llm_manager)
-
-# 添加交易执行节点
-workflow.add_node(NodeType.SANDBOX, "trading_executor", {
-    "sandbox": BacktraderSandbox(
-        initial_cash=100000.0,
-        commission=0.001,
-        data_source="yahoo",
-        symbols=["AAPL", "GOOGL", "MSFT", "AMZN"],
-        start_date=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
-        end_date=datetime.now().strftime("%Y-%m-%d")
-    ),
-    "max_visits": 5
-})
-
-# 执行工作流
-result = workflow.execute_full_workflow(max_steps=10)
-```
-
-#### 4.2 交易功能
-- **市场数据**：支持实时和历史市场数据获取
-- **交易执行**：支持市价单、限价单等交易类型
-- **投资组合**：支持多资产组合管理
-- **风险控制**：支持止损、仓位控制等风险管理
-- **性能评估**：支持夏普比率、最大回撤等指标计算
-
-#### 4.3 数据源支持
-- Yahoo Finance
-- Alpaca Trading API
-- 自定义数据源
-
-#### 4.4 交易策略
-- 趋势跟踪
-- 均值回归
-- 套利策略
-- 机器学习策略
-
-#### 4.5 Backtrader 集成
-SandGraph 集成了 Backtrader 框架，提供以下功能：
-- **历史数据回测**：支持多周期、多资产回测
-- **实时交易**：支持实时市场数据交易
-- **多策略组合**：支持多个交易策略的组合
-- **性能分析**：内置多种性能分析指标
-  - 夏普比率
-  - 最大回撤
-  - 年化收益率
-  - 交易统计
-- **可视化**：支持交易结果可视化
-  - 资产曲线
-  - 交易点位
-  - 技术指标
-  - 性能指标
-
-使用 Backtrader 的示例：
-```python
-from sandgraph.sandbox_implementations import BacktraderSandbox
-
-# 创建 Backtrader 沙盒
-sandbox = BacktraderSandbox(
-    initial_cash=100000.0,
-    commission=0.001,
-    data_source="yahoo",
-    symbols=["AAPL", "GOOGL", "MSFT", "AMZN"],
-    start_date="2023-01-01",
-    end_date="2023-12-31"
-)
-
-# 执行回测
-result = sandbox.execute_backtest()
-print(f"回测结果：\n{result}")
-```
-
-#### 4.6 性能指标
-- **收益指标**
-  - 总收益率
-  - 年化收益率
-  - 月度收益率
-  - 胜率
-- **风险指标**
-  - 夏普比率
-  - 最大回撤
-  - 波动率
-  - 信息比率
-- **交易指标**
-  - 交易次数
-  - 平均持仓时间
-  - 盈亏比
-  - 手续费成本
+### 4. 社交网络分析
+- 信息传播建模
+- 影响力分析
+- 社区发现
+- 趋势预测
 
 ## 🔧 开发指南
 
@@ -488,16 +221,10 @@ print(f"回测结果：\n{result}")
 2. 设置节点依赖
 3. 配置执行参数
 
-## 📝 贡献指南
-
-欢迎提交 Pull Requests 和 Issues！请确保：
-1. 代码符合项目规范
-2. 添加适当的测试
-3. 更新相关文档
-
 ## 📄 许可证
 
 MIT License
+
 ## 🤝 联系方式
 
 - 邮件联系 - dong.liu.dl2367@yale.edu
