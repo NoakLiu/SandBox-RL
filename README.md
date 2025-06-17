@@ -4,7 +4,7 @@
   <img src="assets/logo.png" alt="SandGraphX Logo" width="200"/>
 </div>
 
-SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化目标（Optimization Goal）的智能优化框架。它通过 SandBox Workflow Graph 来协调 LLM 决策和 RL 权重更新，实现复杂任务的自动化优化。
+SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化目标（Optimization Goal）的智能优化框架。它通过 SandBox Workflow Graph 来协调 LLM 决策和 并使用RL 对于LLM进行权重更新，实现复杂任务的自动化优化。
 
 ## 🌟 核心概念
 
