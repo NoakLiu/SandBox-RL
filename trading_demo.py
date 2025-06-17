@@ -205,7 +205,7 @@ def run_trading_demo(strategy_type: str = "backtrader"):
     print("\n1. 创建LLM管理器")
     llm_manager = create_shared_llm_manager(
         "trading_llm",
-        model_name="qwen3",  # 使用 model_name 而不是 model
+        backend="qwen",  # 使用 qwen 后端
         api_key=os.getenv("QWEN_API_KEY"),
         api_base=os.getenv("QWEN_API_BASE")
     )
