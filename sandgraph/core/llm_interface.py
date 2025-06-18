@@ -282,22 +282,21 @@ class HuggingFaceLLM(BaseLLM):
                         self.tokenizer.pad_token_id = self.tokenizer.convert_tokens_to_ids("[PAD]")
             
             # 加载模型
-            logger.info(f"加载模型到设备: {device}, 数据类型: {torch_dtype}")
+            logger.info(f"Loading model to device: {device}, dtype: {torch_dtype}")
             self.model = self.transformers.AutoModelForCausalLM.from_pretrained(
                 self.config.model_path or self.model_name,
                 cache_dir=self.config.cache_dir,
                 torch_dtype=torch_dtype,
-                device_map="auto" if device == "cuda" else None,
                 trust_remote_code=True,
                 low_cpu_mem_usage=True
             )
             
-            if device == "cpu":
-                self.model = self.model.to(device)
+            # Move model to device
+            self.model = self.model.to(device)
             
             self.device = device
             self.model_loaded = True
-            logger.info(f"模型加载完成: {self.model_name}")
+            logger.info(f"Model loaded successfully: {self.model_name}")
             
         except Exception as e:
             logger.error(f"模型加载失败: {e}")
