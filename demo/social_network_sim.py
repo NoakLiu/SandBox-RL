@@ -65,6 +65,16 @@ def create_social_network_workflow(oasis_interface):
     # 创建LLM管理器
     llm_manager = create_shared_llm_manager("gpt-3.5-turbo")
     
+    # 注册LLM节点
+    llm_manager.register_node("decision_maker", {
+        "role": "社交网络分析师",
+        "reasoning_type": "strategic"
+    })
+    llm_manager.register_node("content_generator", {
+        "role": "内容创作者",
+        "reasoning_type": "creative"
+    })
+    
     # 创建工作流
     workflow = SG_Workflow("social_network_sim", WorkflowMode.TRADITIONAL, llm_manager)
     
