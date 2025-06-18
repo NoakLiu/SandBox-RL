@@ -96,13 +96,14 @@ class SocialNetworkEnvironment(Sandbox):
 def create_social_network_workflow(oasis_interface) -> Tuple[SG_Workflow, RLTrainer]:
     """创建社交网络工作流"""
     
-    # 创建LLM管理器 - 使用OpenAI API
+    # 创建LLM管理器 - 使用Qwen模型
     llm_manager = create_shared_llm_manager(
-        model_name="gpt-3.5-turbo",
-        backend="openai_api",  # 使用OpenAI API
+        model_name="Qwen/Qwen-7B-Chat",
+        backend="huggingface",  # 使用HuggingFace后端
         temperature=0.7,
         max_length=512,
-        api_key=os.getenv("OPENAI_API_KEY")  # 从环境变量获取API密钥
+        device="auto",  # 自动选择设备
+        torch_dtype="float16"  # 使用float16以节省显存
     )
     
     # 加载模型
