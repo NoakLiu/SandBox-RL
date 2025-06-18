@@ -71,10 +71,17 @@ def create_social_network_workflow(oasis_interface):
     # 创建环境节点
     env = SocialNetworkEnvironment(oasis_interface)
     
+    # 定义LLM函数
+    def decision_maker_llm(prompt: str) -> str:
+        return llm_manager.generate_for_node("decision_maker", prompt).text
+    
+    def content_generator_llm(prompt: str) -> str:
+        return llm_manager.generate_for_node("content_generator", prompt).text
+    
     # 添加节点
     network_env_node = EnhancedWorkflowNode("network_env", NodeType.SANDBOX, sandbox=env)
-    decision_maker_node = EnhancedWorkflowNode("decision_maker", NodeType.LLM, metadata={"role": "社交网络分析师"})
-    content_generator_node = EnhancedWorkflowNode("content_generator", NodeType.LLM, metadata={"role": "内容创作者"})
+    decision_maker_node = EnhancedWorkflowNode("decision_maker", NodeType.LLM, llm_func=decision_maker_llm, metadata={"role": "社交网络分析师"})
+    content_generator_node = EnhancedWorkflowNode("content_generator", NodeType.LLM, llm_func=content_generator_llm, metadata={"role": "内容创作者"})
     
     workflow.add_node(network_env_node)
     workflow.add_node(decision_maker_node)
