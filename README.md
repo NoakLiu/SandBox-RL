@@ -32,7 +32,7 @@ SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化�
 - **与LLM和资源分离交互**：SandBox作为workflow graph节点与LLM（计算）和计算资源隔绝，SandGraphX对后两者全局托管。
 
 <div align="center">
-  <img src="assets/archi.jpeg" alt="SandGraphX Architecture" width="200"/>
+  <img src="assets/archi.jpeg" alt="SandGraphX Architecture" width="800"/>
 </div>
 
 ## 🌟 核心特性
