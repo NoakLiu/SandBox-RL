@@ -31,6 +31,10 @@ SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化�
 - **状态管理**：追踪和更新系统状态
 - **与LLM和资源分离交互**：SandBox作为workflow graph节点与LLM（计算）和计算资源隔绝，SandGraphX对后两者全局托管。
 
+<div align="center">
+  <img src="assets/archi.jpeg" alt="SandGraphX Architecture" width="200"/>
+</div>
+
 ## 🌟 核心特性
 
 - **官方MCP集成**：基于 Anthropic 的官方 MCP Python SDK
@@ -201,7 +205,7 @@ chmod +x quick_install.sh
 ./quick_install.sh
 ```
 
-### 验证安装
+<!-- ### 验证安装
 
 ```bash
 # 验证 MCP SDK
@@ -209,9 +213,9 @@ python -c "from mcp.server.fastmcp import FastMCP; print('MCP SDK 安装成功')
 
 # 验证 SandGraph
 python -c "from sandgraph import check_mcp_availability; print(check_mcp_availability())"
-```
+``` -->
 
-### 注意事项
+<!-- ### 注意事项
 
 1. 确保使用 Python 3.8 或更高版本
 2. 建议使用 conda 环境以避免依赖冲突
@@ -255,7 +259,7 @@ python -c "from sandgraph import check_mcp_availability; print(check_mcp_availab
 ### 自定义工作流
 1. 定义节点结构
 2. 设置节点依赖
-3. 配置执行参数
+3. 配置执行参数 -->
 
 ## 📄 许可证
 
