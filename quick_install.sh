@@ -47,7 +47,7 @@ pip install -e . || { echo "错误: SandGraph 安装失败"; exit 1; }
 
 # 6. 安装 PyTorch 和相关依赖
 echo "📦 安装 PyTorch 和相关依赖..."
-pip install torch transformers accelerate tiktoken || { echo "错误: PyTorch 和相关依赖安装失败"; exit 1; }
+pip install torch transformers accelerate tiktoken einops transformers_stream_generator || { echo "错误: PyTorch 和相关依赖安装失败"; exit 1; }
 
 echo ""
 echo "✅ 安装完成！"
