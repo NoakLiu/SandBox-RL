@@ -158,7 +158,11 @@ class PPOAlgorithm:
     def update_policy(self, llm_manager) -> Dict[str, Any]:
         """更新策略"""
         if len(self.trajectories) < self.config.batch_size:
-            return {"status": "insufficient_data", "trajectory_count": len(self.trajectories)}
+            return {
+                "status": "insufficient_data",
+                "trajectory_count": len(self.trajectories),
+                "required_batch_size": self.config.batch_size
+            }
         
         # 计算优势和回报
         self.compute_advantages_and_returns()
@@ -220,7 +224,9 @@ class PPOAlgorithm:
             "entropy_loss": avg_entropy_loss,
             "total_loss": avg_policy_loss + avg_value_loss + avg_entropy_loss,
             "epochs": self.config.ppo_epochs,
-            "batch_size": len(batch)
+            "batch_size": len(batch),
+            "policy_gradient": gradients["policy_gradient"],
+            "value_gradient": gradients["value_gradient"]
         }
 
 
