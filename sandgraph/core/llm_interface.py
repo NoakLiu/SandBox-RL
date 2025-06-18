@@ -271,12 +271,14 @@ class HuggingFaceLLM(BaseLLM):
                 trust_remote_code=True
             )
             
-            # 设置pad_token
+            # 使用已有的特殊token
             if self.tokenizer.pad_token is None:
                 if self.tokenizer.eos_token is not None:
                     self.tokenizer.pad_token = self.tokenizer.eos_token
+                elif hasattr(self.tokenizer, 'pad_token_id'):
+                    self.tokenizer.pad_token = self.tokenizer.decode([self.tokenizer.pad_token_id])
                 else:
-                    self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+                    logger.warning("无法设置pad_token，使用默认token")
             
             # 加载模型
             logger.info(f"加载模型到设备: {device}, 数据类型: {torch_dtype}")

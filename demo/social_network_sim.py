@@ -10,18 +10,18 @@ import os
 import sys
 
 class SocialNetworkEnvironment(Sandbox):
-    """社交网络环境子集"""
+    """Social Network Environment Subset"""
     
     def __init__(self, oasis_interface):
-        super().__init__("social_network", "社交网络模拟环境")
+        super().__init__("social_network", "Social Network Simulation Environment")
         self.oasis = oasis_interface
         self.network = self.oasis.get_network_state()
         self.posts = self.oasis.get_recent_posts()
         self.interactions = self.oasis.get_interactions()
-        self.llm_weights: Dict[str, float] = {"decision": 1.0, "content": 1.0}  # LLM权重初始化
+        self.llm_weights: Dict[str, float] = {"decision": 1.0, "content": 1.0}  # LLM weights initialization
         
     def case_generator(self) -> Dict[str, Any]:
-        """生成社交网络场景"""
+        """Generate social network scenario"""
         return {
             "network_state": self.network,
             "recent_posts": self.posts,
@@ -30,35 +30,35 @@ class SocialNetworkEnvironment(Sandbox):
         }
     
     def prompt_func(self, case: Dict[str, Any]) -> str:
-        """生成提示词"""
-        return f"""基于以下社交网络状态，分析并生成下一步行动：
-                网络状态：{json.dumps(case['network_state'], ensure_ascii=False)}
-                最近发帖：{json.dumps(case['recent_posts'], ensure_ascii=False)}
-                互动历史：{json.dumps(case['interaction_history'], ensure_ascii=False)}
-                当前LLM权重：{json.dumps(case['llm_weights'], ensure_ascii=False)}
+        """Generate prompt"""
+        return f"""Based on the following social network state, analyze and generate the next action:
+                Network State: {json.dumps(case['network_state'], ensure_ascii=False)}
+                Recent Posts: {json.dumps(case['recent_posts'], ensure_ascii=False)}
+                Interaction History: {json.dumps(case['interaction_history'], ensure_ascii=False)}
+                Current LLM Weights: {json.dumps(case['llm_weights'], ensure_ascii=False)}
 
-                请分析当前状态并决定：
-                1. 是否需要建立新的社交连接
-                2. 是否需要对某些帖子进行互动
-                3. 是否需要发布新的内容
-                4. 如何优化社交网络结构
+                Please analyze the current state and decide:
+                1. Whether to establish new social connections
+                2. Whether to interact with certain posts
+                3. Whether to create new content
+                4. How to optimize the social network structure
 
-                请给出具体的行动建议，格式如下：
+                Please provide specific action suggestions in the following format:
                 {{
                     "action_type": "new_connection|post_interaction|new_post|network_optimization",
                     "details": {{
-                        // 具体行动细节
+                        // Specific action details
                     }},
-                    "reasoning": "行动理由"
+                    "reasoning": "Action reasoning"
                 }}"""
     
     def verify_score(self, response: str, case: Dict[str, Any], format_score: float = 0.0) -> float:
-        """验证响应并计算得分"""
+        """Verify response and calculate score"""
         try:
             action = json.loads(response)
             score = 0.0
             
-            # 评估行动合理性
+            # Evaluate action rationality
             if action.get("action_type") == "new_connection":
                 score += 0.3
             elif action.get("action_type") == "post_interaction":
@@ -68,7 +68,7 @@ class SocialNetworkEnvironment(Sandbox):
             elif action.get("action_type") == "network_optimization":
                 score += 0.1
                 
-            # 评估行动理由的合理性
+            # Evaluate action reasoning rationality
             if "reasoning" in action and len(action["reasoning"]) > 50:
                 score += 0.2
                 
@@ -77,7 +77,7 @@ class SocialNetworkEnvironment(Sandbox):
             return 0.0
     
     def update_network_state(self, action: Dict[str, Any], llm_weights: Optional[Dict[str, float]] = None) -> None:
-        """更新网络状态和LLM权重"""
+        """Update network state and LLM weights"""
         if "action_type" in action:
             if action["action_type"] == "new_connection":
                 self.network["connections"].append(action["details"])
@@ -89,25 +89,25 @@ class SocialNetworkEnvironment(Sandbox):
             elif action["action_type"] == "post_interaction":
                 self.interactions.append(action["details"])
         
-        # 更新LLM权重
+        # Update LLM weights
         if llm_weights is not None:
             self.llm_weights = llm_weights
 
 def create_social_network_workflow(oasis_interface) -> Tuple[SG_Workflow, RLTrainer]:
-    """创建社交网络工作流"""
+    """Create social network workflow"""
     
-    # 创建LLM管理器 - 使用默认的真实LLM配置
+    # Create LLM manager - using default real LLM configuration
     llm_manager = create_shared_llm_manager(
         temperature=0.7,
         max_length=512,
         device="auto",
-        torch_dtype="float16"  # 使用float16以节省显存
+        torch_dtype="float16"  # Use float16 to save memory
     )
     
-    # 加载模型
+    # Load model
     llm_manager.load_model()
     
-    # 创建RL训练器
+    # Create RL trainer
     rl_config = RLConfig(
         algorithm=RLAlgorithm.PPO,
         learning_rate=3e-4,
@@ -124,23 +124,23 @@ def create_social_network_workflow(oasis_interface) -> Tuple[SG_Workflow, RLTrai
     )
     rl_trainer = RLTrainer(rl_config, llm_manager)
     
-    # 注册LLM节点
+    # Register LLM nodes
     llm_manager.register_node("decision_maker", {
-        "role": "社交网络分析师",
+        "role": "Social Network Analyst",
         "reasoning_type": "strategic"
     })
     llm_manager.register_node("content_generator", {
-        "role": "内容创作者",
+        "role": "Content Creator",
         "reasoning_type": "creative"
     })
     
-    # 创建工作流
+    # Create workflow
     workflow = SG_Workflow("social_network_sim", WorkflowMode.TRADITIONAL, llm_manager)
     
-    # 创建环境节点
+    # Create environment node
     env = SocialNetworkEnvironment(oasis_interface)
     
-    # 定义LLM函数
+    # Define LLM functions
     def decision_maker_llm(prompt: str) -> str:
         response = llm_manager.generate_for_node("decision_maker", prompt)
         return response.text
@@ -149,16 +149,16 @@ def create_social_network_workflow(oasis_interface) -> Tuple[SG_Workflow, RLTrai
         response = llm_manager.generate_for_node("content_generator", prompt)
         return response.text
     
-    # 添加节点
+    # Add nodes
     network_env_node = EnhancedWorkflowNode("network_env", NodeType.SANDBOX, sandbox=env)
-    decision_maker_node = EnhancedWorkflowNode("decision_maker", NodeType.LLM, llm_func=decision_maker_llm, metadata={"role": "社交网络分析师"})
-    content_generator_node = EnhancedWorkflowNode("content_generator", NodeType.LLM, llm_func=content_generator_llm, metadata={"role": "内容创作者"})
+    decision_maker_node = EnhancedWorkflowNode("decision_maker", NodeType.LLM, llm_func=decision_maker_llm, metadata={"role": "Social Network Analyst"})
+    content_generator_node = EnhancedWorkflowNode("content_generator", NodeType.LLM, llm_func=content_generator_llm, metadata={"role": "Content Creator"})
     
     workflow.add_node(network_env_node)
     workflow.add_node(decision_maker_node)
     workflow.add_node(content_generator_node)
     
-    # 连接节点
+    # Connect nodes
     workflow.add_edge("network_env", "decision_maker")
     workflow.add_edge("decision_maker", "content_generator")
     workflow.add_edge("content_generator", "network_env")
@@ -166,38 +166,38 @@ def create_social_network_workflow(oasis_interface) -> Tuple[SG_Workflow, RLTrai
     return workflow, rl_trainer
 
 def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict[str, Any]]:
-    """运行社交网络模拟"""
+    """Run social network simulation"""
     
-    # 创建工作流和RL训练器
+    # Create workflow and RL trainer
     workflow, rl_trainer = create_social_network_workflow(oasis_interface)
     
-    # 执行工作流
+    # Execute workflow
     results = []
     for step in range(steps):
-        print(f"\n执行第 {step + 1} 步...")
+        print(f"\nExecuting step {step + 1}...")
         
-        # 获取当前状态
+        # Get current state
         env_node = workflow.nodes.get("network_env")
         if env_node is None or env_node.sandbox is None:
-            print("环境节点不存在或无效")
+            print("Environment node does not exist or is invalid")
             continue
             
-        # 类型断言
+        # Type assertion
         if not isinstance(env_node.sandbox, SocialNetworkEnvironment):
-            print("环境节点类型错误")
+            print("Environment node type error")
             continue
             
         current_state = env_node.sandbox.case_generator()
         
-        # 执行工作流
+        # Execute workflow
         workflow_result = workflow.execute_full_workflow()
         
-        # 更新环境状态
+        # Update environment state
         if "response" in workflow_result:
             try:
                 action = json.loads(workflow_result["response"])
                 
-                # 使用RL更新LLM权重
+                # Use RL to update LLM weights
                 state = {
                     "network_size": len(current_state["network_state"]["users"]),
                     "connection_count": len(current_state["network_state"]["connections"]),
@@ -211,10 +211,10 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                     "score": workflow_result.get("score", 0.0)
                 }
                 
-                # 打印LLM输入
-                print(f"LLM输入: {json.dumps(state, ensure_ascii=False)}")
+                # Print LLM input
+                print(f"LLM Input: {json.dumps(state, ensure_ascii=False)}")
                 
-                # 添加经验到RL训练器
+                # Add experience to RL trainer
                 rl_trainer.add_experience(
                     state=state,
                     action=json.dumps(action),
@@ -222,14 +222,14 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                     done=step == steps - 1
                 )
                 
-                # 更新策略
+                # Update policy
                 update_result = rl_trainer.update_policy()
                 
-                # 打印LLM输出和动作选择
-                print(f"LLM输出: {json.dumps(action, ensure_ascii=False)}")
-                print(f"动作选择: {action.get('action_type')} - {action.get('reasoning')}")
+                # Print LLM output and action selection
+                print(f"LLM Output: {json.dumps(action, ensure_ascii=False)}")
+                print(f"Action Selection: {action.get('action_type')} - {action.get('reasoning')}")
                 
-                # 更新环境状态和LLM权重
+                # Update environment state and LLM weights
                 if update_result.get("status") == "updated":
                     new_weights = {
                         "decision": max(0.1, min(2.0, current_state["llm_weights"]["decision"] * (1 + update_result.get("policy_gradient", 0.0)))),
@@ -237,30 +237,30 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                     }
                     env_node.sandbox.update_network_state(action, new_weights)
                     
-                    # 打印权重更新信息
-                    print(f"LLM权重更新:")
-                    print(f"  决策权重: {current_state['llm_weights']['decision']:.2f} -> {new_weights['decision']:.2f}")
-                    print(f"  内容权重: {current_state['llm_weights']['content']:.2f} -> {new_weights['content']:.2f}")
+                    # Print weight update information
+                    print(f"LLM Weight Updates:")
+                    print(f"  Decision Weight: {current_state['llm_weights']['decision']:.2f} -> {new_weights['decision']:.2f}")
+                    print(f"  Content Weight: {current_state['llm_weights']['content']:.2f} -> {new_weights['content']:.2f}")
                 else:
-                    print(f"策略更新状态: {update_result.get('status')}")
+                    print(f"Policy Update Status: {update_result.get('status')}")
                     if update_result.get('status') == 'insufficient_data':
-                        print(f"数据不足，当前轨迹数: {update_result.get('trajectory_count', 0)}")
+                        print(f"Insufficient data, current trajectory count: {update_result.get('trajectory_count', 0)}")
                 
             except Exception as e:
-                print(f"更新状态时出错: {e}")
+                print(f"Error updating state: {e}")
         
-        # 获取更新后的状态
+        # Get updated state
         current_state = env_node.sandbox.case_generator()
         results.append(current_state)
         
-        # 打印训练统计
+        # Print training statistics
         stats = rl_trainer.get_training_stats()
-        print(f"RL训练统计: 步骤 {stats['training_step']}, 算法 {stats['algorithm']}")
+        print(f"RL Training Stats: Step {stats['training_step']}, Algorithm {stats['algorithm']}")
     
     return results
 
 if __name__ == "__main__":
-    # 创建OASIS接口
+    # Create OASIS interface
     class OASIS:
         def get_network_state(self) -> Dict[str, Any]:
             return {
@@ -588,6 +588,6 @@ if __name__ == "__main__":
                 }
             ]
     
-    # 运行模拟
+    # Run simulation
     oasis = OASIS()
     results = run_social_network_simulation(oasis, steps=5) 
