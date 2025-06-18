@@ -6,6 +6,8 @@ from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
 from typing import Dict, Any, List, Optional, Tuple
 import random
 import json
+import os
+import sys
 
 class SocialNetworkEnvironment(Sandbox):
     """社交网络环境子集"""
@@ -94,12 +96,13 @@ class SocialNetworkEnvironment(Sandbox):
 def create_social_network_workflow(oasis_interface) -> Tuple[SG_Workflow, RLTrainer]:
     """创建社交网络工作流"""
     
-    # 创建LLM管理器
+    # 创建LLM管理器 - 使用OpenAI API
     llm_manager = create_shared_llm_manager(
         model_name="gpt-3.5-turbo",
-        backend="mock",  # 使用mock后端进行演示
+        backend="openai_api",  # 使用OpenAI API
         temperature=0.7,
-        max_length=512
+        max_length=512,
+        api_key=os.getenv("OPENAI_API_KEY")  # 从环境变量获取API密钥
     )
     
     # 加载模型
@@ -258,6 +261,13 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
     return results
 
 if __name__ == "__main__":
+    # 检查OpenAI API密钥
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        print("错误: 未设置OPENAI_API_KEY环境变量")
+        print("请设置环境变量: export OPENAI_API_KEY='your-api-key'")
+        sys.exit(1)
+    
     # 创建OASIS接口
     class OASIS:
         def get_network_state(self) -> Dict[str, Any]:
