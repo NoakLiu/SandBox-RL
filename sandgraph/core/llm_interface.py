@@ -276,13 +276,10 @@ class HuggingFaceLLM(BaseLLM):
                 if self.tokenizer.eos_token is not None:
                     self.tokenizer.pad_token = self.tokenizer.eos_token
                 else:
-                    # Use a default pad token ID if available
-                    if hasattr(self.tokenizer, 'pad_token_id') and self.tokenizer.pad_token_id is not None:
-                        self.tokenizer.pad_token = self.tokenizer.convert_ids_to_tokens(self.tokenizer.pad_token_id)
-                    else:
-                        # Set a default pad token ID
-                        self.tokenizer.pad_token_id = 0
-                        self.tokenizer.pad_token = self.tokenizer.convert_ids_to_tokens(0)
+                    # Use a default pad token
+                    self.tokenizer.pad_token = "[PAD]"
+                    if hasattr(self.tokenizer, 'pad_token_id'):
+                        self.tokenizer.pad_token_id = self.tokenizer.convert_tokens_to_ids("[PAD]")
             
             # 加载模型
             logger.info(f"加载模型到设备: {device}, 数据类型: {torch_dtype}")
