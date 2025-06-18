@@ -201,6 +201,9 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                     "score": result.get("score", 0.0)
                 }
                 
+                # 打印LLM输入
+                print(f"LLM输入: {json.dumps(state, ensure_ascii=False)}")
+                
                 # 添加经验到RL训练器
                 rl_trainer.add_experience(
                     state=state,
@@ -212,12 +215,9 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                 # 更新策略
                 update_result = rl_trainer.update_policy()
                 
-                # 打印训练状态
-                print(f"RL训练状态: {json.dumps(update_result, ensure_ascii=False)}")
-                
-                # 获取训练统计
-                stats = rl_trainer.get_training_stats()
-                print(f"RL训练统计: {json.dumps(stats, ensure_ascii=False)}")
+                # 打印LLM输出和动作选择
+                print(f"LLM输出: {json.dumps(action, ensure_ascii=False)}")
+                print(f"动作选择: {action.get('action_type')} - {action.get('reasoning')}")
                 
                 # 更新环境状态和LLM权重
                 if update_result.get("status") == "updated":
@@ -228,8 +228,9 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                     env_node.sandbox.update_network_state(action, new_weights)
                     
                     # 打印权重更新信息
-                    print(f"权重更新: 决策权重 {current_state['llm_weights']['decision']:.2f} -> {new_weights['decision']:.2f}")
-                    print(f"权重更新: 内容权重 {current_state['llm_weights']['content']:.2f} -> {new_weights['content']:.2f}")
+                    print(f"LLM权重更新:")
+                    print(f"  决策权重: {current_state['llm_weights']['decision']:.2f} -> {new_weights['decision']:.2f}")
+                    print(f"  内容权重: {current_state['llm_weights']['content']:.2f} -> {new_weights['content']:.2f}")
                 else:
                     print(f"策略更新状态: {update_result.get('status')}")
                     if update_result.get('status') == 'insufficient_data':
@@ -242,15 +243,9 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
         current_state = env_node.sandbox.case_generator()
         results.append(current_state)
         
-        # 打印结果
-        print(f"网络状态: {json.dumps(current_state['network_state'], ensure_ascii=False)}")
-        print(f"新发帖: {json.dumps(current_state['recent_posts'], ensure_ascii=False)}")
-        print(f"互动: {json.dumps(current_state['interaction_history'], ensure_ascii=False)}")
-        print(f"LLM权重: {json.dumps(current_state['llm_weights'], ensure_ascii=False)}")
-        
         # 打印训练统计
         stats = rl_trainer.get_training_stats()
-        print(f"RL训练统计: {json.dumps(stats, ensure_ascii=False)}")
+        print(f"RL训练统计: 步骤 {stats['training_step']}, 算法 {stats['algorithm']}")
     
     return results
 

@@ -213,9 +213,10 @@ class PPOAlgorithm:
         self.training_stats["value_loss"].append(avg_value_loss)
         self.training_stats["entropy_loss"].append(avg_entropy_loss)
         
-        # 清理旧轨迹
+        # 清理旧轨迹，但保留最新的batch_size个
         self.trajectories = self.trajectories[-self.config.batch_size:]
         
+        # 返回更新结果
         return {
             "status": "updated",
             "algorithm": "PPO",
@@ -226,7 +227,8 @@ class PPOAlgorithm:
             "epochs": self.config.ppo_epochs,
             "batch_size": len(batch),
             "policy_gradient": gradients["policy_gradient"],
-            "value_gradient": gradients["value_gradient"]
+            "value_gradient": gradients["value_gradient"],
+            "trajectory_count": len(self.trajectories)
         }
 
 
