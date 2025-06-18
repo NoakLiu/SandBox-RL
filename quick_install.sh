@@ -45,6 +45,10 @@ pip install trading-gym==0.1.8 || { echo "错误: trading-gym 安装失败"; exi
 echo "📦 安装SandGraph..."
 pip install -e . || { echo "错误: SandGraph 安装失败"; exit 1; }
 
+# 6. 安装 PyTorch 和相关依赖
+echo "📦 安装 PyTorch 和相关依赖..."
+pip install torch transformers accelerate || { echo "错误: PyTorch 和相关依赖安装失败"; exit 1; }
+
 echo ""
 echo "✅ 安装完成！"
 echo ""
