@@ -213,13 +213,20 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                 update_result = rl_trainer.update_policy()
                 
                 # 获取新的权重
-                new_weights = {
-                    "decision": current_state["llm_weights"]["decision"] * (1 + update_result.get("policy_gradient", 0.0)),
-                    "content": current_state["llm_weights"]["content"] * (1 + update_result.get("value_gradient", 0.0))
-                }
-                
-                # 更新环境状态和LLM权重
-                env_node.sandbox.update_network_state(action, new_weights)
+                if update_result and "policy_gradient" in update_result and "value_gradient" in update_result:
+                    new_weights = {
+                        "decision": max(0.1, min(2.0, current_state["llm_weights"]["decision"] * (1 + update_result["policy_gradient"]))),
+                        "content": max(0.1, min(2.0, current_state["llm_weights"]["content"] * (1 + update_result["value_gradient"])))
+                    }
+                    
+                    # 更新环境状态和LLM权重
+                    env_node.sandbox.update_network_state(action, new_weights)
+                    
+                    # 打印权重更新信息
+                    print(f"权重更新: 决策权重 {current_state['llm_weights']['decision']:.2f} -> {new_weights['decision']:.2f}")
+                    print(f"权重更新: 内容权重 {current_state['llm_weights']['content']:.2f} -> {new_weights['content']:.2f}")
+                else:
+                    print("策略更新失败，保持当前权重")
                 
             except Exception as e:
                 print(f"更新状态时出错: {e}")
