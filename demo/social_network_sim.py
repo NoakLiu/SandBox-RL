@@ -262,13 +262,6 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
     return results
 
 if __name__ == "__main__":
-    # 检查OpenAI API密钥
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        print("错误: 未设置OPENAI_API_KEY环境变量")
-        print("请设置环境变量: export OPENAI_API_KEY='your-api-key'")
-        sys.exit(1)
-    
     # 创建OASIS接口
     class OASIS:
         def get_network_state(self) -> Dict[str, Any]:
