@@ -44,8 +44,8 @@ class LLMResponse:
 @dataclass
 class LLMConfig:
     """LLM配置"""
-    backend: LLMBackend = LLMBackend.MOCK
-    model_name: str = "mock_llm"
+    backend: LLMBackend = LLMBackend.HUGGINGFACE  # 默认使用HuggingFace后端
+    model_name: str = "Qwen/Qwen-7B-Chat"  # 默认使用Qwen模型
     device: str = "auto"  # "cpu", "cuda", "auto"
     max_length: int = 512
     temperature: float = 0.7
@@ -713,8 +713,8 @@ def create_llm(config: LLMConfig) -> BaseLLM:
 
 
 def create_shared_llm_manager(
-    model_name: str = "mock_llm",
-    backend: Union[str, LLMBackend] = "mock",
+    model_name: str = "Qwen/Qwen-7B-Chat",  # 默认使用Qwen模型
+    backend: Union[str, LLMBackend] = "huggingface",  # 默认使用HuggingFace后端
     **kwargs
 ) -> SharedLLMManager:
     """创建共享LLM管理器"""
