@@ -1,5 +1,5 @@
 from sandgraph.core.sandbox import Sandbox
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode
+from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, EnhancedWorkflowNode
 from sandgraph.core.workflow import NodeType
 from sandgraph.core.llm_interface import create_shared_llm_manager
 from typing import Dict, Any, List
@@ -72,9 +72,13 @@ def create_social_network_workflow(oasis_interface):
     env = SocialNetworkEnvironment(oasis_interface)
     
     # 添加节点
-    workflow.add_node(NodeType.SANDBOX, "network_env", {"sandbox": env})
-    workflow.add_node(NodeType.LLM, "decision_maker", {"role": "社交网络分析师"})
-    workflow.add_node(NodeType.LLM, "content_generator", {"role": "内容创作者"})
+    network_env_node = EnhancedWorkflowNode("network_env", NodeType.SANDBOX, sandbox=env)
+    decision_maker_node = EnhancedWorkflowNode("decision_maker", NodeType.LLM, role="社交网络分析师")
+    content_generator_node = EnhancedWorkflowNode("content_generator", NodeType.LLM, role="内容创作者")
+    
+    workflow.add_node(network_env_node)
+    workflow.add_node(decision_maker_node)
+    workflow.add_node(content_generator_node)
     
     # 连接节点
     workflow.add_edge("network_env", "decision_maker")
