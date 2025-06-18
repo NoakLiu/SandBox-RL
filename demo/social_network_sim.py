@@ -1,4 +1,4 @@
-from sandgraph.core.sandbox import SandBox
+from sandgraph.core.sandbox import Sandbox
 from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode
 from sandgraph.core.workflow import NodeType
 from sandgraph.core.llm_interface import create_shared_llm_manager
@@ -6,7 +6,7 @@ from typing import Dict, Any, List
 import random
 import json
 
-class SocialNetworkEnvironment(SandBox):
+class SocialNetworkEnvironment(Sandbox):
     """社交网络环境子集"""
     
     def __init__(self, oasis_interface):
