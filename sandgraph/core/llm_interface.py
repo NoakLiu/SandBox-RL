@@ -264,21 +264,25 @@ class HuggingFaceLLM(BaseLLM):
                 torch_dtype = self.torch.float32
             
             # 加载tokenizer
-            logger.info(f"加载tokenizer: {self.model_name}")
+            logger.info(f"Loading tokenizer: {self.model_name}")
             self.tokenizer = self.transformers.AutoTokenizer.from_pretrained(
                 self.config.model_path or self.model_name,
                 cache_dir=self.config.cache_dir,
                 trust_remote_code=True
             )
             
-            # 使用已有的特殊token
+            # Set pad token safely
             if self.tokenizer.pad_token is None:
                 if self.tokenizer.eos_token is not None:
                     self.tokenizer.pad_token = self.tokenizer.eos_token
-                elif hasattr(self.tokenizer, 'pad_token_id'):
-                    self.tokenizer.pad_token = self.tokenizer.decode([self.tokenizer.pad_token_id])
                 else:
-                    logger.warning("无法设置pad_token，使用默认token")
+                    # Use a default pad token ID if available
+                    if hasattr(self.tokenizer, 'pad_token_id') and self.tokenizer.pad_token_id is not None:
+                        self.tokenizer.pad_token = self.tokenizer.convert_ids_to_tokens(self.tokenizer.pad_token_id)
+                    else:
+                        # Set a default pad token ID
+                        self.tokenizer.pad_token_id = 0
+                        self.tokenizer.pad_token = self.tokenizer.convert_ids_to_tokens(0)
             
             # 加载模型
             logger.info(f"加载模型到设备: {device}, 数据类型: {torch_dtype}")
