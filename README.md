@@ -197,8 +197,8 @@ conda create -n sandgraph python=3.11
 conda activate sandgraph
 
 # 2. 克隆仓库
-git clone https://github.com/NoakLiu/sandgraph.git
-cd sandgraph
+https://github.com/NoakLiu/SandGraphX.git
+cd SandGraphX
 
 # 3. 运行安装脚本
 chmod +x quick_install.sh
