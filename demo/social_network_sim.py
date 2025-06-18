@@ -95,7 +95,15 @@ def create_social_network_workflow(oasis_interface) -> Tuple[SG_Workflow, RLTrai
     """创建社交网络工作流"""
     
     # 创建LLM管理器
-    llm_manager = create_shared_llm_manager("gpt-3.5-turbo")
+    llm_manager = create_shared_llm_manager(
+        model_name="gpt-3.5-turbo",
+        backend="mock",  # 使用mock后端进行演示
+        temperature=0.7,
+        max_length=512
+    )
+    
+    # 加载模型
+    llm_manager.load_model()
     
     # 创建RL训练器
     rl_config = RLConfig(
@@ -180,12 +188,12 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
         current_state = env_node.sandbox.case_generator()
         
         # 执行工作流
-        result = workflow.execute_full_workflow()
+        workflow_result = workflow.execute_full_workflow()
         
         # 更新环境状态
-        if "response" in result:
+        if "response" in workflow_result:
             try:
-                action = json.loads(result["response"])
+                action = json.loads(workflow_result["response"])
                 
                 # 使用RL更新LLM权重
                 state = {
@@ -198,7 +206,7 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                     "action_size": len(action.get("details", {})),
                     "reasoning_size": len(action.get("reasoning", "")),
                     "step": step,
-                    "score": result.get("score", 0.0)
+                    "score": workflow_result.get("score", 0.0)
                 }
                 
                 # 打印LLM输入
@@ -208,7 +216,7 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                 rl_trainer.add_experience(
                     state=state,
                     action=json.dumps(action),
-                    reward=result.get("score", 0.0),
+                    reward=workflow_result.get("score", 0.0),
                     done=step == steps - 1
                 )
                 
