@@ -609,8 +609,10 @@ def run_rl_social_demo(steps: int = 5):
     
     # 5. 显示RL训练统计
     print_section("RL Training Statistics")
-    print(f"Total Experiences: {len(rl_trainer.experience_buffer)}")
-    print(f"Policy Updates: {rl_trainer.update_count}")
+    training_stats = rl_trainer.get_training_stats()
+    print(f"Training Steps: {training_stats['training_step']}")
+    print(f"Algorithm: {training_stats['algorithm']}")
+    print(f"Recent Updates: {len(training_stats['recent_updates'])}")
     
     return results
 

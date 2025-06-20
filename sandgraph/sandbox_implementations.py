@@ -1297,6 +1297,265 @@ class TradingSandbox(Sandbox):
             return 0.0 
 
 
+class SocialNetworkSandbox(Sandbox):
+    """社交网络管理沙盒
+    
+    模拟社交网络环境，包括用户行为、内容传播、网络增长等
+    """
+    
+    def __init__(self, initial_users: int = 100, max_users: int = 1000, seed: int = 42):
+        """初始化社交网络沙盒
+        
+        Args:
+            initial_users: 初始用户数量
+            max_users: 最大用户数量
+            seed: 随机种子
+        """
+        super().__init__("social_network", "社交网络管理沙盒")
+        self.initial_users = initial_users
+        self.max_users = max_users
+        self.random = random.Random(seed)
+        
+        # 初始化网络状态
+        self.network_state = {}
+        self.user_behavior = {}
+        self.content_metrics = {}
+        self.step_count = 0
+        
+        # 初始化网络
+        self._initialize_network()
+    
+    def _initialize_network(self):
+        """初始化社交网络"""
+        # 创建初始用户
+        for i in range(self.initial_users):
+            user_id = f"user_{i}"
+            self.network_state[user_id] = {
+                "followers": self.random.randint(0, 50),
+                "following": self.random.randint(0, 30),
+                "posts": self.random.randint(0, 20),
+                "engagement_rate": self.random.uniform(0.01, 0.15),
+                "activity_level": self.random.uniform(0.1, 1.0),
+                "join_date": datetime.now() - timedelta(days=self.random.randint(1, 365))
+            }
+        
+        # 初始化用户行为
+        self.user_behavior = {
+            "active_users": self.random.randint(20, 80),
+            "posts_created": self.random.randint(5, 50),
+            "likes_given": self.random.randint(10, 200),
+            "comments_made": self.random.randint(5, 100),
+            "shares_made": self.random.randint(2, 50),
+            "avg_session_time": self.random.uniform(5.0, 30.0)
+        }
+        
+        # 初始化内容指标
+        self.content_metrics = {
+            "viral_posts": self.random.randint(0, 5),
+            "trending_topics": self.random.randint(1, 10),
+            "quality_score": self.random.uniform(0.3, 0.9),
+            "satisfaction_score": self.random.uniform(0.4, 0.95)
+        }
+    
+    def _update_network_state(self):
+        """更新网络状态"""
+        self.step_count += 1
+        
+        # 更新用户行为
+        growth_factor = 1.0 + (self.step_count * 0.05)  # 随时间增长
+        
+        self.user_behavior["active_users"] = min(
+            len(self.network_state),
+            int(self.user_behavior["active_users"] * growth_factor)
+        )
+        self.user_behavior["posts_created"] += self.random.randint(1, 10)
+        self.user_behavior["likes_given"] += self.random.randint(5, 25)
+        self.user_behavior["comments_made"] += self.random.randint(2, 15)
+        self.user_behavior["shares_made"] += self.random.randint(1, 8)
+        
+        # 更新内容指标
+        if self.random.random() < 0.3:  # 30%概率产生病毒内容
+            self.content_metrics["viral_posts"] += 1
+        
+        if self.random.random() < 0.4:  # 40%概率产生热门话题
+            self.content_metrics["trending_topics"] += 1
+        
+        # 更新质量分数（有波动）
+        quality_change = self.random.uniform(-0.1, 0.1)
+        self.content_metrics["quality_score"] = max(0.0, min(1.0, 
+            self.content_metrics["quality_score"] + quality_change))
+        
+        satisfaction_change = self.random.uniform(-0.05, 0.05)
+        self.content_metrics["satisfaction_score"] = max(0.0, min(1.0,
+            self.content_metrics["satisfaction_score"] + satisfaction_change))
+        
+        # 随机添加新用户
+        if len(self.network_state) < self.max_users and self.random.random() < 0.2:
+            new_user_id = f"user_{len(self.network_state)}"
+            self.network_state[new_user_id] = {
+                "followers": 0,
+                "following": self.random.randint(0, 10),
+                "posts": 0,
+                "engagement_rate": self.random.uniform(0.01, 0.1),
+                "activity_level": self.random.uniform(0.2, 0.8),
+                "join_date": datetime.now()
+            }
+    
+    def case_generator(self) -> Dict[str, Any]:
+        """生成社交网络状态"""
+        # 更新网络状态
+        self._update_network_state()
+        
+        return {
+            "state": {
+                "network_state": self.network_state.copy(),
+                "user_behavior": self.user_behavior.copy(),
+                "content_metrics": self.content_metrics.copy(),
+                "step": self.step_count
+            }
+        }
+    
+    def prompt_func(self, case: Dict[str, Any]) -> str:
+        """构造提示文本"""
+        state = case["state"]
+        network_state = state["network_state"]
+        user_behavior = state["user_behavior"]
+        content_metrics = state["content_metrics"]
+        
+        # 构建网络摘要
+        total_users = len(network_state)
+        total_followers = sum(user["followers"] for user in network_state.values())
+        total_posts = sum(user["posts"] for user in network_state.values())
+        
+        prompt = f"""
+社交网络状态报告：
+
+用户统计：
+- 总用户数：{total_users}
+- 活跃用户：{user_behavior['active_users']}
+- 总关注数：{total_followers}
+- 总帖子数：{total_posts}
+
+用户行为：
+- 新发帖子：{user_behavior['posts_created']}
+- 点赞数：{user_behavior['likes_given']}
+- 评论数：{user_behavior['comments_made']}
+- 分享数：{user_behavior['shares_made']}
+- 平均会话时间：{user_behavior['avg_session_time']:.1f}分钟
+
+内容表现：
+- 病毒帖子：{content_metrics['viral_posts']}
+- 热门话题：{content_metrics['trending_topics']}
+- 内容质量分数：{content_metrics['quality_score']:.2f}
+- 用户满意度：{content_metrics['satisfaction_score']:.2f}
+
+请分析当前状态并提出改进建议。
+"""
+        return prompt
+    
+    def verify_score(self, response: str, case: Dict[str, Any], format_score: float = 0.0) -> float:
+        """验证决策并评分"""
+        if not response.strip():
+            return 0.0
+        
+        # 解析决策
+        decision = self._parse_decision(response)
+        
+        # 根据决策类型和当前状态计算分数
+        score = self._calculate_decision_score(decision, case["state"])
+        
+        return score
+    
+    def _parse_decision(self, response: str) -> Dict[str, Any]:
+        """解析决策响应"""
+        response = response.strip().upper()
+        
+        # 定义可能的动作
+        valid_actions = [
+            "CREATE_POST", "ENCOURAGE_INTERACTION", "FEATURE_USER", 
+            "LAUNCH_CAMPAIGN", "IMPROVE_ALGORITHM", "ADD_FEATURE", 
+            "MODERATE_CONTENT", "EXPAND_NETWORK"
+        ]
+        
+        # 检查响应中的动作
+        selected_action = None
+        for action in valid_actions:
+            if action in response:
+                selected_action = action
+                break
+        
+        if not selected_action:
+            selected_action = "CREATE_POST"  # 默认动作
+        
+        return {
+            "action": selected_action,
+            "response": response
+        }
+    
+    def _calculate_decision_score(self, decision: Dict[str, Any], state: Dict[str, Any]) -> float:
+        """计算决策分数"""
+        action = decision["action"]
+        user_behavior = state["user_behavior"]
+        content_metrics = state["content_metrics"]
+        
+        # 基础分数
+        base_score = 0.5
+        
+        # 根据动作类型和当前状态调整分数
+        if action == "CREATE_POST":
+            if user_behavior["posts_created"] < 20:
+                base_score += 0.3  # 鼓励发帖
+            else:
+                base_score += 0.1
+        
+        elif action == "ENCOURAGE_INTERACTION":
+            if user_behavior["likes_given"] < 50:
+                base_score += 0.3  # 鼓励互动
+            else:
+                base_score += 0.1
+        
+        elif action == "FEATURE_USER":
+            if user_behavior["active_users"] < 50:
+                base_score += 0.2  # 突出活跃用户
+            else:
+                base_score += 0.1
+        
+        elif action == "LAUNCH_CAMPAIGN":
+            if content_metrics["viral_posts"] < 3:
+                base_score += 0.4  # 需要病毒内容
+            else:
+                base_score += 0.2
+        
+        elif action == "IMPROVE_ALGORITHM":
+            if content_metrics["quality_score"] < 0.6:
+                base_score += 0.3  # 需要提高质量
+            else:
+                base_score += 0.1
+        
+        elif action == "ADD_FEATURE":
+            if user_behavior["avg_session_time"] < 15:
+                base_score += 0.3  # 需要增加用户停留时间
+            else:
+                base_score += 0.1
+        
+        elif action == "MODERATE_CONTENT":
+            if content_metrics["satisfaction_score"] < 0.7:
+                base_score += 0.3  # 需要提高满意度
+            else:
+                base_score += 0.1
+        
+        elif action == "EXPAND_NETWORK":
+            if len(state["network_state"]) < 200:
+                base_score += 0.3  # 需要扩大网络
+            else:
+                base_score += 0.1
+        
+        # 添加随机波动
+        random_factor = self.random.uniform(0.8, 1.2)
+        
+        return min(1.0, base_score * random_factor)
+
+
 # 沙盒注册表，方便动态创建
 SANDBOX_REGISTRY = {
     "game24": Game24Sandbox,
@@ -1306,6 +1565,7 @@ SANDBOX_REGISTRY = {
     "trading_gym": TradingGymSandbox,
     "backtrader": BacktraderSandbox,
     "trading": TradingSandbox,
+    "social_network": SocialNetworkSandbox
 }
 
 
@@ -1319,6 +1579,7 @@ def create_sandbox(sandbox_type: str, **kwargs) -> Sandbox:
         "trading_gym": TradingGymSandbox,
         "backtrader": BacktraderSandbox,
         "trading": TradingSandbox,
+        "social_network": SocialNetworkSandbox
     }
     
     if sandbox_type not in sandbox_map:
