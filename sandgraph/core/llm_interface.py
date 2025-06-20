@@ -24,6 +24,14 @@ class LLMBackend(Enum):
     GPT2 = "gpt2"
     LLAMA = "llama"
     QWEN = "qwen"
+    MISTRAL = "mistral"
+    GEMMA = "gemma"
+    PHI = "phi"
+    YI = "yi"
+    CHATGLM = "chatglm"
+    BAICHUAN = "baichuan"
+    INTERNLM = "internlm"
+    FALCON = "falcon"
     OPENAI_API = "openai_api"
     HUGGINGFACE = "huggingface"
 
@@ -863,4 +871,224 @@ def create_openai_manager(model_name: str = "gpt-3.5-turbo", api_key: Optional[s
         temperature=0.7
     )
     llm = create_llm(config)
-    return SharedLLMManager(llm) 
+    return SharedLLMManager(llm)
+
+
+# 新增的火热预训练模型管理器
+def create_mistral_manager(model_name: str = "mistralai/Mistral-7B-Instruct-v0.2", device: str = "auto") -> SharedLLMManager:
+    """创建Mistral模型管理器 - 强大的7B指令模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "mistralai/Mistral-7B-Instruct-v0.2", "mistralai/Mistral-7B-v0.1"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_gemma_manager(model_name: str = "google/gemma-2b-it", device: str = "auto") -> SharedLLMManager:
+    """创建Gemma模型管理器 - Google的轻量级模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "google/gemma-2b-it", "google/gemma-7b-it"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_phi_manager(model_name: str = "microsoft/Phi-2", device: str = "auto") -> SharedLLMManager:
+    """创建Phi模型管理器 - Microsoft的小型高效模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "microsoft/Phi-2", "microsoft/Phi-1_5"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_yi_manager(model_name: str = "01-ai/Yi-6B-Chat", device: str = "auto") -> SharedLLMManager:
+    """创建Yi模型管理器 - 01.AI的高质量中文模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "01-ai/Yi-6B-Chat", "01-ai/Yi-34B-Chat"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_chatglm_manager(model_name: str = "THUDM/chatglm3-6b", device: str = "auto") -> SharedLLMManager:
+    """创建ChatGLM模型管理器 - 清华的中文对话模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "THUDM/chatglm3-6b", "THUDM/chatglm2-6b"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_baichuan_manager(model_name: str = "baichuan-inc/Baichuan2-7B-Chat", device: str = "auto") -> SharedLLMManager:
+    """创建Baichuan模型管理器 - 百川智能的中文模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "baichuan-inc/Baichuan2-7B-Chat", "baichuan-inc/Baichuan2-13B-Chat"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_internlm_manager(model_name: str = "internlm/internlm-chat-7b", device: str = "auto") -> SharedLLMManager:
+    """创建InternLM模型管理器 - 上海AI实验室的模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "internlm/internlm-chat-7b", "internlm/internlm-chat-20b"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_falcon_manager(model_name: str = "tiiuae/falcon-7b-instruct", device: str = "auto") -> SharedLLMManager:
+    """创建Falcon模型管理器 - TII的高性能模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "tiiuae/falcon-7b-instruct", "tiiuae/falcon-40b-instruct"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_llama2_manager(model_name: str = "meta-llama/Llama-2-7b-chat-hf", device: str = "auto") -> SharedLLMManager:
+    """创建LLaMA2模型管理器 - Meta的开源模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "meta-llama/Llama-2-7b-chat-hf", "meta-llama/Llama-2-13b-chat-hf"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_codellama_manager(model_name: str = "codellama/CodeLlama-7b-Instruct-hf", device: str = "auto") -> SharedLLMManager:
+    """创建CodeLLaMA模型管理器 - 专门用于代码生成的模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "codellama/CodeLlama-7b-Instruct-hf", "codellama/CodeLlama-13b-Instruct-hf"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_starcoder_manager(model_name: str = "bigcode/starcoder2-7b", device: str = "auto") -> SharedLLMManager:
+    """创建StarCoder模型管理器 - BigCode的代码生成模型"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,  # "bigcode/starcoder2-7b", "bigcode/starcoder2-15b"
+        device=device,
+        max_length=2048,
+        temperature=0.7,
+        torch_dtype="float16"
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+# 模型选择器函数
+def get_available_models() -> Dict[str, List[str]]:
+    """获取可用的模型列表"""
+    return {
+        "gpt2": ["gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl"],
+        "llama": ["meta-llama/Llama-2-7b-chat-hf", "meta-llama/Llama-2-13b-chat-hf", "meta-llama/Llama-2-70b-chat-hf"],
+        "qwen": ["Qwen/Qwen-1_8B-Chat", "Qwen/Qwen-7B-Chat", "Qwen/Qwen-14B-Chat", "Qwen/Qwen-72B-Chat"],
+        "mistral": ["mistralai/Mistral-7B-Instruct-v0.2", "mistralai/Mistral-7B-v0.1", "mistralai/Mixtral-8x7B-Instruct-v0.1"],
+        "gemma": ["google/gemma-2b-it", "google/gemma-7b-it"],
+        "phi": ["microsoft/Phi-2", "microsoft/Phi-1_5"],
+        "yi": ["01-ai/Yi-6B-Chat", "01-ai/Yi-34B-Chat"],
+        "chatglm": ["THUDM/chatglm3-6b", "THUDM/chatglm2-6b"],
+        "baichuan": ["baichuan-inc/Baichuan2-7B-Chat", "baichuan-inc/Baichuan2-13B-Chat"],
+        "internlm": ["internlm/internlm-chat-7b", "internlm/internlm-chat-20b"],
+        "falcon": ["tiiuae/falcon-7b-instruct", "tiiuae/falcon-40b-instruct"],
+        "codellama": ["codellama/CodeLlama-7b-Instruct-hf", "codellama/CodeLlama-13b-Instruct-hf"],
+        "starcoder": ["bigcode/starcoder2-7b", "bigcode/starcoder2-15b"],
+        "openai": ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"]
+    }
+
+
+def create_model_by_type(model_type: str, model_name: Optional[str] = None, device: str = "auto") -> SharedLLMManager:
+    """根据模型类型创建对应的管理器"""
+    available_models = get_available_models()
+    
+    if model_type not in available_models:
+        raise ValueError(f"不支持的模型类型: {model_type}. 支持的类型: {list(available_models.keys())}")
+    
+    if model_name is None:
+        model_name = available_models[model_type][0]  # 使用第一个默认模型
+    
+    if model_name not in available_models[model_type]:
+        raise ValueError(f"模型 {model_name} 不在 {model_type} 类型中")
+    
+    # 根据类型创建对应的管理器
+    if model_type == "gpt2":
+        return create_gpt2_manager(model_name, device)
+    elif model_type == "llama":
+        return create_llama2_manager(model_name, device)
+    elif model_type == "qwen":
+        return create_qwen_manager(model_name, device)
+    elif model_type == "mistral":
+        return create_mistral_manager(model_name, device)
+    elif model_type == "gemma":
+        return create_gemma_manager(model_name, device)
+    elif model_type == "phi":
+        return create_phi_manager(model_name, device)
+    elif model_type == "yi":
+        return create_yi_manager(model_name, device)
+    elif model_type == "chatglm":
+        return create_chatglm_manager(model_name, device)
+    elif model_type == "baichuan":
+        return create_baichuan_manager(model_name, device)
+    elif model_type == "internlm":
+        return create_internlm_manager(model_name, device)
+    elif model_type == "falcon":
+        return create_falcon_manager(model_name, device)
+    elif model_type == "codellama":
+        return create_codellama_manager(model_name, device)
+    elif model_type == "starcoder":
+        return create_starcoder_manager(model_name, device)
+    else:
+        raise ValueError(f"未实现的模型类型: {model_type}") 
