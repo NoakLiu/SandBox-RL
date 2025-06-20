@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-SandGraph 交易环境演示
+SandGraph 交易环境演示 - 基于RL的LLM决策架构
 
-展示如何使用 TradingGym 或 Backtrader 进行交易决策和回测：
-1. 基础交易环境设置
-2. 市场数据获取
-3. 交易决策执行
-4. 投资组合管理
-5. 性能评估
+新的架构设计：
+1. Sandbox作为环境节点
+2. LLM作为决策器（不是节点）
+3. RL算法更新LLM权重
+4. 状态转移由LLM决策驱动
 """
 
 import sys
@@ -26,6 +25,7 @@ from sandgraph.core.sg_workflow import (
     SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
     NodeType, NodeCondition, NodeLimits, GameState
 )
+from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
 from sandgraph.sandbox_implementations import TradingGymSandbox, BacktraderSandbox
 
 
@@ -36,129 +36,145 @@ def print_section(title: str):
     print(f"{'='*60}")
 
 
-def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> SG_Workflow:
-    """创建交易工作流
+class LLMDecisionMaker:
+    """LLM决策器 - 不是节点，而是决策引擎"""
     
-    Args:
-        llm_manager: LLM管理器
-        strategy_type: 策略类型，可选 "trading_gym" 或 "backtrader"
-    """
-    
-    # 创建工作流
-    workflow = SG_Workflow("trading_workflow", WorkflowMode.TRADITIONAL, llm_manager)
-    
-    # 创建LLM函数
-    def create_llm_func(node_id: str):
-        def llm_func(inputs: Dict[str, Any]) -> Dict[str, Any]:
-            # 从输入中获取数据
-            market_data = inputs.get("market_data", "")
-            analysis_result = inputs.get("analysis_result", "")
-            strategy_result = inputs.get("strategy_result", "")
-            
-            # 根据不同节点类型构造不同的提示
-            if node_id == "market_analyzer":
-                prompt = f"""作为市场分析师，请分析以下市场数据并提供见解：
-
-{market_data}
-
-请从以下方面进行分析：
-1. 价格趋势分析
-2. 成交量分析  
-3. 市场情绪评估
-4. 潜在机会和风险识别
-
-请给出详细的分析报告。"""
-            
-            elif node_id == "strategy_generator":
-                prompt = f"""作为策略生成器，请基于以下市场分析生成交易策略：
-
-市场分析结果：
-{analysis_result}
-
-请考虑以下因素：
-1. 市场趋势判断
-2. 风险控制措施
-3. 资金管理策略
-4. 具体执行计划
-
-请给出详细的交易策略，包括具体的买入/卖出建议。"""
-            
-            elif node_id == "risk_assessor":
-                prompt = f"""作为风险评估师，请评估以下交易策略的风险：
-
-交易策略：
-{strategy_result}
-
-请从以下方面进行评估：
-1. 市场风险分析
-2. 操作风险评估
-3. 资金风险控制
-4. 风险控制建议
-
-请给出详细的风险评估报告。"""
-            
-            # 使用 Qwen-7B 生成响应
-            response = llm_manager.generate_for_node(
-                node_id, 
-                prompt,
-                temperature=0.7,
-                max_length=512
-            )
-            
-            return {
-                "response": response.text,
-                "prompt": prompt,
-                "node_id": node_id
-            }
-        return llm_func
-    
-    # 注册LLM节点
-    llm_nodes = {
-        "market_analyzer": {
-            "role": "市场分析师",
-            "reasoning_type": "analytical",
+    def __init__(self, llm_manager):
+        self.llm_manager = llm_manager
+        self.decision_count = 0
+        
+        # 注册决策节点
+        self.llm_manager.register_node("trading_decision", {
+            "role": "交易决策专家",
+            "reasoning_type": "strategic",
             "temperature": 0.7,
             "max_length": 512
-        },
-        "strategy_generator": {
-            "role": "策略生成器",
-            "reasoning_type": "strategic",
-            "temperature": 0.8,
-            "max_length": 512
-        },
-        "risk_assessor": {
-            "role": "风险评估师",
-            "reasoning_type": "analytical",
-            "temperature": 0.6,
-            "max_length": 512
+        })
+    
+    def make_decision(self, state: Dict[str, Any]) -> Dict[str, Any]:
+        """基于当前状态做出交易决策"""
+        self.decision_count += 1
+        
+        # 构造决策提示
+        prompt = self._construct_decision_prompt(state)
+        
+        # 使用LLM生成决策
+        response = self.llm_manager.generate_for_node(
+            "trading_decision", 
+            prompt,
+            temperature=0.7,
+            max_length=512
+        )
+        
+        # 解析决策
+        decision = self._parse_decision(response.text, state)
+        
+        return {
+            "decision": decision,
+            "llm_response": response.text,
+            "prompt": prompt,
+            "decision_count": self.decision_count
         }
-    }
     
-    # 注册所有LLM节点
-    for node_id, node_config in llm_nodes.items():
-        llm_manager.register_node(node_id, node_config)
+    def _construct_decision_prompt(self, state: Dict[str, Any]) -> str:
+        """构造决策提示"""
+        market_data = state.get("market_data", {})
+        portfolio = state.get("portfolio", {})
+        
+        # 构建市场数据摘要
+        market_summary = []
+        for symbol, data in market_data.items():
+            market_summary.append(
+                f"{symbol}: 价格={data.get('close', 0):.2f}, "
+                f"开盘={data.get('open', 0):.2f}, "
+                f"最高={data.get('high', 0):.2f}, "
+                f"最低={data.get('low', 0):.2f}, "
+                f"成交量={data.get('volume', 0)}"
+            )
+        
+        # 构建投资组合摘要
+        cash = portfolio.get("cash", 0)
+        positions = portfolio.get("positions", {})
+        position_summary = []
+        for symbol, amount in positions.items():
+            position_summary.append(f"{symbol}: {amount} 股")
+        
+        return f"""作为交易决策专家，请分析当前市场状态并做出交易决策。
+
+当前市场状态：
+{chr(10).join(market_summary)}
+
+当前投资组合：
+现金: {cash:.2f}
+持仓: {chr(10).join(position_summary) if position_summary else '无'}
+
+请分析市场趋势、风险评估和投资机会，然后做出以下决策之一：
+
+1. 买入决策：BUY <symbol> <amount>
+2. 卖出决策：SELL <symbol> <amount>  
+3. 持有观望：HOLD
+
+请给出决策并简要说明理由。"""
+
+    def _parse_decision(self, response: str, state: Dict[str, Any]) -> Dict[str, Any]:
+        """解析LLM的决策响应"""
+        response = response.strip().upper()
+        
+        # 尝试解析交易决策
+        if response == "HOLD":
+            return {"action": "HOLD", "reasoning": response}
+        
+        parts = response.split()
+        if len(parts) >= 3 and parts[0] in ["BUY", "SELL"]:
+            try:
+                action_type = parts[0]
+                symbol = parts[1]
+                amount = float(parts[2])
+                
+                # 验证交易标的
+                if symbol in state.get("symbols", []):
+                    return {
+                        "action": action_type,
+                        "symbol": symbol,
+                        "amount": amount,
+                        "reasoning": response
+                    }
+            except (ValueError, IndexError):
+                pass
+        
+        # 如果解析失败，返回HOLD
+        return {"action": "HOLD", "reasoning": "无法解析决策，选择持有观望"}
+
+
+def create_rl_trading_workflow(llm_manager, strategy_type: str = "trading_gym") -> tuple[SG_Workflow, RLTrainer, LLMDecisionMaker]:
+    """创建基于RL的LLM决策交易工作流"""
     
-    # 添加市场分析节点（LLM节点）
-    market_analyzer = EnhancedWorkflowNode(
-        "market_analyzer",
-        NodeType.LLM,
-        llm_func=create_llm_func("market_analyzer"),
-        condition=NodeCondition(),
-        limits=NodeLimits(resource_cost={"energy": 5, "tokens": 3})
+    # 创建RL配置
+    rl_config = RLConfig(
+        algorithm=RLAlgorithm.PPO,
+        learning_rate=3e-4,
+        gamma=0.99,
+        gae_lambda=0.95,
+        clip_ratio=0.2,
+        value_loss_coef=0.5,
+        entropy_coef=0.01,
+        max_grad_norm=0.5,
+        batch_size=32,
+        mini_batch_size=8,
+        ppo_epochs=4,
+        target_kl=0.01
     )
-    workflow.add_node(market_analyzer)
     
-    # 添加策略生成节点（LLM节点）
-    strategy_generator = EnhancedWorkflowNode(
-        "strategy_generator",
-        NodeType.LLM,
-        llm_func=create_llm_func("strategy_generator"),
-        condition=NodeCondition(),
-        limits=NodeLimits(resource_cost={"energy": 5, "tokens": 3})
-    )
-    workflow.add_node(strategy_generator)
+    # 创建RL训练器
+    rl_trainer = RLTrainer(rl_config, llm_manager)
     
-    # 添加交易执行节点（SANDBOX节点）
+    # 创建LLM决策器
+    decision_maker = LLMDecisionMaker(llm_manager)
+    
+    # 创建工作流
+    workflow = SG_Workflow("rl_trading_workflow", WorkflowMode.TRADITIONAL, llm_manager)
+    
+    # 创建交易环境沙盒
     if strategy_type == "trading_gym":
         sandbox = TradingGymSandbox(
             initial_balance=100000.0,
@@ -176,99 +192,209 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
             end_date=datetime.now().strftime("%Y-%m-%d")
         )
     
-    trading_executor = EnhancedWorkflowNode(
-        "trading_executor",
+    # 创建交易环境节点
+    def trading_env_func(inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """交易环境节点函数"""
+        # 获取当前状态
+        case = sandbox.case_generator()
+        current_state = case["state"]
+        
+        # 使用LLM做出决策
+        decision_result = decision_maker.make_decision(current_state)
+        decision = decision_result["decision"]
+        
+        # 执行交易决策
+        try:
+            # 验证和执行交易
+            score = sandbox.verify_score(
+                f"{decision['action']} {decision.get('symbol', '')} {decision.get('amount', 0)}",
+                case
+            )
+            
+            # 计算奖励
+            reward = score * 10  # 将分数转换为奖励
+            
+            # 构建状态特征
+            state_features = {
+                "market_volatility": _calculate_volatility(current_state),
+                "portfolio_value": _calculate_portfolio_value(current_state),
+                "cash_ratio": current_state["portfolio"]["cash"] / 100000.0,
+                "position_count": len(current_state["portfolio"]["positions"]),
+                "decision_type": 1 if decision["action"] == "BUY" else (2 if decision["action"] == "SELL" else 0)
+            }
+            
+            # 添加到RL训练器
+            rl_trainer.add_experience(
+                state=state_features,
+                action=json.dumps(decision),
+                reward=reward,
+                done=False
+            )
+            
+            # 更新策略
+            update_result = rl_trainer.update_policy()
+            
+            return {
+                "state": current_state,
+                "decision": decision,
+                "llm_response": decision_result["llm_response"],
+                "score": score,
+                "reward": reward,
+                "rl_update": update_result,
+                "sandbox_id": sandbox.sandbox_id
+            }
+            
+        except Exception as e:
+            print(f"交易执行错误: {e}")
+            return {
+                "state": current_state,
+                "decision": {"action": "HOLD", "reasoning": f"执行错误: {e}"},
+                "score": 0.0,
+                "reward": 0.0,
+                "error": str(e)
+            }
+    
+    # 添加交易环境节点
+    trading_env_node = EnhancedWorkflowNode(
+        "trading_environment",
         NodeType.SANDBOX,
         sandbox=sandbox,
         condition=NodeCondition(),
-        limits=NodeLimits(max_visits=5, resource_cost={"energy": 10, "tokens": 5})
+        limits=NodeLimits(max_visits=10, resource_cost={"energy": 10, "tokens": 5})
     )
-    workflow.add_node(trading_executor)
+    workflow.add_node(trading_env_node)
     
-    # 添加风险评估节点（LLM节点）
-    risk_assessor = EnhancedWorkflowNode(
-        "risk_assessor",
-        NodeType.LLM,
-        llm_func=create_llm_func("risk_assessor"),
-        condition=NodeCondition(),
-        limits=NodeLimits(resource_cost={"energy": 5, "tokens": 3})
-    )
-    workflow.add_node(risk_assessor)
-    
-    # 添加边 - 修改连接逻辑
-    workflow.add_edge("trading_executor", "market_analyzer")  # 交易环境 -> 市场分析
-    workflow.add_edge("market_analyzer", "strategy_generator")  # 市场分析 -> 策略生成
-    workflow.add_edge("strategy_generator", "risk_assessor")  # 策略生成 -> 风险评估
-    
-    return workflow
+    return workflow, rl_trainer, decision_maker
 
 
-def run_trading_demo(strategy_type: str = "backtrader"):
-    """运行交易演示
+def _calculate_volatility(state: Dict[str, Any]) -> float:
+    """计算市场波动性"""
+    prices = []
+    for symbol_data in state.get("market_data", {}).values():
+        if "close" in symbol_data:
+            prices.append(symbol_data["close"])
     
-    Args:
-        strategy_type: 策略类型，可选 "trading_gym" 或 "backtrader"
-    """
+    if len(prices) < 2:
+        return 0.5
     
-    print_section(f"交易环境演示 - {strategy_type.upper()}")
+    # 计算价格变化率的标准差
+    returns = []
+    for i in range(1, len(prices)):
+        if prices[i-1] > 0:
+            returns.append(abs(prices[i] - prices[i-1]) / prices[i-1])
+    
+    if not returns:
+        return 0.5
+    
+    return min(1.0, sum(returns) / len(returns) * 10)
+
+
+def _calculate_portfolio_value(state: Dict[str, Any]) -> float:
+    """计算投资组合总价值"""
+    cash = state["portfolio"]["cash"]
+    positions = state["portfolio"]["positions"]
+    market_data = state["market_data"]
+    
+    position_value = 0
+    for symbol, amount in positions.items():
+        if symbol in market_data and "close" in market_data[symbol]:
+            position_value += amount * market_data[symbol]["close"]
+    
+    return cash + position_value
+
+
+def run_rl_trading_demo(strategy_type: str = "trading_gym", steps: int = 5):
+    """运行基于RL的LLM决策交易演示"""
+    
+    print_section(f"基于RL的LLM决策交易演示 - {strategy_type.upper()}")
     
     # 1. 创建LLM管理器
     print("\n1. 创建LLM管理器")
     llm_manager = create_shared_llm_manager(
-        model_name="Qwen/Qwen-7B-Chat",  # 使用真实的Qwen-7B模型
-        backend="huggingface",  # 使用huggingface后端
+        model_name="Qwen/Qwen-7B-Chat",
+        backend="huggingface",
         temperature=0.7,
         max_length=512,
         device="auto",
         torch_dtype="float16"
     )
     
-    # 2. 创建工作流
-    print("\n2. 创建交易工作流")
-    workflow = create_trading_workflow(llm_manager, strategy_type)
+    # 2. 创建工作流和RL训练器
+    print("\n2. 创建RL交易工作流")
+    workflow, rl_trainer, decision_maker = create_rl_trading_workflow(llm_manager, strategy_type)
     
-    # 3. 执行工作流
-    print("\n3. 执行交易工作流")
-    try:
-        result = workflow.execute_full_workflow(max_steps=10)
+    # 3. 执行多步交易
+    print(f"\n3. 执行{steps}步交易决策")
+    
+    results = []
+    for step in range(steps):
+        print(f"\n--- 第 {step + 1} 步 ---")
         
-        # 4. 输出结果
-        print("\n4. 交易结果")
-        
-        # 处理结果中的集合类型
-        def convert_sets(obj):
-            if isinstance(obj, set):
-                return list(obj)
-            elif isinstance(obj, dict):
-                return {k: convert_sets(v) for k, v in obj.items()}
-            elif isinstance(obj, list):
-                return [convert_sets(item) for item in obj]
-            return obj
-        
-        # 转换结果中的集合为列表
-        serializable_result = convert_sets(result)
-        print(json.dumps(serializable_result, indent=2, ensure_ascii=False))
-        
-    except Exception as e:
-        print(f"\n执行过程中出现错误: {str(e)}")
-        print("\n详细错误信息:")
-        import traceback
-        traceback.print_exc()
+        try:
+            # 执行交易环境节点
+            result = workflow.execute_node("trading_environment", {})
+            
+            if result and "decision" in result:
+                decision = result["decision"]
+                score = result.get("score", 0.0)
+                reward = result.get("reward", 0.0)
+                
+                print(f"LLM决策: {decision['action']} {decision.get('symbol', '')} {decision.get('amount', '')}")
+                print(f"决策理由: {decision.get('reasoning', '')[:100]}...")
+                print(f"交易评分: {score:.3f}")
+                print(f"RL奖励: {reward:.3f}")
+                
+                # 显示RL更新状态
+                if "rl_update" in result:
+                    rl_update = result["rl_update"]
+                    print(f"RL更新状态: {rl_update.get('status', 'unknown')}")
+                
+                results.append(result)
+            else:
+                print("❌ 交易执行失败")
+                
+        except Exception as e:
+            print(f"❌ 第{step + 1}步执行错误: {e}")
+    
+    # 4. 输出最终结果
+    print("\n4. 最终结果")
+    
+    # 计算统计信息
+    total_reward = sum(r.get("reward", 0) for r in results)
+    avg_score = sum(r.get("score", 0) for r in results) / len(results) if results else 0
+    decision_count = decision_maker.decision_count
+    
+    print(f"总决策次数: {decision_count}")
+    print(f"总奖励: {total_reward:.3f}")
+    print(f"平均评分: {avg_score:.3f}")
+    
+    # 显示RL训练统计
+    rl_stats = rl_trainer.get_training_stats()
+    print(f"RL训练步数: {rl_stats['training_step']}")
+    print(f"RL算法: {rl_stats['algorithm']}")
+    
+    return results
 
 
 def main():
     """主函数"""
-    parser = argparse.ArgumentParser(description="SandGraph 交易环境演示")
+    parser = argparse.ArgumentParser(description="基于RL的LLM决策交易演示")
     parser.add_argument(
         "--strategy",
         type=str,
         choices=["trading_gym", "backtrader"],
         default="trading_gym",
-        help="选择交易策略类型 (trading_gym 或 backtrader)"
+        help="选择交易策略类型"
+    )
+    parser.add_argument(
+        "--steps",
+        type=int,
+        default=5,
+        help="交易步数"
     )
     args = parser.parse_args()
     
-    run_trading_demo(args.strategy)
+    run_rl_trading_demo(args.strategy, args.steps)
 
 
 if __name__ == "__main__":
