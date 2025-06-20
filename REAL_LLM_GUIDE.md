@@ -101,7 +101,7 @@ from sandgraph.core.llm_interface import create_qwen_manager
 
 # 创建Qwen管理器
 llm_manager = create_qwen_manager(
-    model_name="Qwen/Qwen-7B-Chat",  # 或其他Qwen模型
+    model_name="Qwen/Qwen-1_8B-Chat",  # 或其他Qwen模型
     device="auto"
 )
 

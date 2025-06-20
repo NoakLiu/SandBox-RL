@@ -45,7 +45,7 @@ class LLMResponse:
 class LLMConfig:
     """LLM配置"""
     backend: LLMBackend = LLMBackend.HUGGINGFACE  # 默认使用HuggingFace后端
-    model_name: str = "Qwen/Qwen-7B-Chat"  # 默认使用Qwen模型
+    model_name: str = "gpt2"  # 默认使用GPT-2小模型，或者Qwen/Qwen-7B-Chat
     device: str = "auto"  # "cpu", "cuda", "auto"
     max_length: int = 512
     temperature: float = 0.7
@@ -715,7 +715,7 @@ def create_llm(config: LLMConfig) -> BaseLLM:
 
 
 def create_shared_llm_manager(
-    model_name: str = "Qwen/Qwen-7B-Chat",  # 默认使用Qwen模型
+    model_name: str = "gpt2",  # 默认使用GPT-2小模型
     backend: Union[str, LLMBackend] = "huggingface",  # 默认使用HuggingFace后端
     **kwargs
 ) -> SharedLLMManager:
@@ -754,11 +754,11 @@ def create_llama_manager(model_path: str, device: str = "auto") -> SharedLLMMana
     return SharedLLMManager(llm)
 
 
-def create_qwen_manager(model_name: str = "Qwen/Qwen-7B-Chat", device: str = "auto") -> SharedLLMManager:
+def create_qwen_manager(model_name: str = "Qwen/Qwen-1_8B-Chat", device: str = "auto") -> SharedLLMManager:
     """创建Qwen模型管理器"""
     config = create_llm_config(
         backend="huggingface",
-        model_name=model_name,  # "Qwen/Qwen-7B-Chat", "Qwen/Qwen-14B-Chat", etc.
+        model_name=model_name,  # "Qwen/Qwen-1_8B-Chat", "Qwen/Qwen-7B-Chat", "Qwen/Qwen-14B-Chat", etc.
         device=device,
         max_length=1024,
         temperature=0.7,
