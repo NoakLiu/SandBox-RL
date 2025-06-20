@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-测试Qwen-7B模型
+测试Qwen-1.8B模型
 """
 
 import logging
@@ -10,14 +10,14 @@ from sandgraph.core.llm_interface import create_shared_llm_manager
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def test_qwen7b():
-    """测试Qwen-7B模型"""
-    print("=== 测试Qwen-7B模型 ===")
+def test_qwen18b():
+    """测试Qwen-1.8B模型"""
+    print("=== 测试Qwen-1.8B模型 ===")
     
     try:
-        print("1. 创建Qwen-7B管理器...")
+        print("1. 创建Qwen-1.8B管理器...")
         llm_manager = create_shared_llm_manager(
-            model_name="Qwen/Qwen-7B-Chat",
+            model_name="Qwen/Qwen-1_8B-Chat",
             backend="huggingface",
             temperature=0.7,
             max_length=200,
@@ -78,13 +78,13 @@ def test_qwen7b():
         return False
 
 if __name__ == "__main__":
-    print("开始Qwen-7B测试...")
+    print("开始Qwen-1.8B测试...")
     
-    success = test_qwen7b()
+    success = test_qwen18b()
     
     if success:
-        print("\n✅ Qwen-7B测试通过！")
+        print("\n✅ Qwen-1.8B测试通过！")
     else:
-        print("\n❌ Qwen-7B测试失败。")
+        print("\n❌ Qwen-1.8B测试失败。")
     
     print("\n测试完成。") 

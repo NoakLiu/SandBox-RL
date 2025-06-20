@@ -96,9 +96,9 @@ class SocialNetworkEnvironment(Sandbox):
 def create_social_network_workflow(oasis_interface) -> Tuple[SG_Workflow, RLTrainer]:
     """Create social network workflow"""
     
-    # Create LLM manager - using Qwen-1.8B model
+    # Create LLM manager - using Qwen-7B model
     llm_manager = create_shared_llm_manager(
-        model_name="Qwen/Qwen-1_8B-Chat",  # Use Qwen-1.8B model
+        model_name="Qwen/Qwen-7B-Chat",  # Use Qwen-7B model
         backend="huggingface",
         temperature=0.7,
         max_length=512,
