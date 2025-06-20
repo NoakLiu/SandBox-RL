@@ -57,14 +57,21 @@ class LLMDecisionMaker:
         
         # 构造决策提示
         prompt = self._construct_decision_prompt(state)
+        print(f"决策提示: {prompt[:300]}...")  # 调试信息
         
         # 使用LLM生成决策
-        response = self.llm_manager.generate_for_node(
-            "trading_decision", 
-            prompt,
-            temperature=0.7,
-            max_length=512
-        )
+        try:
+            response = self.llm_manager.generate_for_node(
+                "trading_decision", 
+                prompt,
+                temperature=0.7,
+                max_length=256  # 减少长度避免截断
+            )
+            print(f"LLM响应状态: {response.status if hasattr(response, 'status') else 'unknown'}")
+        except Exception as e:
+            print(f"LLM调用错误: {e}")
+            # 如果LLM调用失败，使用简单的规则决策
+            return self._fallback_decision(state)
         
         # 解析决策
         decision = self._parse_decision(response.text, state)
@@ -99,27 +106,23 @@ class LLMDecisionMaker:
         for symbol, amount in positions.items():
             position_summary.append(f"{symbol}: {amount} 股")
         
-        return f"""作为交易决策专家，请分析当前市场状态并做出交易决策。
+        return f"""你是交易决策专家。请根据以下市场数据做出交易决策：
 
-当前市场状态：
+市场数据：
 {chr(10).join(market_summary)}
 
-当前投资组合：
+投资组合：
 现金: {cash:.2f}
 持仓: {chr(10).join(position_summary) if position_summary else '无'}
 
-请分析市场趋势、风险评估和投资机会，然后做出以下决策之一：
+请选择以下之一：
+1. 买入股票：写"买入[股票代码] [数量]股"
+2. 卖出股票：写"卖出[股票代码] [数量]股"  
+3. 持有观望：写"持有观望"
 
-1. 买入决策：明确写出"买入"或"BUY"，指定股票代码和数量
-2. 卖出决策：明确写出"卖出"或"SELL"，指定股票代码和数量  
-3. 持有观望：明确写出"持有"或"HOLD"
+示例：买入AAPL 100股、卖出GOOGL 50股、持有观望
 
-示例格式：
-- "买入AAPL 100股"
-- "卖出GOOGL 50股" 
-- "持有观望"
-
-请给出明确的决策并简要说明理由。"""
+请直接给出决策："""
 
     def _parse_decision(self, response: str, state: Dict[str, Any]) -> Dict[str, Any]:
         """解析LLM的决策响应"""
@@ -207,6 +210,30 @@ class LLMDecisionMaker:
         
         # 如果所有解析都失败，返回HOLD
         return {"action": "HOLD", "reasoning": f"LLM响应: {response[:100]}... 无法解析具体决策，选择持有观望"}
+
+    def _fallback_decision(self, state: Dict[str, Any]) -> Dict[str, Any]:
+        """LLM调用失败时的备用决策"""
+        market_data = state.get("market_data", {})
+        if not market_data:
+            return {"action": "HOLD", "reasoning": "无市场数据，选择持有观望"}
+        
+        # 简单的随机决策
+        import random
+        symbols = list(market_data.keys())
+        if symbols:
+            symbol = random.choice(symbols)
+            action = random.choice(["BUY", "SELL", "HOLD"])
+            if action == "HOLD":
+                return {"action": "HOLD", "reasoning": "备用决策：持有观望"}
+            else:
+                return {
+                    "action": action,
+                    "symbol": symbol,
+                    "amount": 100,
+                    "reasoning": f"备用决策：{action} {symbol} 100股"
+                }
+        
+        return {"action": "HOLD", "reasoning": "备用决策：持有观望"}
 
 
 def create_rl_trading_workflow(llm_manager, strategy_type: str = "trading_gym") -> tuple[SG_Workflow, RLTrainer, LLMDecisionMaker]:
