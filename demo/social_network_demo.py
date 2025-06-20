@@ -219,6 +219,8 @@ Content Performance:
         prompt = f"""
 You are a social network strategy expert in a simulation game. This is NOT real social media management - it's a simulation game for testing AI strategies.
 
+IMPORTANT: You MUST respond in ENGLISH only. Do NOT use Chinese or any other language.
+
 Your goal is to maximize user engagement and network growth through strategic content and user interaction decisions.
 
 Current Network State:
@@ -243,14 +245,24 @@ Based on the current state and history, you must make a specific decision to imp
 7. MODERATE_CONTENT - Improve content quality and safety
 8. EXPAND_NETWORK - Grow user base through targeted outreach
 
-You MUST provide a specific action with clear reasoning. No vague responses, no cautious strategies, no holding back. This is a simulation game - be bold and specific!
+CRITICAL REQUIREMENTS:
+- You MUST respond in ENGLISH only
+- You MUST provide a specific action with clear reasoning
+- No vague responses, no cautious strategies, no holding back
+- This is a simulation game - be bold and specific!
+- You MUST use the exact format below
 
-Format your response as:
-ACTION: [specific action name]
-TARGET: [specific target if applicable]
+REQUIRED FORMAT (copy and fill in):
+ACTION: [specific action name from the list above]
+TARGET: [specific target if applicable, or "N/A"]
 REASONING: [clear explanation of why this action will improve the network]
 
-What specific action will you take to improve this social network?
+Example response:
+ACTION: CREATE_POST
+TARGET: N/A
+REASONING: The network has low content creation activity, creating engaging posts will increase user engagement and attract more active users.
+
+What specific action will you take to improve this social network? Respond in the exact format above.
 """
         
         return prompt
@@ -485,15 +497,15 @@ def _encode_decision_type(action: str) -> int:
     return action_map.get(action, 0)
 
 
-def run_rl_social_demo(steps: int = 5):
+def run_rl_social_demo(steps: int = 5, model_name: str = "mistralai/Mistral-7B-Instruct-v0.2"):
     """运行基于RL的LLM决策社交网络演示"""
     
     print_section("RL-based LLM Decision Social Network Demo")
     
     # 1. 创建LLM管理器
-    print("\n1. Creating LLM Manager")
+    print(f"\n1. Creating LLM Manager with model: {model_name}")
     llm_manager = create_shared_llm_manager(
-        model_name="Qwen/Qwen-7B-Chat",
+        model_name=model_name,
         backend="huggingface",
         temperature=0.7,
         max_length=512,
@@ -621,7 +633,7 @@ def main():
     """主函数"""
     parser = argparse.ArgumentParser(description="SandGraph Social Network Demo")
     parser.add_argument("--steps", type=int, default=5, help="Number of steps to run")
-    parser.add_argument("--model", type=str, default="Qwen/Qwen-7B-Chat", help="LLM model to use")
+    parser.add_argument("--model", type=str, default="mistralai/Mistral-7B-Instruct-v0.2", help="LLM model to use")
     
     args = parser.parse_args()
     
@@ -630,8 +642,25 @@ def main():
     print(f"Steps: {args.steps}")
     print(f"Model: {args.model}")
     
+    # 支持的模型列表
+    supported_models = [
+        "Qwen/Qwen-7B-Chat",
+        "Qwen/Qwen-1_8B-Chat", 
+        "microsoft/Phi-2",
+        "google/gemma-2b-it",
+        "01-ai/Yi-6B-Chat",
+        "mistralai/Mistral-7B-Instruct-v0.2",
+        "THUDM/chatglm3-6b",
+        "baichuan-inc/Baichuan2-7B-Chat"
+    ]
+    
+    if args.model not in supported_models:
+        print(f"\n⚠️  Warning: Model {args.model} not in supported list.")
+        print(f"Supported models: {', '.join(supported_models)}")
+        print("Continuing anyway...")
+    
     try:
-        results = run_rl_social_demo(args.steps)
+        results = run_rl_social_demo(args.steps, args.model)
         print("\n✅ Demo completed successfully!")
         
     except Exception as e:
