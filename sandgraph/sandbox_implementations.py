@@ -921,6 +921,8 @@ class TradingSandbox(Sandbox):
         
         # 生成当前价格（基于历史趋势）
         market_data = {}
+        detailed_history = {}  # 新增：详细历史数据
+        
         for symbol in self.symbols:
             if symbol not in self.price_history:
                 self.price_history[symbol] = []
@@ -967,6 +969,9 @@ class TradingSandbox(Sandbox):
             
             # 更新技术指标
             self.market_trends[symbol] = self._calculate_technical_indicators(symbol)
+            
+            # 生成详细的过去10天历史数据
+            detailed_history[symbol] = self._generate_detailed_history(symbol)
         
         return {
             "state": {
@@ -976,9 +981,96 @@ class TradingSandbox(Sandbox):
                 "step": self.current_step,
                 "price_history": {s: self.price_history[s][-10:] for s in self.symbols},  # 最近10天
                 "technical_indicators": self.market_trends,
-                "trade_history": self.trade_history[-20:]  # 最近20笔交易
+                "trade_history": self.trade_history[-20:],  # 最近20笔交易
+                "detailed_history": detailed_history  # 新增：详细历史数据
             },
             "case_id": f"case_{self.current_step}"
+        }
+    
+    def _generate_detailed_history(self, symbol: str) -> Dict[str, Any]:
+        """生成详细的过去10天历史数据"""
+        history = self.price_history[symbol]
+        if len(history) < 10:
+            return {"error": "历史数据不足10天"}
+        
+        # 获取最近10天的数据
+        recent_10_days = history[-10:]
+        
+        # 计算每日涨跌幅
+        daily_changes = []
+        for i, day_data in enumerate(recent_10_days):
+            if i == 0:
+                daily_changes.append(0.0)  # 第一天没有涨跌幅
+            else:
+                prev_close = recent_10_days[i-1]["close"]
+                current_close = day_data["close"]
+                if prev_close > 0:
+                    change_pct = (current_close - prev_close) / prev_close * 100
+                else:
+                    change_pct = 0.0
+                daily_changes.append(change_pct)
+        
+        # 计算累计涨跌幅
+        start_price = recent_10_days[0]["close"]
+        end_price = recent_10_days[-1]["close"]
+        total_change = (end_price - start_price) / start_price * 100 if start_price > 0 else 0.0
+        
+        # 计算成交量变化
+        volumes = [day["volume"] for day in recent_10_days]
+        avg_volume = sum(volumes) / len(volumes)
+        volume_trend = "上升" if volumes[-1] > avg_volume else "下降"
+        
+        # 计算价格波动范围
+        highs = [day["high"] for day in recent_10_days]
+        lows = [day["low"] for day in recent_10_days]
+        max_high = max(highs)
+        min_low = min(lows)
+        volatility = (max_high - min_low) / min_low * 100 if min_low > 0 else 0.0
+        
+        # 计算趋势强度
+        prices = [day["close"] for day in recent_10_days]
+        recent_avg = sum(prices[-5:]) / 5
+        earlier_avg = sum(prices[:5]) / 5
+        trend_strength = (recent_avg - earlier_avg) / earlier_avg * 100 if earlier_avg > 0 else 0.0
+        
+        # 构建详细数据
+        detailed_data = []
+        for i, day_data in enumerate(recent_10_days):
+            detailed_data.append({
+                "day": day_data["day"],
+                "date": f"第{day_data['day']}天",
+                "open": day_data["open"],
+                "high": day_data["high"],
+                "low": day_data["low"],
+                "close": day_data["close"],
+                "volume": day_data["volume"],
+                "change_pct": daily_changes[i],
+                "change_str": f"{daily_changes[i]:+.2f}%" if i > 0 else "0.00%"
+            })
+        
+        return {
+            "daily_data": detailed_data,
+            "summary": {
+                "total_change": total_change,
+                "total_change_str": f"{total_change:+.2f}%",
+                "avg_volume": int(avg_volume),
+                "volume_trend": volume_trend,
+                "volatility": volatility,
+                "volatility_str": f"{volatility:.2f}%",
+                "trend_strength": trend_strength,
+                "trend_strength_str": f"{trend_strength:+.2f}%",
+                "trend_direction": "上涨" if trend_strength > 0 else "下跌",
+                "max_high": max_high,
+                "min_low": min_low,
+                "start_price": start_price,
+                "end_price": end_price
+            },
+            "analysis": {
+                "price_momentum": "强势" if abs(trend_strength) > 5 else "弱势",
+                "volume_support": "有量支撑" if volume_trend == "上升" else "量能不足",
+                "volatility_level": "高波动" if volatility > 10 else "低波动",
+                "trend_quality": "趋势明确" if abs(trend_strength) > 3 else "震荡整理"
+            }
         }
     
     def prompt_func(self, case: Dict[str, Any]) -> str:
@@ -988,6 +1080,7 @@ class TradingSandbox(Sandbox):
         price_history = case["state"]["price_history"]
         technical_indicators = case["state"]["technical_indicators"]
         trade_history = case["state"]["trade_history"]
+        detailed_history = case["state"].get("detailed_history", {})  # 新增：详细历史数据
         
         # 构建市场数据摘要
         market_summary = []
@@ -1011,7 +1104,38 @@ class TradingSandbox(Sandbox):
                 f"  布林带上轨={indicators.get('bollinger_upper', 0):.2f}, 下轨={indicators.get('bollinger_lower', 0):.2f}"
             )
         
-        # 构建价格历史摘要
+        # 构建过去10天详细历史数据
+        detailed_history_summary = []
+        for symbol, history_data in detailed_history.items():
+            if "error" in history_data:
+                continue
+                
+            summary = history_data["summary"]
+            analysis = history_data["analysis"]
+            
+            detailed_history_summary.append(f"\n{symbol} 过去10天详细分析:")
+            detailed_history_summary.append(f"累计涨跌幅: {summary['total_change_str']}")
+            detailed_history_summary.append(f"趋势方向: {summary['trend_direction']} ({summary['trend_strength_str']})")
+            detailed_history_summary.append(f"价格波动: {summary['volatility_str']}")
+            detailed_history_summary.append(f"成交量趋势: {summary['volume_trend']} (平均: {summary['avg_volume']:,})")
+            detailed_history_summary.append(f"价格区间: {summary['min_low']:.2f} - {summary['max_high']:.2f}")
+            detailed_history_summary.append(f"价格动量: {analysis['price_momentum']}")
+            detailed_history_summary.append(f"量能支撑: {analysis['volume_support']}")
+            detailed_history_summary.append(f"波动水平: {analysis['volatility_level']}")
+            detailed_history_summary.append(f"趋势质量: {analysis['trend_quality']}")
+            
+            # 添加每日详细数据表格
+            detailed_history_summary.append("\n每日详细数据:")
+            detailed_history_summary.append("日期\t开盘\t最高\t最低\t收盘\t成交量\t涨跌幅")
+            detailed_history_summary.append("-" * 60)
+            
+            for day_data in history_data["daily_data"]:
+                detailed_history_summary.append(
+                    f"{day_data['date']}\t{day_data['open']:.2f}\t{day_data['high']:.2f}\t"
+                    f"{day_data['low']:.2f}\t{day_data['close']:.2f}\t{day_data['volume']:,}\t{day_data['change_str']}"
+                )
+        
+        # 构建价格历史摘要（保持原有的简化版本）
         history_summary = []
         for symbol, history in price_history.items():
             if len(history) >= 5:
@@ -1051,6 +1175,9 @@ class TradingSandbox(Sandbox):
 === 技术指标分析 ===
 {chr(10).join(technical_summary)}
 
+=== 过去10天详细股市分析 ===
+{chr(10).join(detailed_history_summary)}
+
 === 价格历史趋势 ===
 {chr(10).join(history_summary)}
 
@@ -1063,11 +1190,13 @@ class TradingSandbox(Sandbox):
 
 === 决策指导 ===
 请基于以下因素综合分析：
-1. 价格趋势：MA5与MA20的关系，价格动量
-2. 技术指标：RSI超买超卖，MACD信号
+1. 价格趋势：10天累计涨跌幅、趋势强度、价格动量
+2. 技术指标：RSI超买超卖，MACD信号，MA5与MA20关系
 3. 布林带位置：价格是否接近支撑/阻力位
-4. 历史表现：最近交易的成功率
-5. 风险控制：当前持仓和现金状况
+4. 成交量分析：成交量趋势、量能支撑情况
+5. 波动性分析：价格波动范围、波动水平
+6. 历史表现：最近交易的成功率
+7. 风险控制：当前持仓和现金状况
 
 请选择以下之一：
 1. 买入股票：写"买入[股票代码] [数量]股"
