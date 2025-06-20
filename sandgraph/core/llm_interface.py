@@ -371,8 +371,13 @@ class HuggingFaceLLM(BaseLLM):
                 
                 # 安全地tokenize输入
                 try:
-                    # 移除输入截断，使用完整的prompt
-                    inputs = self.tokenizer.encode(prompt, return_tensors="pt", truncation=True, max_length=2048)
+                    # 限制输入长度，避免CUDA错误
+                    max_input_length = 1024  # 安全限制
+                    if len(prompt) > max_input_length * 4:  # 大约4个字符对应1个token
+                        logger.warning(f"输入过长({len(prompt)}字符)，截断到{max_input_length * 4}字符")
+                        prompt = prompt[:max_input_length * 4]
+                    
+                    inputs = self.tokenizer.encode(prompt, return_tensors="pt", truncation=True, max_length=max_input_length)
                 except Exception as tokenize_error:
                     logger.error(f"Tokenization failed: {tokenize_error}")
                     return LLMResponse(
@@ -399,11 +404,15 @@ class HuggingFaceLLM(BaseLLM):
                         }
                     )
                 
+                # 检查输入长度是否合理
+                if inputs.shape[1] > 1024:
+                    logger.warning(f"输入token数量过多({inputs.shape[1]})，可能导致CUDA错误")
+                
                 inputs = inputs.to(self.device)
                 
-                # 生成参数 - 使用传入的参数，不要过度限制
+                # 生成参数 - 使用更保守的设置
                 generation_kwargs = {
-                    "max_new_tokens": kwargs.get("max_new_tokens", 256),  # 优先使用max_new_tokens
+                    "max_new_tokens": kwargs.get("max_new_tokens", 128),  # 减少新token数量
                     "temperature": temperature,
                     "top_p": top_p,
                     "top_k": top_k,
@@ -413,9 +422,10 @@ class HuggingFaceLLM(BaseLLM):
                     "eos_token_id": self.tokenizer.eos_token_id
                 }
                 
-                # 如果设置了max_length，也添加进去
+                # 如果设置了max_length，也添加进去，但要确保合理
                 if "max_length" in kwargs:
-                    generation_kwargs["max_length"] = kwargs["max_length"]
+                    max_len = min(kwargs["max_length"], inputs.shape[1] + 256)  # 限制最大长度
+                    generation_kwargs["max_length"] = max_len
                 
                 # 生成响应
                 start_time = time.time()
