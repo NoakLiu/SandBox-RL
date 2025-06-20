@@ -44,6 +44,12 @@ class LLMDecisionMaker:
         self.llm_manager = llm_manager
         self.decision_count = 0
         
+        # 历史数据管理
+        self.decision_history = []  # 决策历史
+        self.market_history = []    # 市场数据历史
+        self.portfolio_history = [] # 投资组合历史
+        self.performance_history = [] # 表现历史
+        
         # 注册决策节点
         self.llm_manager.register_node("trading_decision", {
             "role": "交易决策专家",
@@ -56,7 +62,7 @@ class LLMDecisionMaker:
         """基于当前状态做出交易决策"""
         self.decision_count += 1
         
-        # 构造决策提示
+        # 构造决策提示（包含历史数据）
         prompt = self._construct_decision_prompt(state)
         print(f"决策提示: {prompt[:300]}...")  # 调试信息
         
@@ -79,6 +85,9 @@ class LLMDecisionMaker:
         # 解析决策
         decision = self._parse_decision(response.text, state)
         
+        # 更新历史数据
+        self._update_history(state, decision, response.text)
+        
         return {
             "decision": decision,
             "llm_response": response.text,
@@ -86,13 +95,70 @@ class LLMDecisionMaker:
             "decision_count": self.decision_count
         }
     
+    def _update_history(self, state: Dict[str, Any], decision: Dict[str, Any], llm_response: str):
+        """更新历史数据"""
+        # 记录决策历史
+        decision_record = {
+            "step": self.decision_count,
+            "timestamp": datetime.now().isoformat(),
+            "decision": decision,
+            "llm_response": llm_response,
+            "market_data": state.get("market_data", {}),
+            "portfolio": state.get("portfolio", {}),
+            "technical_indicators": state.get("technical_indicators", {}),
+            "detailed_history": state.get("detailed_history", {})
+        }
+        self.decision_history.append(decision_record)
+        
+        # 保持历史记录在合理范围内
+        if len(self.decision_history) > 50:
+            self.decision_history = self.decision_history[-50:]
+        
+        # 记录市场数据历史
+        market_record = {
+            "step": self.decision_count,
+            "market_data": state.get("market_data", {}),
+            "detailed_history": state.get("detailed_history", {})
+        }
+        self.market_history.append(market_record)
+        
+        # 记录投资组合历史
+        portfolio_record = {
+            "step": self.decision_count,
+            "portfolio": state.get("portfolio", {}),
+            "total_value": self._calculate_total_portfolio_value(state)
+        }
+        self.portfolio_history.append(portfolio_record)
+        
+        # 保持历史记录在合理范围内
+        if len(self.market_history) > 30:
+            self.market_history = self.market_history[-30:]
+        if len(self.portfolio_history) > 30:
+            self.portfolio_history = self.portfolio_history[-30:]
+    
+    def _calculate_total_portfolio_value(self, state: Dict[str, Any]) -> float:
+        """计算投资组合总价值"""
+        portfolio = state.get("portfolio", {})
+        market_data = state.get("market_data", {})
+        
+        cash = portfolio.get("cash", 0)
+        positions = portfolio.get("positions", {})
+        
+        position_value = 0
+        for symbol, amount in positions.items():
+            if symbol in market_data and "close" in market_data[symbol]:
+                position_value += amount * market_data[symbol]["close"]
+        
+        return cash + position_value
+    
     def _construct_decision_prompt(self, state: Dict[str, Any]) -> str:
-        """构造决策提示"""
+        """构造决策提示（包含历史数据）"""
         market_data = state.get("market_data", {})
         portfolio = state.get("portfolio", {})
         price_history = state.get("price_history", {})
         technical_indicators = state.get("technical_indicators", {})
         trade_history = state.get("trade_history", [])
+        detailed_history = state.get("detailed_history", {})
         
         # 构建市场数据摘要
         market_summary = []
@@ -116,54 +182,66 @@ class LLMDecisionMaker:
                 f"  布林带上轨={indicators.get('bollinger_upper', 0):.2f}, 下轨={indicators.get('bollinger_lower', 0):.2f}"
             )
         
-        # 构建过去十天的详细价格历史
-        detailed_history = []
-        for symbol, history in price_history.items():
-            if len(history) >= 10:
-                detailed_history.append(f"\n{symbol} 过去10天详细数据:")
-                detailed_history.append("日期\t开盘\t最高\t最低\t收盘\t成交量\t涨跌幅")
-                detailed_history.append("-" * 60)
+        # 构建过去10天详细历史数据
+        detailed_history_summary = []
+        for symbol, history_data in detailed_history.items():
+            if "error" in history_data:
+                continue
                 
-                for i, day_data in enumerate(history[-10:]):
-                    day = day_data.get("day", i+1)
-                    open_price = day_data.get("open", 0)
-                    high = day_data.get("high", 0)
-                    low = day_data.get("low", 0)
-                    close = day_data.get("close", 0)
-                    volume = day_data.get("volume", 0)
-                    
-                    # 计算涨跌幅
-                    if i > 0:
-                        prev_close = history[-11+i].get("close", close)
-                        if prev_close > 0:
-                            change_pct = (close - prev_close) / prev_close * 100
-                            change_str = f"{change_pct:+.2f}%"
-                        else:
-                            change_str = "0.00%"
-                    else:
-                        change_str = "0.00%"
-                    
-                    detailed_history.append(
-                        f"第{day}天\t{open_price:.2f}\t{high:.2f}\t{low:.2f}\t{close:.2f}\t{volume:,}\t{change_str}"
-                    )
+            summary = history_data["summary"]
+            analysis = history_data["analysis"]
+            
+            detailed_history_summary.append(f"\n{symbol} 过去10天详细分析:")
+            detailed_history_summary.append(f"累计涨跌幅: {summary['total_change_str']}")
+            detailed_history_summary.append(f"趋势方向: {summary['trend_direction']} ({summary['trend_strength_str']})")
+            detailed_history_summary.append(f"价格波动: {summary['volatility_str']}")
+            detailed_history_summary.append(f"成交量趋势: {summary['volume_trend']} (平均: {summary['avg_volume']:,})")
+            detailed_history_summary.append(f"价格区间: {summary['min_low']:.2f} - {summary['max_high']:.2f}")
+            detailed_history_summary.append(f"价格动量: {analysis['price_momentum']}")
+            detailed_history_summary.append(f"量能支撑: {analysis['volume_support']}")
+            detailed_history_summary.append(f"波动水平: {analysis['volatility_level']}")
+            detailed_history_summary.append(f"趋势质量: {analysis['trend_quality']}")
+            
+            # 添加每日详细数据表格
+            detailed_history_summary.append("\n每日详细数据:")
+            detailed_history_summary.append("日期\t开盘\t最高\t最低\t收盘\t成交量\t涨跌幅")
+            detailed_history_summary.append("-" * 60)
+            
+            for day_data in history_data["daily_data"]:
+                detailed_history_summary.append(
+                    f"{day_data['date']}\t{day_data['open']:.2f}\t{day_data['high']:.2f}\t"
+                    f"{day_data['low']:.2f}\t{day_data['close']:.2f}\t{day_data['volume']:,}\t{day_data['change_str']}"
+                )
+        
+        # 构建决策历史摘要
+        decision_history_summary = []
+        if self.decision_history:
+            decision_history_summary.append("\n=== 最近决策历史 ===")
+            recent_decisions = self.decision_history[-10:]  # 最近10次决策
+            for record in recent_decisions:
+                decision = record["decision"]
+                step = record["step"]
+                decision_history_summary.append(
+                    f"步骤{step}: {decision.get('action', '')} {decision.get('symbol', '')} "
+                    f"{decision.get('amount', '')}股 - 理由: {decision.get('reasoning', '')[:50]}..."
+                )
+        
+        # 构建投资组合历史摘要
+        portfolio_history_summary = []
+        if self.portfolio_history:
+            portfolio_history_summary.append("\n=== 投资组合变化历史 ===")
+            recent_portfolios = self.portfolio_history[-10:]  # 最近10次投资组合状态
+            for i, record in enumerate(recent_portfolios):
+                step = record["step"]
+                total_value = record["total_value"]
+                portfolio_history_summary.append(f"步骤{step}: 总价值 {total_value:.2f}")
                 
-                # 添加10天累计涨跌幅
-                if len(history) >= 10:
-                    start_price = history[-10]["close"]
-                    end_price = history[-1]["close"]
-                    if start_price > 0:
-                        total_change = (end_price - start_price) / start_price * 100
-                        detailed_history.append(f"10天累计涨跌幅: {total_change:+.2f}%")
-                
-                # 添加价格趋势分析
-                prices = [d["close"] for d in history[-10:]]
-                if len(prices) >= 5:
-                    recent_avg = sum(prices[-5:]) / 5
-                    earlier_avg = sum(prices[:5]) / 5
-                    if earlier_avg > 0:
-                        trend_change = (recent_avg - earlier_avg) / earlier_avg * 100
-                        trend_desc = "上涨" if trend_change > 0 else "下跌"
-                        detailed_history.append(f"近期趋势: {trend_desc} ({trend_change:+.2f}%)")
+                # 计算投资组合变化
+                if i > 0:
+                    prev_value = recent_portfolios[i-1]["total_value"]
+                    if prev_value > 0:
+                        change_pct = (total_value - prev_value) / prev_value * 100
+                        portfolio_history_summary[-1] += f" (变化: {change_pct:+.2f}%)"
         
         # 构建价格历史摘要（保持原有的简化版本）
         history_summary = []
@@ -205,8 +283,8 @@ class LLMDecisionMaker:
 === 技术指标分析 ===
 {chr(10).join(technical_summary)}
 
-=== 过去10天详细价格历史 ===
-{chr(10).join(detailed_history)}
+=== 过去10天详细股市分析 ===
+{chr(10).join(detailed_history_summary)}
 
 === 价格历史趋势 ===
 {chr(10).join(history_summary)}
@@ -214,19 +292,24 @@ class LLMDecisionMaker:
 === 最近交易记录 ===
 {chr(10).join(trade_summary) if trade_summary else '无交易记录'}
 
+{chr(10).join(decision_history_summary) if decision_history_summary else ''}
+
+{chr(10).join(portfolio_history_summary) if portfolio_history_summary else ''}
+
 === 当前投资组合 ===
 现金: {cash:.2f}
 持仓: {chr(10).join(position_summary) if position_summary else '无'}
 
 === 决策指导 ===
 请基于以下因素综合分析：
-1. 价格趋势：MA5与MA20的关系，价格动量，10天累计涨跌幅
-2. 技术指标：RSI超买超卖，MACD信号
+1. 价格趋势：10天累计涨跌幅、趋势强度、价格动量
+2. 技术指标：RSI超买超卖，MACD信号，MA5与MA20关系
 3. 布林带位置：价格是否接近支撑/阻力位
-4. 历史表现：最近交易的成功率
-5. 风险控制：当前持仓和现金状况
-6. 成交量分析：成交量的变化趋势
-7. 价格波动：过去10天的价格波动范围
+4. 成交量分析：成交量趋势、量能支撑情况
+5. 波动性分析：价格波动范围、波动水平
+6. 历史表现：最近交易的成功率、决策历史表现
+7. 投资组合变化：总价值变化趋势
+8. 风险控制：当前持仓和现金状况
 
 请选择以下之一：
 1. 买入股票：写"买入[股票代码] [数量]股"
