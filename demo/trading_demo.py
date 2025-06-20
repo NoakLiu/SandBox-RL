@@ -87,13 +87,12 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
 
 请给出详细的风险评估报告。"""
             
-            # 使用 Qwen3 生成响应
+            # 使用 Qwen-7B 生成响应
             response = llm_manager.generate_for_node(
                 node_id, 
                 prompt,
-                model_name="qwen3",  # 使用 model_name 而不是 model
                 temperature=0.7,
-                max_tokens=2000
+                max_length=512
             )
             return response.text
         return llm_func
@@ -103,23 +102,20 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
         "market_analyzer": {
             "role": "市场分析师",
             "reasoning_type": "analytical",
-            "model_name": "qwen3",  # 使用 model_name 而不是 model
             "temperature": 0.7,
-            "max_tokens": 2000
+            "max_length": 512
         },
         "strategy_generator": {
             "role": "策略生成器",
             "reasoning_type": "strategic",
-            "model_name": "qwen3",  # 使用 model_name 而不是 model
             "temperature": 0.8,
-            "max_tokens": 2000
+            "max_length": 512
         },
         "risk_assessor": {
             "role": "风险评估师",
             "reasoning_type": "analytical",
-            "model_name": "qwen3",  # 使用 model_name 而不是 model
             "temperature": 0.6,
-            "max_tokens": 2000
+            "max_length": 512
         }
     }
     
@@ -204,10 +200,12 @@ def run_trading_demo(strategy_type: str = "backtrader"):
     # 1. 创建LLM管理器
     print("\n1. 创建LLM管理器")
     llm_manager = create_shared_llm_manager(
-        "trading_llm",
-        backend="qwen",  # 使用 qwen 后端
-        api_key=os.getenv("QWEN_API_KEY"),
-        api_base=os.getenv("QWEN_API_BASE")
+        model_name="Qwen/Qwen-7B-Chat",  # 使用真实的Qwen-7B模型
+        backend="huggingface",  # 使用huggingface后端
+        temperature=0.7,
+        max_length=512,
+        device="auto",
+        torch_dtype="float16"
     )
     
     # 2. 创建工作流
