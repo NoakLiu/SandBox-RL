@@ -527,7 +527,7 @@ llm_manager = create_model_by_type("yi", device="auto")
 
 ```python
 # 运行模型测试脚本
-python test_new_models.py
+python test_models.py
 ```
 
 ### 8. 模型选择建议

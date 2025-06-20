@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 """
-测试新添加的火热预训练模型
+SandGraph 全模型测试
 
-展示如何使用SandGraph中新增的各种开源LLM模型
+检测和测试SandGraph中支持的所有LLM模型，包括：
+- GPT系列：GPT-2
+- Qwen系列：Qwen-1.8B/7B/14B/72B
+- LLaMA系列：LLaMA2, CodeLLaMA
+- Mistral系列：Mistral-7B, Mixtral-8x7B
+- Gemma系列：Gemma-2B/7B
+- Phi系列：Phi-2, Phi-1.5
+- 中文模型：Yi, ChatGLM, Baichuan, InternLM
+- 代码模型：StarCoder
+- 高性能模型：Falcon
 """
 
 import sys
@@ -15,6 +24,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from sandgraph.core.llm_interface import (
     create_shared_llm_manager,
+    create_gpt2_manager,
+    create_qwen_manager,
+    create_llama_manager,
+    create_openai_manager,
     create_mistral_manager,
     create_gemma_manager,
     create_phi_manager,
@@ -78,6 +91,9 @@ def test_model_creation():
     
     # 测试不同的模型类型
     model_tests = [
+        ("GPT-2", "gpt2"),
+        ("Qwen-1.8B", "Qwen/Qwen-1_8B-Chat"),
+        ("Qwen-7B", "Qwen/Qwen-7B-Chat"),
         ("Mistral", "mistralai/Mistral-7B-Instruct-v0.2"),
         ("Gemma", "google/gemma-2b-it"),
         ("Phi", "microsoft/Phi-2"),
@@ -99,7 +115,11 @@ def test_model_creation():
             print(f"\n正在测试 {model_name}...")
             
             # 创建模型管理器
-            if model_name == "Mistral":
+            if model_name == "GPT-2":
+                llm_manager = create_gpt2_manager(model_path)
+            elif model_name.startswith("Qwen"):
+                llm_manager = create_qwen_manager(model_path)
+            elif model_name == "Mistral":
                 llm_manager = create_mistral_manager(model_path)
             elif model_name == "Gemma":
                 llm_manager = create_gemma_manager(model_path)
@@ -121,6 +141,9 @@ def test_model_creation():
                 llm_manager = create_codellama_manager(model_path)
             elif model_name == "StarCoder":
                 llm_manager = create_starcoder_manager(model_path)
+            else:
+                # 使用通用方法
+                llm_manager = create_shared_llm_manager(model_path, backend="huggingface")
             
             # 注册测试节点
             llm_manager.register_node("test_node", {
@@ -143,7 +166,7 @@ def test_model_by_type():
     print_section("Model Creation by Type")
     
     # 测试不同类型的模型创建
-    model_types = ["mistral", "gemma", "phi", "yi", "chatglm", "baichuan"]
+    model_types = ["gpt2", "qwen", "mistral", "gemma", "phi", "yi", "chatglm", "baichuan", "internlm", "falcon", "llama", "codellama", "starcoder"]
     
     for model_type in model_types:
         try:
@@ -167,11 +190,13 @@ def test_model_comparison():
     """测试模型性能比较"""
     print_section("Model Performance Comparison")
     
-    # 选择几个轻量级模型进行测试
+    # 选择几个不同类型的模型进行测试
     test_models = [
+        ("GPT-2", "gpt2"),
         ("Phi-2", "microsoft/Phi-2"),
         ("Gemma-2B", "google/gemma-2b-it"),
-        ("Qwen-1.8B", "Qwen/Qwen-1_8B-Chat")
+        ("Qwen-1.8B", "Qwen/Qwen-1_8B-Chat"),
+        ("Yi-6B", "01-ai/Yi-6B-Chat")
     ]
     
     test_prompt = "请用一句话解释什么是机器学习。"
@@ -183,11 +208,23 @@ def test_model_comparison():
             print(f"\n测试 {model_name}...")
             
             # 创建模型
-            llm_manager = create_shared_llm_manager(
-                model_name=model_path,
-                backend="huggingface",
-                device="auto"
-            )
+            if model_name == "GPT-2":
+                llm_manager = create_gpt2_manager(model_path, device="auto")
+            elif model_name == "Phi-2":
+                llm_manager = create_phi_manager(model_path, device="auto")
+            elif model_name == "Gemma-2B":
+                llm_manager = create_gemma_manager(model_path, device="auto")
+            elif model_name == "Qwen-1.8B":
+                llm_manager = create_qwen_manager(model_path, device="auto")
+            elif model_name == "Yi-6B":
+                llm_manager = create_yi_manager(model_path, device="auto")
+            else:
+                # 使用通用方法
+                llm_manager = create_shared_llm_manager(
+                    model_name=model_path,
+                    backend="huggingface",
+                    device="auto"
+                )
             
             # 注册节点
             llm_manager.register_node("test_node", {
@@ -229,7 +266,7 @@ def test_model_comparison():
 
 def main():
     """主函数"""
-    print("🔥 SandGraph 火热预训练模型测试")
+    print("🔥 SandGraph 全模型测试")
     print("=" * 60)
     
     # 1. 显示可用模型
@@ -251,6 +288,7 @@ def main():
     print("2. 某些模型可能需要特殊权限或额外的依赖")
     print("3. 首次运行时会下载模型，请确保网络连接正常")
     print("4. 建议在GPU环境下运行以获得更好的性能")
+    print("5. 本测试会检测所有支持的模型类型，包括GPT-2、Qwen、Mistral等")
 
 
 if __name__ == "__main__":
