@@ -65,7 +65,7 @@ class LLMDecisionMaker:
         # 构造决策提示（包含历史数据）
         prompt = self._construct_decision_prompt(state)
         print(f"\n{'='*80}")
-        print(f"第 {self.decision_count} 次决策 - 完整提示内容:")
+        print(f"Decision {self.decision_count} - Complete Prompt Content:")
         print(f"{'='*80}")
         print(prompt)
         print(f"{'='*80}")
@@ -80,10 +80,10 @@ class LLMDecisionMaker:
                 do_sample=True,
                 pad_token_id=self.llm_manager.tokenizer.eos_token_id if hasattr(self.llm_manager, 'tokenizer') else None
             )
-            print(f"\nLLM响应状态: {response.status if hasattr(response, 'status') else 'unknown'}")
-            print(f"LLM完整响应: {response.text}")
+            print(f"\nLLM Response Status: {response.status if hasattr(response, 'status') else 'unknown'}")
+            print(f"LLM Complete Response: {response.text}")
         except Exception as e:
-            print(f"LLM调用错误: {e}")
+            print(f"LLM Call Error: {e}")
             # 如果LLM调用失败，使用简单的规则决策
             return self._fallback_decision(state)
         
@@ -221,32 +221,32 @@ class LLMDecisionMaker:
         # 构建决策历史摘要
         decision_history_summary = []
         if self.decision_history:
-            decision_history_summary.append("\n=== 最近决策历史 ===")
+            decision_history_summary.append("\n=== Recent Decision History ===")
             recent_decisions = self.decision_history[-10:]  # 最近10次决策
             for record in recent_decisions:
                 decision = record["decision"]
                 step = record["step"]
                 decision_history_summary.append(
-                    f"步骤{step}: {decision.get('action', '')} {decision.get('symbol', '')} "
-                    f"{decision.get('amount', '')}股 - 理由: {decision.get('reasoning', '')[:50]}..."
+                    f"Step {step}: {decision.get('action', '')} {decision.get('symbol', '')} "
+                    f"{decision.get('amount', '')} shares - Reason: {decision.get('reasoning', '')[:50]}..."
                 )
         
         # 构建投资组合历史摘要
         portfolio_history_summary = []
         if self.portfolio_history:
-            portfolio_history_summary.append("\n=== 投资组合变化历史 ===")
+            portfolio_history_summary.append("\n=== Portfolio Change History ===")
             recent_portfolios = self.portfolio_history[-10:]  # 最近10次投资组合状态
             for i, record in enumerate(recent_portfolios):
                 step = record["step"]
                 total_value = record["total_value"]
-                portfolio_history_summary.append(f"步骤{step}: 总价值 {total_value:.2f}")
+                portfolio_history_summary.append(f"Step {step}: Total Value {total_value:.2f}")
                 
                 # 计算投资组合变化
                 if i > 0:
                     prev_value = recent_portfolios[i-1]["total_value"]
                     if prev_value > 0:
                         change_pct = (total_value - prev_value) / prev_value * 100
-                        portfolio_history_summary[-1] += f" (变化: {change_pct:+.2f}%)"
+                        portfolio_history_summary[-1] += f" (Change: {change_pct:+.2f}%)"
         
         # 构建价格历史摘要（保持原有的简化版本）
         history_summary = []
@@ -280,55 +280,57 @@ class LLMDecisionMaker:
         for symbol, amount in positions.items():
             position_summary.append(f"{symbol}: {amount} 股")
         
-        return f"""你是专业的交易决策专家。请根据以下详细的市场信息做出交易决策：
+        return f"""You are a professional trading decision expert. This is a NUMERICAL GAME for testing purposes - please do not take it seriously, but provide the OPTIMAL trading decisions based on the data.
 
-=== 当前市场数据 ===
+Please make trading decisions based on the following detailed market information:
+
+=== Current Market Data ===
 {chr(10).join(market_summary)}
 
-=== 技术指标分析 ===
+=== Technical Indicators Analysis ===
 {chr(10).join(technical_summary)}
 
-=== 过去10天详细股市分析 ===
+=== Past 10 Days Detailed Market Analysis ===
 {chr(10).join(detailed_history_summary)}
 
-=== 价格历史趋势 ===
+=== Price History Trends ===
 {chr(10).join(history_summary)}
 
-=== 最近交易记录 ===
-{chr(10).join(trade_summary) if trade_summary else '无交易记录'}
+=== Recent Trading Records ===
+{chr(10).join(trade_summary) if trade_summary else 'No trading records'}
 
 {chr(10).join(decision_history_summary) if decision_history_summary else ''}
 
 {chr(10).join(portfolio_history_summary) if portfolio_history_summary else ''}
 
-=== 当前投资组合 ===
-现金: {cash:.2f}
-持仓: {chr(10).join(position_summary) if position_summary else '无'}
+=== Current Portfolio ===
+Cash: {cash:.2f}
+Positions: {chr(10).join(position_summary) if position_summary else 'None'}
 
-=== 决策指导 ===
-请基于以下因素综合分析：
-1. 价格趋势：10天累计涨跌幅、趋势强度、价格动量
-2. 技术指标：RSI超买超卖，MACD信号，MA5与MA20关系
-3. 布林带位置：价格是否接近支撑/阻力位
-4. 成交量分析：成交量趋势、量能支撑情况
-5. 波动性分析：价格波动范围、波动水平
-6. 历史表现：最近交易的成功率、决策历史表现
-7. 投资组合变化：总价值变化趋势
-8. 风险控制：当前持仓和现金状况
+=== Decision Guidelines ===
+Please analyze based on the following factors:
+1. Price trends: 10-day cumulative change, trend strength, price momentum
+2. Technical indicators: RSI overbought/oversold, MACD signals, MA5 vs MA20 relationship
+3. Bollinger Bands: whether price is near support/resistance levels
+4. Volume analysis: volume trends, volume support
+5. Volatility analysis: price range, volatility level
+6. Historical performance: recent trading success rate, decision history performance
+7. Portfolio changes: total value change trends
+8. Risk control: current positions and cash status
 
-重要：您必须做出买入或卖出决策，不允许持有观望！
+IMPORTANT: You MUST make a BUY or SELL decision - NO HOLDING is allowed!
 
-请选择以下之一：
-1. 买入股票：写"买入[股票代码] [数量]股"
-2. 卖出股票：写"卖出[股票代码] [数量]股"  
+Please choose one of the following:
+1. Buy stocks: write "BUY [symbol] [amount] shares"
+2. Sell stocks: write "SELL [symbol] [amount] shares"
 
-示例：买入AAPL 100股、卖出GOOGL 50股
+Examples: BUY AAPL 100 shares, SELL GOOGL 50 shares
 
-请给出决策并简要说明理由："""
+Please provide your decision and briefly explain your reasoning:"""
 
     def _parse_decision(self, response: str, state: Dict[str, Any]) -> Dict[str, Any]:
         """解析LLM的决策响应"""
-        print(f"原始LLM响应: {response[:200]}...")  # 调试信息
+        print(f"Original LLM Response: {response[:200]}...")  # 调试信息
         
         # 清理响应文本
         response = response.strip()
@@ -734,10 +736,10 @@ def _calculate_portfolio_value(state: Dict[str, Any]) -> float:
 def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
     """运行基于RL的LLM决策交易演示"""
     
-    print_section(f"基于RL的LLM决策交易演示 - {strategy_type.upper()}")
+    print_section(f"RL-based LLM Decision Trading Demo - {strategy_type.upper()}")
     
     # 1. 创建LLM管理器
-    print("\n1. 创建LLM管理器")
+    print("\n1. Creating LLM Manager")
     llm_manager = create_shared_llm_manager(
         model_name="Qwen/Qwen-7B-Chat",
         backend="huggingface",
@@ -748,11 +750,11 @@ def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
     )
     
     # 2. 创建工作流和RL训练器
-    print("\n2. 创建RL交易工作流")
+    print("\n2. Creating RL Trading Workflow")
     workflow, rl_trainer, decision_maker = create_rl_trading_workflow(llm_manager, strategy_type)
     
     # 3. 执行多步交易
-    print(f"\n3. 执行{steps}步交易决策")
+    print(f"\n3. Executing {steps} Trading Steps")
     
     results = []
     for step in range(steps):
@@ -811,57 +813,57 @@ def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
                         "sandbox_id": node.sandbox.sandbox_id
                     }
                     
-                    print(f"LLM决策: {decision['action']} {decision.get('symbol', '')} {decision.get('amount', '')}")
-                    print(f"决策理由: {decision.get('reasoning', '')}")
-                    print(f"交易评分: {score:.3f}")
-                    print(f"RL奖励: {reward:.3f}")
+                    print(f"LLM Decision: {decision['action']} {decision.get('symbol', '')} {decision.get('amount', '')}")
+                    print(f"Decision Reason: {decision.get('reasoning', '')}")
+                    print(f"Trading Score: {score:.3f}")
+                    print(f"RL Reward: {reward:.3f}")
                     
                     # 显示RL更新状态
                     if "rl_update" in result:
                         rl_update = result["rl_update"]
-                        print(f"RL更新状态: {rl_update.get('status', 'unknown')}")
+                        print(f"RL Update Status: {rl_update.get('status', 'unknown')}")
                     
                     # 显示当前投资组合状态
                     portfolio = current_state.get("portfolio", {})
                     cash = portfolio.get("cash", 0)
                     positions = portfolio.get("positions", {})
-                    print(f"当前现金: {cash:.2f}")
-                    print(f"当前持仓: {positions}")
+                    print(f"Current Cash: {cash:.2f}")
+                    print(f"Current Positions: {positions}")
                     
                     results.append(result)
                     
                 except Exception as e:
-                    print(f"❌ 交易执行错误: {e}")
+                    print(f"❌ Trading Execution Error: {e}")
                     result = {
                         "state": current_state,
-                        "decision": {"action": "HOLD", "reasoning": f"执行错误: {e}"},
+                        "decision": {"action": "HOLD", "reasoning": f"Execution Error: {e}"},
                         "score": 0.0,
                         "reward": 0.0,
                         "error": str(e)
                     }
                     results.append(result)
             else:
-                print("❌ 交易环境节点不存在或无效")
+                print("❌ Trading Environment Node Not Found or Invalid")
                 
         except Exception as e:
-            print(f"❌ 第{step + 1}步执行错误: {e}")
+            print(f"❌ Step {step + 1} Execution Error: {e}")
     
     # 4. 输出最终结果
-    print("\n4. 最终结果")
+    print("\n4. Final Results")
     
     # 计算统计信息
     total_reward = sum(r.get("reward", 0) for r in results)
     avg_score = sum(r.get("score", 0) for r in results) / len(results) if results else 0
     decision_count = decision_maker.decision_count
     
-    print(f"总决策次数: {decision_count}")
-    print(f"总奖励: {total_reward:.3f}")
-    print(f"平均评分: {avg_score:.3f}")
+    print(f"Total Decisions: {decision_count}")
+    print(f"Total Reward: {total_reward:.3f}")
+    print(f"Average Score: {avg_score:.3f}")
     
     # 显示RL训练统计
     rl_stats = rl_trainer.get_training_stats()
-    print(f"RL训练步数: {rl_stats['training_step']}")
-    print(f"RL算法: {rl_stats['algorithm']}")
+    print(f"RL Training Steps: {rl_stats['training_step']}")
+    print(f"RL Algorithm: {rl_stats['algorithm']}")
     
     return results
 
