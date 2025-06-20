@@ -98,6 +98,8 @@ def create_social_network_workflow(oasis_interface) -> Tuple[SG_Workflow, RLTrai
     
     # Create LLM manager - using default real LLM configuration
     llm_manager = create_shared_llm_manager(
+        model_name="gpt2",  # Use GPT-2 small model
+        backend="huggingface",
         temperature=0.7,
         max_length=512,
         device="auto",

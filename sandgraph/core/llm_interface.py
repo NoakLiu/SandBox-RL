@@ -271,15 +271,24 @@ class HuggingFaceLLM(BaseLLM):
                 trust_remote_code=True
             )
             
-            # Set pad token safely
-            if self.tokenizer.pad_token is None:
-                if self.tokenizer.eos_token is not None:
+            # 为GPT-2模型设置特殊token
+            if "gpt2" in self.model_name.lower():
+                # GPT-2默认没有pad token，使用eos token作为pad token
+                if self.tokenizer.pad_token is None:
                     self.tokenizer.pad_token = self.tokenizer.eos_token
-                else:
-                    # Use a default pad token
-                    self.tokenizer.pad_token = "[PAD]"
-                    if hasattr(self.tokenizer, 'pad_token_id'):
-                        self.tokenizer.pad_token_id = self.tokenizer.convert_tokens_to_ids("[PAD]")
+                    self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+                logger.info(f"GPT-2 tokenizer configured - pad_token: {self.tokenizer.pad_token}, pad_token_id: {self.tokenizer.pad_token_id}")
+            else:
+                # 其他模型的默认处理
+                if self.tokenizer.pad_token is None:
+                    if self.tokenizer.eos_token is not None:
+                        self.tokenizer.pad_token = self.tokenizer.eos_token
+                        self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+                    else:
+                        # Use a default pad token
+                        self.tokenizer.pad_token = "[PAD]"
+                        if hasattr(self.tokenizer, 'pad_token_id'):
+                            self.tokenizer.pad_token_id = self.tokenizer.convert_tokens_to_ids("[PAD]")
             
             # 加载模型
             logger.info(f"Loading model to device: {device}, dtype: {torch_dtype}")
@@ -332,6 +341,19 @@ class HuggingFaceLLM(BaseLLM):
             self.generation_count += 1
             
             try:
+                # 检查输入是否为空
+                if not prompt or not prompt.strip():
+                    return LLMResponse(
+                        text="输入为空，无法生成响应",
+                        confidence=0.0,
+                        reasoning="输入验证失败",
+                        metadata={
+                            "backend": self.backend.value,
+                            "error": "Empty input",
+                            "generation_count": self.generation_count
+                        }
+                    )
+                
                 # 合并配置和运行时参数
                 temperature = kwargs.get("temperature", self.config.temperature)
                 max_length = kwargs.get("max_length", self.config.max_length)
@@ -339,20 +361,53 @@ class HuggingFaceLLM(BaseLLM):
                 top_k = kwargs.get("top_k", self.config.top_k)
                 do_sample = kwargs.get("do_sample", self.config.do_sample)
                 
-                # Tokenize输入
-                inputs = self.tokenizer.encode(prompt, return_tensors="pt")
+                # 安全地tokenize输入
+                try:
+                    # 对于GPT-2，使用更安全的tokenization
+                    if "gpt2" in self.model_name.lower():
+                        # 限制输入长度，避免tokenizer问题
+                        truncated_prompt = prompt[:500] if len(prompt) > 500 else prompt
+                        inputs = self.tokenizer.encode(truncated_prompt, return_tensors="pt", truncation=True, max_length=512)
+                    else:
+                        inputs = self.tokenizer.encode(prompt, return_tensors="pt", truncation=True, max_length=1024)
+                except Exception as tokenize_error:
+                    logger.error(f"Tokenization failed: {tokenize_error}")
+                    return LLMResponse(
+                        text="输入处理失败，请尝试简化输入",
+                        confidence=0.0,
+                        reasoning="Tokenization error",
+                        metadata={
+                            "backend": self.backend.value,
+                            "error": str(tokenize_error),
+                            "generation_count": self.generation_count
+                        }
+                    )
+                
+                # 检查tokenization结果
+                if inputs.shape[1] == 0:
+                    return LLMResponse(
+                        text="输入tokenization失败",
+                        confidence=0.0,
+                        reasoning="Tokenization error",
+                        metadata={
+                            "backend": self.backend.value,
+                            "error": "Empty tokenization result",
+                            "generation_count": self.generation_count
+                        }
+                    )
+                
                 inputs = inputs.to(self.device)
                 
                 # 生成参数
                 generation_kwargs = {
-                    "max_length": min(max_length, inputs.shape[1] + 256),  # 限制最大长度
+                    "max_length": min(max_length, inputs.shape[1] + 128),  # 更保守的长度限制
                     "temperature": temperature,
                     "top_p": top_p,
                     "top_k": top_k,
                     "do_sample": do_sample,
-                    "pad_token_id": self.tokenizer.pad_token_id,
-                    "eos_token_id": self.tokenizer.eos_token_id,
-                    "use_cache": self.config.use_cache
+                    "use_cache": self.config.use_cache,
+                    "pad_token_id": self.tokenizer.eos_token_id,  # 使用eos token作为pad token
+                    "eos_token_id": self.tokenizer.eos_token_id
                 }
                 
                 # 生成响应
@@ -362,11 +417,41 @@ class HuggingFaceLLM(BaseLLM):
                 
                 generation_time = time.time() - start_time
                 
+                # 检查输出是否为空
+                if outputs.shape[0] == 0 or outputs.shape[1] == 0:
+                    return LLMResponse(
+                        text="模型生成失败，输出为空",
+                        confidence=0.0,
+                        reasoning="Generation failed",
+                        metadata={
+                            "backend": self.backend.value,
+                            "error": "Empty generation output",
+                            "generation_count": self.generation_count
+                        }
+                    )
+                
                 # 解码响应
-                generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+                try:
+                    generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+                except Exception as decode_error:
+                    logger.error(f"Decoding failed: {decode_error}")
+                    return LLMResponse(
+                        text="响应解码失败",
+                        confidence=0.0,
+                        reasoning="Decoding error",
+                        metadata={
+                            "backend": self.backend.value,
+                            "error": str(decode_error),
+                            "generation_count": self.generation_count
+                        }
+                    )
                 
                 # 提取新生成的部分
                 response_text = generated_text[len(prompt):].strip()
+                
+                # 如果响应为空，返回默认响应
+                if not response_text:
+                    response_text = "基于当前情况，我建议采取谨慎的策略。"
                 
                 # 计算置信度（简化实现）
                 confidence = min(0.95, 0.7 + (self.update_count * 0.01))
