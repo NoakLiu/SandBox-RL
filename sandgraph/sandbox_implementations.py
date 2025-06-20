@@ -819,36 +819,6 @@ class BacktraderSandbox(Sandbox):
         }
 
 
-# 沙盒注册表，方便动态创建
-SANDBOX_REGISTRY = {
-    "game24": Game24Sandbox,
-    "summarize": SummarizeSandbox,
-    "code_execute": CodeExecuteSandbox,
-    "debate": DebateSandbox,
-    "trading_gym": TradingGymSandbox,
-    "backtrader": BacktraderSandbox,
-    "trading": TradingSandbox,
-}
-
-
-def create_sandbox(sandbox_type: str, **kwargs) -> Sandbox:
-    """创建沙盒实例的工厂函数"""
-    sandbox_map = {
-        "game24": Game24Sandbox,
-        "summarize": SummarizeSandbox,
-        "code_execute": CodeExecuteSandbox,
-        "debate": DebateSandbox,
-        "trading_gym": TradingGymSandbox,
-        "backtrader": BacktraderSandbox,
-        "trading": TradingSandbox,
-    }
-    
-    if sandbox_type not in sandbox_map:
-        raise ValueError(f"Unknown sandbox type: {sandbox_type}")
-    
-    return sandbox_map[sandbox_type](**kwargs)
-
-
 class TradingSandbox(Sandbox):
     """交易沙盒 - 基于详细历史数据和技术指标的模拟交易环境"""
     
@@ -1196,3 +1166,33 @@ class TradingSandbox(Sandbox):
         except Exception as e:
             print(f"模拟交易评分错误: {e}")
             return 0.0 
+
+
+# 沙盒注册表，方便动态创建
+SANDBOX_REGISTRY = {
+    "game24": Game24Sandbox,
+    "summarize": SummarizeSandbox,
+    "code_execute": CodeExecuteSandbox,
+    "debate": DebateSandbox,
+    "trading_gym": TradingGymSandbox,
+    "backtrader": BacktraderSandbox,
+    "trading": TradingSandbox,
+}
+
+
+def create_sandbox(sandbox_type: str, **kwargs) -> Sandbox:
+    """创建沙盒实例的工厂函数"""
+    sandbox_map = {
+        "game24": Game24Sandbox,
+        "summarize": SummarizeSandbox,
+        "code_execute": CodeExecuteSandbox,
+        "debate": DebateSandbox,
+        "trading_gym": TradingGymSandbox,
+        "backtrader": BacktraderSandbox,
+        "trading": TradingSandbox,
+    }
+    
+    if sandbox_type not in sandbox_map:
+        raise ValueError(f"Unknown sandbox type: {sandbox_type}")
+    
+    return sandbox_map[sandbox_type](**kwargs) 
