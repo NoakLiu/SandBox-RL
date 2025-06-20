@@ -89,10 +89,13 @@ def test_model_response(model_name: str, llm_manager, prompt: str):
         print(f"Response Time: {end_time - start_time:.2f}s")
         print(f"Response Length: {len(response.text)} characters")
         print(f"Confidence: {response.confidence:.3f}")
-        print(f"\nComplete Response:")
-        print(f"{'='*40}")
+        print(f"\n{'='*60}")
+        print(f"COMPLETE LLM RESPONSE FOR {model_name}:")
+        print(f"{'='*60}")
         print(response.text)
-        print(f"{'='*40}")
+        print(f"{'='*60}")
+        print(f"END OF {model_name} RESPONSE")
+        print(f"{'='*60}")
         
         # 分析响应质量
         analyze_response_quality(response.text, model_name)
