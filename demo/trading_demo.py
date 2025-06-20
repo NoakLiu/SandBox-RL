@@ -116,7 +116,56 @@ class LLMDecisionMaker:
                 f"  布林带上轨={indicators.get('bollinger_upper', 0):.2f}, 下轨={indicators.get('bollinger_lower', 0):.2f}"
             )
         
-        # 构建价格历史摘要
+        # 构建过去十天的详细价格历史
+        detailed_history = []
+        for symbol, history in price_history.items():
+            if len(history) >= 10:
+                detailed_history.append(f"\n{symbol} 过去10天详细数据:")
+                detailed_history.append("日期\t开盘\t最高\t最低\t收盘\t成交量\t涨跌幅")
+                detailed_history.append("-" * 60)
+                
+                for i, day_data in enumerate(history[-10:]):
+                    day = day_data.get("day", i+1)
+                    open_price = day_data.get("open", 0)
+                    high = day_data.get("high", 0)
+                    low = day_data.get("low", 0)
+                    close = day_data.get("close", 0)
+                    volume = day_data.get("volume", 0)
+                    
+                    # 计算涨跌幅
+                    if i > 0:
+                        prev_close = history[-11+i].get("close", close)
+                        if prev_close > 0:
+                            change_pct = (close - prev_close) / prev_close * 100
+                            change_str = f"{change_pct:+.2f}%"
+                        else:
+                            change_str = "0.00%"
+                    else:
+                        change_str = "0.00%"
+                    
+                    detailed_history.append(
+                        f"第{day}天\t{open_price:.2f}\t{high:.2f}\t{low:.2f}\t{close:.2f}\t{volume:,}\t{change_str}"
+                    )
+                
+                # 添加10天累计涨跌幅
+                if len(history) >= 10:
+                    start_price = history[-10]["close"]
+                    end_price = history[-1]["close"]
+                    if start_price > 0:
+                        total_change = (end_price - start_price) / start_price * 100
+                        detailed_history.append(f"10天累计涨跌幅: {total_change:+.2f}%")
+                
+                # 添加价格趋势分析
+                prices = [d["close"] for d in history[-10:]]
+                if len(prices) >= 5:
+                    recent_avg = sum(prices[-5:]) / 5
+                    earlier_avg = sum(prices[:5]) / 5
+                    if earlier_avg > 0:
+                        trend_change = (recent_avg - earlier_avg) / earlier_avg * 100
+                        trend_desc = "上涨" if trend_change > 0 else "下跌"
+                        detailed_history.append(f"近期趋势: {trend_desc} ({trend_change:+.2f}%)")
+        
+        # 构建价格历史摘要（保持原有的简化版本）
         history_summary = []
         for symbol, history in price_history.items():
             if len(history) >= 5:
@@ -156,6 +205,9 @@ class LLMDecisionMaker:
 === 技术指标分析 ===
 {chr(10).join(technical_summary)}
 
+=== 过去10天详细价格历史 ===
+{chr(10).join(detailed_history)}
+
 === 价格历史趋势 ===
 {chr(10).join(history_summary)}
 
@@ -168,11 +220,13 @@ class LLMDecisionMaker:
 
 === 决策指导 ===
 请基于以下因素综合分析：
-1. 价格趋势：MA5与MA20的关系，价格动量
+1. 价格趋势：MA5与MA20的关系，价格动量，10天累计涨跌幅
 2. 技术指标：RSI超买超卖，MACD信号
 3. 布林带位置：价格是否接近支撑/阻力位
 4. 历史表现：最近交易的成功率
 5. 风险控制：当前持仓和现金状况
+6. 成交量分析：成交量的变化趋势
+7. 价格波动：过去10天的价格波动范围
 
 请选择以下之一：
 1. 买入股票：写"买入[股票代码] [数量]股"
