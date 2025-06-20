@@ -826,22 +826,373 @@ SANDBOX_REGISTRY = {
     "code_execute": CodeExecuteSandbox,
     "debate": DebateSandbox,
     "trading_gym": TradingGymSandbox,
-    "backtrader": BacktraderSandbox  # 添加 Backtrader 沙盒
+    "backtrader": BacktraderSandbox,
+    "trading": TradingSandbox,
 }
 
 
 def create_sandbox(sandbox_type: str, **kwargs) -> Sandbox:
-    """动态创建沙盒实例
+    """创建沙盒实例的工厂函数"""
+    sandbox_map = {
+        "game24": Game24Sandbox,
+        "summarize": SummarizeSandbox,
+        "code_execute": CodeExecuteSandbox,
+        "debate": DebateSandbox,
+        "trading_gym": TradingGymSandbox,
+        "backtrader": BacktraderSandbox,
+        "trading": TradingSandbox,
+    }
     
-    Args:
-        sandbox_type: 沙盒类型
-        **kwargs: 沙盒初始化参数
+    if sandbox_type not in sandbox_map:
+        raise ValueError(f"Unknown sandbox type: {sandbox_type}")
+    
+    return sandbox_map[sandbox_type](**kwargs)
+
+
+class TradingSandbox(Sandbox):
+    """交易沙盒 - 基于详细历史数据和技术指标的模拟交易环境"""
+    
+    def __init__(self, initial_balance: float = 100000.0, symbols: Optional[List[str]] = None, seed: int = 42):
+        """初始化交易沙盒
         
-    Returns:
-        Sandbox: 沙盒实例
-    """
-    if sandbox_type not in SANDBOX_REGISTRY:
-        raise ValueError(f"未知的沙盒类型: {sandbox_type}. 支持的类型: {list(SANDBOX_REGISTRY.keys())}")
+        Args:
+            initial_balance: 初始资金
+            symbols: 交易股票代码列表
+            seed: 随机种子
+        """
+        super().__init__("trading", "交易决策沙盒")
+        self.initial_balance = initial_balance
+        self.symbols = symbols or ["AAPL", "GOOGL", "MSFT", "AMZN"]
+        self.random = random.Random(seed)
+        
+        # 初始化状态
+        self.current_step = 0
+        self.portfolio = {"cash": initial_balance, "positions": {}}
+        self.price_history = {}
+        self.trade_history = []
+        self.market_trends = {}
+        
+        # 初始化价格历史和趋势数据
+        base_prices = {"AAPL": 150.0, "GOOGL": 2800.0, "MSFT": 300.0, "AMZN": 3300.0}
+        for symbol in self.symbols:
+            # 生成30天的历史价格数据
+            self.price_history[symbol] = []
+            current_price = base_prices.get(symbol, 100.0)
+            
+            for day in range(30):
+                # 模拟真实的价格波动
+                change_pct = self.random.uniform(-0.05, 0.05)  # ±5%的日波动
+                current_price = current_price * (1 + change_pct)
+                self.price_history[symbol].append({
+                    "day": day + 1,
+                    "open": current_price * (1 + self.random.uniform(-0.02, 0.02)),
+                    "high": current_price * (1 + self.random.uniform(0, 0.03)),
+                    "low": current_price * (1 - self.random.uniform(0, 0.03)),
+                    "close": current_price,
+                    "volume": int(self.random.uniform(1000000, 10000000))
+                })
+            
+            # 计算技术指标
+            self.market_trends[symbol] = self._calculate_technical_indicators(symbol)
     
-    sandbox_class = SANDBOX_REGISTRY[sandbox_type]
-    return sandbox_class(**kwargs) 
+    def _calculate_technical_indicators(self, symbol: str) -> Dict[str, Any]:
+        """计算技术指标"""
+        prices = [p["close"] for p in self.price_history[symbol]]
+        
+        # 计算移动平均线
+        ma5 = sum(prices[-5:]) / 5 if len(prices) >= 5 else prices[-1]
+        ma10 = sum(prices[-10:]) / 10 if len(prices) >= 10 else prices[-1]
+        ma20 = sum(prices[-20:]) / 20 if len(prices) >= 20 else prices[-1]
+        
+        # 计算RSI
+        gains = []
+        losses = []
+        for i in range(1, len(prices)):
+            change = prices[i] - prices[i-1]
+            if change > 0:
+                gains.append(change)
+                losses.append(0)
+            else:
+                gains.append(0)
+                losses.append(abs(change))
+        
+        avg_gain = sum(gains[-14:]) / 14 if len(gains) >= 14 else 0
+        avg_loss = sum(losses[-14:]) / 14 if len(losses) >= 14 else 0
+        
+        rsi = 100 - (100 / (1 + (avg_gain / avg_loss))) if avg_loss > 0 else 50
+        
+        # 计算MACD
+        ema12 = sum(prices[-12:]) / 12 if len(prices) >= 12 else prices[-1]
+        ema26 = sum(prices[-26:]) / 26 if len(prices) >= 26 else prices[-1]
+        macd = ema12 - ema26
+        
+        # 计算布林带
+        sma20 = sum(prices[-20:]) / 20 if len(prices) >= 20 else prices[-1]
+        variance = sum((p - sma20) ** 2 for p in prices[-20:]) / 20 if len(prices) >= 20 else 0
+        std_dev = variance ** 0.5
+        upper_band = sma20 + (2 * std_dev)
+        lower_band = sma20 - (2 * std_dev)
+        
+        return {
+            "ma5": ma5,
+            "ma10": ma10,
+            "ma20": ma20,
+            "rsi": rsi,
+            "macd": macd,
+            "bollinger_upper": upper_band,
+            "bollinger_lower": lower_band,
+            "price_trend": "up" if ma5 > ma20 else "down",
+            "momentum": "strong" if abs(ma5 - ma20) / ma20 > 0.02 else "weak"
+        }
+    
+    def case_generator(self) -> Dict[str, Any]:
+        """生成模拟市场数据"""
+        self.current_step += 1
+        
+        # 生成当前价格（基于历史趋势）
+        market_data = {}
+        for symbol in self.symbols:
+            if symbol not in self.price_history:
+                self.price_history[symbol] = []
+            
+            # 基于历史价格和趋势生成新价格
+            if len(self.price_history[symbol]) > 0:
+                last_price = self.price_history[symbol][-1]["close"]
+                trend = self.market_trends[symbol]["price_trend"]
+                
+                # 根据趋势调整价格变化
+                if trend == "up":
+                    change_pct = self.random.uniform(0.001, 0.03)  # 上涨趋势
+                else:
+                    change_pct = self.random.uniform(-0.03, 0.001)  # 下跌趋势
+                
+                new_price = last_price * (1 + change_pct)
+            else:
+                new_price = 100.0
+            
+            # 生成OHLC数据
+            open_price = last_price if len(self.price_history[symbol]) > 0 else new_price
+            high_price = max(open_price, new_price) * (1 + self.random.uniform(0, 0.02))
+            low_price = min(open_price, new_price) * (1 - self.random.uniform(0, 0.02))
+            close_price = new_price
+            volume = int(self.random.uniform(1000000, 10000000))
+            
+            market_data[symbol] = {
+                "open": open_price,
+                "high": high_price,
+                "low": low_price,
+                "close": close_price,
+                "volume": volume
+            }
+            
+            # 更新价格历史
+            self.price_history[symbol].append({
+                "day": len(self.price_history[symbol]) + 1,
+                "open": open_price,
+                "high": high_price,
+                "low": low_price,
+                "close": close_price,
+                "volume": volume
+            })
+            
+            # 更新技术指标
+            self.market_trends[symbol] = self._calculate_technical_indicators(symbol)
+        
+        return {
+            "state": {
+                "market_data": market_data,
+                "portfolio": self.portfolio.copy(),
+                "symbols": self.symbols,
+                "step": self.current_step,
+                "price_history": {s: self.price_history[s][-10:] for s in self.symbols},  # 最近10天
+                "technical_indicators": self.market_trends,
+                "trade_history": self.trade_history[-20:]  # 最近20笔交易
+            },
+            "case_id": f"case_{self.current_step}"
+        }
+    
+    def prompt_func(self, case: Dict[str, Any]) -> str:
+        """构造交易决策提示"""
+        market_data = case["state"]["market_data"]
+        portfolio = case["state"]["portfolio"]
+        price_history = case["state"]["price_history"]
+        technical_indicators = case["state"]["technical_indicators"]
+        trade_history = case["state"]["trade_history"]
+        
+        # 构建市场数据摘要
+        market_summary = []
+        for symbol, data in market_data.items():
+            market_summary.append(
+                f"{symbol}: 价格={data.get('close', 0):.2f}, "
+                f"开盘={data.get('open', 0):.2f}, "
+                f"最高={data.get('high', 0):.2f}, "
+                f"最低={data.get('low', 0):.2f}, "
+                f"成交量={data.get('volume', 0)}"
+            )
+        
+        # 构建技术指标摘要
+        technical_summary = []
+        for symbol, indicators in technical_indicators.items():
+            technical_summary.append(
+                f"{symbol}技术指标:\n"
+                f"  MA5={indicators.get('ma5', 0):.2f}, MA10={indicators.get('ma10', 0):.2f}, MA20={indicators.get('ma20', 0):.2f}\n"
+                f"  RSI={indicators.get('rsi', 0):.1f}, MACD={indicators.get('macd', 0):.2f}\n"
+                f"  趋势={indicators.get('price_trend', 'unknown')}, 动量={indicators.get('momentum', 'unknown')}\n"
+                f"  布林带上轨={indicators.get('bollinger_upper', 0):.2f}, 下轨={indicators.get('bollinger_lower', 0):.2f}"
+            )
+        
+        # 构建价格历史摘要
+        history_summary = []
+        for symbol, history in price_history.items():
+            if len(history) >= 5:
+                recent_prices = [p["close"] for p in history[-5:]]
+                price_changes = []
+                for i in range(1, len(recent_prices)):
+                    change = (recent_prices[i] - recent_prices[i-1]) / recent_prices[i-1] * 100
+                    price_changes.append(f"{change:+.2f}%")
+                
+                history_summary.append(
+                    f"{symbol}最近5天价格变化: {' → '.join(price_changes)}"
+                )
+        
+        # 构建交易历史摘要
+        trade_summary = []
+        if trade_history:
+            recent_trades = trade_history[-10:]  # 最近10笔交易
+            for trade in recent_trades:
+                trade_summary.append(
+                    f"步骤{trade.get('step', 0)}: {trade.get('action', '')} {trade.get('symbol', '')} "
+                    f"{trade.get('amount', 0)}股 @ {trade.get('price', 0):.2f} "
+                    f"(评分: {trade.get('score', 0):.3f})"
+                )
+        
+        # 构建投资组合摘要
+        cash = portfolio.get("cash", 0)
+        positions = portfolio.get("positions", {})
+        position_summary = []
+        for symbol, amount in positions.items():
+            position_summary.append(f"{symbol}: {amount} 股")
+        
+        return f"""你是专业的交易决策专家。请根据以下详细的市场信息做出交易决策：
+
+=== 当前市场数据 ===
+{chr(10).join(market_summary)}
+
+=== 技术指标分析 ===
+{chr(10).join(technical_summary)}
+
+=== 价格历史趋势 ===
+{chr(10).join(history_summary)}
+
+=== 最近交易记录 ===
+{chr(10).join(trade_summary) if trade_summary else '无交易记录'}
+
+=== 当前投资组合 ===
+现金: {cash:.2f}
+持仓: {chr(10).join(position_summary) if position_summary else '无'}
+
+=== 决策指导 ===
+请基于以下因素综合分析：
+1. 价格趋势：MA5与MA20的关系，价格动量
+2. 技术指标：RSI超买超卖，MACD信号
+3. 布林带位置：价格是否接近支撑/阻力位
+4. 历史表现：最近交易的成功率
+5. 风险控制：当前持仓和现金状况
+
+请选择以下之一：
+1. 买入股票：写"买入[股票代码] [数量]股"
+2. 卖出股票：写"卖出[股票代码] [数量]股"  
+3. 持有观望：写"持有观望"
+
+示例：买入AAPL 100股、卖出GOOGL 50股、持有观望
+
+请给出决策并简要说明理由："""
+    
+    def verify_score(self, response: str, case: Dict[str, Any], format_score: float = 0.0) -> float:
+        """验证交易决策并计算评分"""
+        try:
+            # 解析动作
+            parts = response.strip().split()
+            if len(parts) < 1:
+                return 0.0
+            
+            action_type = parts[0].upper()
+            if action_type == "HOLD":
+                return 0.5  # 持有观望的基准分数
+            
+            if len(parts) < 3:
+                return 0.0
+            
+            symbol = parts[1]
+            amount = float(parts[2])
+            
+            if symbol not in self.symbols:
+                return 0.0
+            
+            market_data = case["state"]["market_data"]
+            current_price = market_data[symbol]["close"]
+            
+            # 记录交易历史
+            trade_record = {
+                "step": self.current_step,
+                "action": action_type,
+                "symbol": symbol,
+                "amount": amount,
+                "price": current_price,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            # 模拟交易执行
+            if action_type == "BUY":
+                cost = amount * current_price
+                if cost <= self.portfolio["cash"]:
+                    self.portfolio["cash"] -= cost
+                    self.portfolio["positions"][symbol] = self.portfolio["positions"].get(symbol, 0) + amount
+                    
+                    # 计算评分：基于技术指标和价格趋势
+                    indicators = self.market_trends[symbol]
+                    price_change = (market_data[symbol]["close"] - market_data[symbol]["open"]) / market_data[symbol]["open"]
+                    
+                    # 综合评分：价格趋势 + RSI + MACD
+                    trend_score = 0.5 + price_change * 10
+                    rsi_score = 0.5 + (indicators["rsi"] - 50) / 100  # RSI偏离中性的程度
+                    macd_score = 0.5 + indicators["macd"] / current_price * 100  # MACD信号
+                    
+                    final_score = (trend_score + rsi_score + macd_score) / 3
+                    trade_record["score"] = final_score
+                    self.trade_history.append(trade_record)
+                    
+                    return max(0.0, min(1.0, final_score))
+                else:
+                    return 0.0  # 资金不足
+            
+            elif action_type == "SELL":
+                if symbol in self.portfolio["positions"] and self.portfolio["positions"][symbol] >= amount:
+                    revenue = amount * current_price
+                    self.portfolio["cash"] += revenue
+                    self.portfolio["positions"][symbol] -= amount
+                    
+                    if self.portfolio["positions"][symbol] <= 0:
+                        del self.portfolio["positions"][symbol]
+                    
+                    # 计算评分：卖出时反向计算
+                    indicators = self.market_trends[symbol]
+                    price_change = (market_data[symbol]["close"] - market_data[symbol]["open"]) / market_data[symbol]["open"]
+                    
+                    trend_score = 0.5 - price_change * 10  # 卖出时价格下跌是好事
+                    rsi_score = 0.5 - (indicators["rsi"] - 50) / 100  # RSI过高时卖出是好事
+                    macd_score = 0.5 - indicators["macd"] / current_price * 100  # MACD负信号时卖出是好事
+                    
+                    final_score = (trend_score + rsi_score + macd_score) / 3
+                    trade_record["score"] = final_score
+                    self.trade_history.append(trade_record)
+                    
+                    return max(0.0, min(1.0, final_score))
+                else:
+                    return 0.0  # 持仓不足
+            
+            return 0.0
+            
+        except Exception as e:
+            print(f"模拟交易评分错误: {e}")
+            return 0.0 
