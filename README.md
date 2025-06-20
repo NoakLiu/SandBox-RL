@@ -261,6 +261,168 @@ python -c "from sandgraph import check_mcp_availability; print(check_mcp_availab
 2. 设置节点依赖
 3. 配置执行参数 -->
 
+## 📖 Usage
+
+### System Architecture & API Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    User Application                     │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│                 SandGraphX Manager                      │
+│  ┌─────────────┬─────────────┬─────────────┬─────────┐  │
+│  │  Workflow   │   SandBox   │    LLM      │   RL    │  │
+│  │   Engine    │  Manager    │  Manager    │ Manager │  │
+│  │ (sg_workflow│ (sandbox.py)│(llm_interface│(rl_algorithms│
+│  │    .py)     │             │    .py)     │   .py)  │  │
+│  └──────┬──────┴──────┬──────┴──────┬──────┴────┬────┘  │
+│         │             │             │           │       │
+│         ▼             ▼             ▼           ▼       │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────┐ ┌───────┐  │
+│  │  DAG Nodes  │ │ Environment │ │ Decision│ │Weight │  │
+│  │             │ │  Subsets    │ │ Making  │ │Updates│  │
+│  └─────────────┘ └─────────────┘ └─────────┘ └───────┘  │
+└─────────────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│                   Execution Results                     │
+│  • Performance Metrics                                  │
+│  • Optimization Statistics                              │
+│  • State Updates                                        │
+└─────────────────────────────────────────────────────────┘
+```
+
+### API Structure & File Mapping
+
+#### Core API Files
+```
+sandgraph/core/
+├── llm_interface.py      # LLM Manager API
+├── sg_workflow.py        # Workflow Engine API  
+├── sandbox.py           # SandBox Base API
+├── rl_algorithms.py     # RL Trainer API
+└── dag_manager.py       # DAG Management API
+```
+
+#### Key API Signatures
+
+**LLM Manager** (`llm_interface.py`)
+```python
+def create_shared_llm_manager(
+    model_name: str,
+    backend: str = "huggingface",
+    temperature: float = 0.7,
+    max_length: int = 512,
+    device: str = "auto"
+) -> LLMManager
+
+class LLMManager:
+    def generate_for_node(self, node_name: str, prompt: str, **kwargs) -> LLMResponse
+    def register_node(self, node_name: str, config: Dict[str, Any]) -> None
+```
+
+**Workflow Engine** (`sg_workflow.py`)
+```python
+class SG_Workflow:
+    def __init__(self, name: str, mode: WorkflowMode, llm_manager: LLMManager)
+    def add_node(self, node_type: NodeType, name: str, config: Dict[str, Any]) -> None
+    def execute_full_workflow(self) -> Dict[str, Any]
+    def execute_node(self, node_name: str, inputs: Dict[str, Any]) -> Dict[str, Any]
+```
+
+**SandBox Base** (`sandbox.py`)
+```python
+class SandBox:
+    def __init__(self, sandbox_id: str = None)
+    def case_generator(self) -> Dict[str, Any]
+    def verify_score(self, action: str, case: Dict[str, Any]) -> float
+    def execute(self, action: str) -> Dict[str, Any]
+```
+
+**RL Trainer** (`rl_algorithms.py`)
+```python
+class RLTrainer:
+    def __init__(self, config: RLConfig, llm_manager: LLMManager)
+    def add_experience(self, state: Dict, action: str, reward: float, done: bool) -> None
+    def update_policy(self) -> Dict[str, Any]
+    def get_training_stats(self) -> Dict[str, Any]
+```
+
+### Core API Usage
+
+```python
+from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode
+from sandgraph.core.rl_algorithms import RLTrainer, RLConfig
+
+# 1. Initialize Core Components
+llm_manager = create_shared_llm_manager(
+    model_name="Qwen/Qwen-7B-Chat",
+    backend="huggingface",
+    temperature=0.7
+)
+
+# 2. Create Workflow & RL Trainer
+workflow = SG_Workflow("my_workflow", WorkflowMode.TRADITIONAL, llm_manager)
+rl_trainer = RLTrainer(RLConfig(algorithm="PPO"), llm_manager)
+
+# 3. Add Environment & Decision Nodes
+workflow.add_node(NodeType.SANDBOX, "environment", {"sandbox": MySandbox()})
+workflow.add_node(NodeType.LLM, "decision", {"role": "决策器"})
+
+# 4. Execute & Optimize
+result = workflow.execute_full_workflow()
+rl_trainer.update_policy()
+```
+
+### Example 1: Trading System
+
+**Input**: Market data, portfolio state, trading parameters  
+**Process**: LLM analyzes market → generates trading decisions → RL optimizes strategy  
+**Output**: Trading actions, performance metrics, optimized weights
+
+```python
+# Run trading demo
+python demo/trading_demo.py --strategy trading_gym --steps 5
+
+# Output:
+# LLM决策: BUY AAPL 100股
+# 交易评分: 0.85
+# RL奖励: 8.50
+# 策略更新: policy_loss=0.023
+```
+
+### Example 2: Social Network Simulation
+
+**Input**: User network, content data, engagement metrics  
+**Process**: LLM generates content → simulates propagation → RL optimizes engagement  
+**Output**: Generated posts, viral metrics, influence optimization
+
+```python
+# Run social network demo
+python demo/social_network_demo.py --steps 10
+
+# Output:
+# 用户Alice发布: "今天的技术趋势分析..."
+# 传播范围: 150个用户
+# 影响力评分: 0.78
+# 策略优化: engagement_rate +25%
+```
+
+<!-- ### Key Integration Points
+
+**LLM Manager**: Handles model loading, prompt construction, and response generation  
+**SandBox**: Provides standardized environment simulation and state management  
+**Workflow Engine**: Orchestrates DAG execution with resource control  
+**RL Trainer**: Optimizes decision strategies through policy updates
+
+The framework enables seamless integration of LLM decision-making with RL optimization across diverse domains, from financial trading to social network analysis. -->
+
+
 ## 📄 许可证
 
 MIT License
