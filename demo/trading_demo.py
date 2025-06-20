@@ -331,27 +331,82 @@ def run_rl_trading_demo(strategy_type: str = "trading_gym", steps: int = 5):
         print(f"\n--- 第 {step + 1} 步 ---")
         
         try:
-            # 执行交易环境节点
-            result = workflow.execute_node("trading_environment", {})
-            
-            if result and "decision" in result:
-                decision = result["decision"]
-                score = result.get("score", 0.0)
-                reward = result.get("reward", 0.0)
+            # 直接执行交易环境节点
+            node = workflow.nodes.get("trading_environment")
+            if node and node.sandbox:
+                # 获取当前状态
+                case = node.sandbox.case_generator()
+                current_state = case["state"]
                 
-                print(f"LLM决策: {decision['action']} {decision.get('symbol', '')} {decision.get('amount', '')}")
-                print(f"决策理由: {decision.get('reasoning', '')[:100]}...")
-                print(f"交易评分: {score:.3f}")
-                print(f"RL奖励: {reward:.3f}")
+                # 使用LLM做出决策
+                decision_result = decision_maker.make_decision(current_state)
+                decision = decision_result["decision"]
                 
-                # 显示RL更新状态
-                if "rl_update" in result:
-                    rl_update = result["rl_update"]
-                    print(f"RL更新状态: {rl_update.get('status', 'unknown')}")
-                
-                results.append(result)
+                # 执行交易决策
+                try:
+                    # 验证和执行交易
+                    score = node.sandbox.verify_score(
+                        f"{decision['action']} {decision.get('symbol', '')} {decision.get('amount', 0)}",
+                        case
+                    )
+                    
+                    # 计算奖励
+                    reward = score * 10  # 将分数转换为奖励
+                    
+                    # 构建状态特征
+                    state_features = {
+                        "market_volatility": _calculate_volatility(current_state),
+                        "portfolio_value": _calculate_portfolio_value(current_state),
+                        "cash_ratio": current_state["portfolio"]["cash"] / 100000.0,
+                        "position_count": len(current_state["portfolio"]["positions"]),
+                        "decision_type": 1 if decision["action"] == "BUY" else (2 if decision["action"] == "SELL" else 0)
+                    }
+                    
+                    # 添加到RL训练器
+                    rl_trainer.add_experience(
+                        state=state_features,
+                        action=json.dumps(decision),
+                        reward=reward,
+                        done=False
+                    )
+                    
+                    # 更新策略
+                    update_result = rl_trainer.update_policy()
+                    
+                    result = {
+                        "state": current_state,
+                        "decision": decision,
+                        "llm_response": decision_result["llm_response"],
+                        "score": score,
+                        "reward": reward,
+                        "rl_update": update_result,
+                        "sandbox_id": node.sandbox.sandbox_id
+                    }
+                    
+                    print(f"LLM决策: {decision['action']} {decision.get('symbol', '')} {decision.get('amount', '')}")
+                    print(f"决策理由: {decision.get('reasoning', '')[:100]}...")
+                    print(f"交易评分: {score:.3f}")
+                    print(f"RL奖励: {reward:.3f}")
+                    
+                    # 显示RL更新状态
+                    if "rl_update" in result:
+                        rl_update = result["rl_update"]
+                        print(f"RL更新状态: {rl_update.get('status', 'unknown')}")
+                    
+                    results.append(result)
+                    
+                except Exception as e:
+                    print(f"❌ 交易执行错误: {e}")
+                    result = {
+                        "state": current_state,
+                        "decision": {"action": "HOLD", "reasoning": f"执行错误: {e}"},
+                        "score": 0.0,
+                        "reward": 0.0,
+                        "error": str(e)
+                    }
+                    results.append(result)
             else:
-                print("❌ 交易执行失败")
+                print("❌ 交易环境节点不存在或无效")
                 
         except Exception as e:
             print(f"❌ 第{step + 1}步执行错误: {e}")
