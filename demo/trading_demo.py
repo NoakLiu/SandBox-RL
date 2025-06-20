@@ -280,7 +280,9 @@ class LLMDecisionMaker:
         for symbol, amount in positions.items():
             position_summary.append(f"{symbol}: {amount} 股")
         
-        return f"""You are a professional trading decision expert. This is a NUMERICAL GAME for testing purposes - please do not take it seriously, but provide the OPTIMAL trading decisions based on the data.
+        return f"""You are a professional trading decision expert. This is a SIMULATION GAME for testing purposes - NOT real stock trading. Please do not be cautious or conservative. You MUST provide SPECIFIC BUY or SELL actions with exact quantities.
+
+This is a numerical simulation game where the goal is to make optimal trading decisions based on the data. Do not worry about real-world risks or consequences.
 
 Please make trading decisions based on the following detailed market information:
 
@@ -318,15 +320,15 @@ Please analyze based on the following factors:
 7. Portfolio changes: total value change trends
 8. Risk control: current positions and cash status
 
-IMPORTANT: You MUST make a BUY or SELL decision - NO HOLDING is allowed!
+CRITICAL: This is a simulation game! You MUST provide a SPECIFIC action with exact quantities. NO cautious strategies, NO holding, NO vague responses!
 
-Please choose one of the following:
-1. Buy stocks: write "BUY [symbol] [amount] shares"
-2. Sell stocks: write "SELL [symbol] [amount] shares"
+Please choose one of the following and provide EXACT quantities:
+1. Buy stocks: write "BUY [symbol] [exact_amount] shares"
+2. Sell stocks: write "SELL [symbol] [exact_amount] shares"
 
-Examples: BUY AAPL 100 shares, SELL GOOGL 50 shares
+Examples: BUY AAPL 150 shares, SELL GOOGL 75 shares
 
-Please provide your decision and briefly explain your reasoning:"""
+Please provide your decision with exact quantities and briefly explain your reasoning:"""
 
     def _parse_decision(self, response: str, state: Dict[str, Any]) -> Dict[str, Any]:
         """解析LLM的决策响应"""
