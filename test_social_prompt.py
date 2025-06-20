@@ -1,53 +1,133 @@
 #!/usr/bin/env python3
 """
-直接测试GPT-2加载和生成
+测试Qwen和GPT-2对社交网络策略提示词的响应
+
+比较两个模型在相同提示词下的表现差异
 """
 
-import logging
-import torch
-import transformers
-from sandgraph.core.llm_interface import create_shared_llm_manager
+import sys
+import os
+import time
+from typing import Dict, Any
 
-# 设置日志
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# 添加项目路径
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-def test_gpt2_direct():
-    """直接测试GPT-2"""
-    print("=== 直接测试GPT-2 ===")
+from sandgraph.core.llm_interface import create_gpt2_manager, create_qwen_manager
+
+
+def print_section(title: str):
+    """打印章节标题"""
+    print(f"\n{'='*60}")
+    print(f" {title}")
+    print(f"{'='*60}")
+
+
+def test_model_response(model_name: str, llm_manager, prompt: str):
+    """测试模型响应"""
+    print(f"\n--- 测试 {model_name} ---")
+    print(f"Prompt Length: {len(prompt)} characters")
     
     try:
-        print("1. 检查依赖...")
-        print(f"   PyTorch版本: {torch.__version__}")
-        print(f"   Transformers版本: {transformers.__version__}")
-        print(f"   CUDA可用: {torch.cuda.is_available()}")
+        start_time = time.time()
         
-        print("\n2. 创建LLM管理器...")
-        llm_manager = create_shared_llm_manager(
-            model_name="gpt2",
-            backend="huggingface",
-            temperature=0.7,
-            max_length=100,
-            device="cpu"
-        )
-        
-        print("3. 加载模型...")
-        llm_manager.load_model()
-        
-        # 检查模型状态
-        stats = llm_manager.get_global_stats()
-        print(f"   模型信息: {stats['llm_model']}")
-        print(f"   后端信息: {stats['llm_backend']}")
-        print(f"   模型已加载: {stats['llm_internal_stats']['model_loaded']}")
-        
-        print("\n4. 注册节点...")
-        llm_manager.register_node("test_node", {
-            "role": "测试节点",
-            "reasoning_type": "logical"
+        # 注册测试节点
+        llm_manager.register_node("social_decision", {
+            "role": "社交网络策略专家",
+            "reasoning_type": "strategic",
+            "temperature": 0.7,
+            "max_length": 512
         })
         
-        print("\n5. 测试简单生成...")
-        test_prompt = """You are a social network strategy expert in a simulation game. This is NOT real social media management - it's a simulation game for testing AI strategies.
+        # 生成响应
+        response = llm_manager.generate_for_node(
+            "social_decision", 
+            prompt,
+            temperature=0.7,
+            max_new_tokens=128,
+            do_sample=True,
+            pad_token_id=llm_manager.tokenizer.eos_token_id if hasattr(llm_manager, 'tokenizer') else None
+        )
+        
+        end_time = time.time()
+        
+        print(f"Response Status: {response.status if hasattr(response, 'status') else 'unknown'}")
+        print(f"Response Time: {end_time - start_time:.2f}s")
+        print(f"Response Length: {len(response.text)} characters")
+        print(f"Confidence: {response.confidence:.3f}")
+        print(f"\nComplete Response:")
+        print(f"{'='*40}")
+        print(response.text)
+        print(f"{'='*40}")
+        
+        # 分析响应质量
+        analyze_response_quality(response.text, model_name)
+        
+        return True
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return False
+
+
+def analyze_response_quality(response: str, model_name: str):
+    """分析响应质量"""
+    print(f"\n--- {model_name} 响应质量分析 ---")
+    
+    # 检查是否包含英文
+    english_chars = sum(1 for c in response if c.isascii() and c.isalpha())
+    total_chars = len(response)
+    english_ratio = english_chars / total_chars if total_chars > 0 else 0
+    
+    print(f"英文字符比例: {english_ratio:.2%}")
+    
+    # 检查是否包含要求的格式
+    has_action = "ACTION:" in response.upper()
+    has_target = "TARGET:" in response.upper()
+    has_reasoning = "REASONING:" in response.upper()
+    
+    print(f"包含ACTION: {has_action}")
+    print(f"包含TARGET: {has_target}")
+    print(f"包含REASONING: {has_reasoning}")
+    
+    # 检查是否包含有效动作
+    valid_actions = [
+        "CREATE_POST", "ENCOURAGE_INTERACTION", "FEATURE_USER", 
+        "LAUNCH_CAMPAIGN", "IMPROVE_ALGORITHM", "ADD_FEATURE", 
+        "MODERATE_CONTENT", "EXPAND_NETWORK"
+    ]
+    
+    found_actions = []
+    for action in valid_actions:
+        if action in response.upper():
+            found_actions.append(action)
+    
+    print(f"找到的有效动作: {found_actions if found_actions else '无'}")
+    
+    # 计算格式完整性分数
+    format_score = sum([has_action, has_target, has_reasoning]) / 3
+    print(f"格式完整性分数: {format_score:.2f}/1.0")
+    
+    # 检查是否使用中文
+    chinese_chars = sum(1 for c in response if '\u4e00' <= c <= '\u9fff')
+    if chinese_chars > 0:
+        print(f"⚠️  警告: 检测到 {chinese_chars} 个中文字符")
+    
+    # 检查响应长度
+    if len(response) < 50:
+        print(f"⚠️  警告: 响应过短 ({len(response)} 字符)")
+    elif len(response) > 500:
+        print(f"⚠️  警告: 响应过长 ({len(response)} 字符)")
+    else:
+        print(f"✅ 响应长度适中 ({len(response)} 字符)")
+
+
+def main():
+    """主函数"""
+    print("🔥 社交网络策略提示词测试")
+    print("=" * 60)
+    
+    # 社交网络策略提示词
+    social_prompt = """You are a social network strategy expert in a simulation game. This is NOT real social media management - it's a simulation game for testing AI strategies.
 
 IMPORTANT: You MUST respond in ENGLISH only. Do NOT use Chinese or any other language.
 
@@ -206,77 +286,28 @@ TARGET: N/A
 REASONING: The network has low content creation activity, creating engaging posts will increase user engagement and attract more active users.
 
 What specific action will you take to improve this social network? Respond in the exact format above."""
-        print(f"   输入: {test_prompt}")
-        
-        response = llm_manager.generate_for_node("test_node", test_prompt)
-        print(f"   输出: {response.text}")
-        print(f"   置信度: {response.confidence}")
-        print(f"   推理: {response.reasoning}")
-        
-        print("\n6. 测试JSON生成...")
-        json_prompt = "Generate a simple JSON response with action_type and reasoning:"
-        print(f"   输入: {json_prompt}")
-        
-        response = llm_manager.generate_for_node("test_node", json_prompt)
-        print(f"   输出: {response.text}")
-        
-        print("\n7. 清理资源...")
-        llm_manager.unload_model()
-        print("   模型卸载成功")
-        
-        return True
-        
-    except Exception as e:
-        print(f"❌ 测试失败: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-def test_gpt2_tokenizer():
-    """测试GPT-2 tokenizer"""
-    print("\n=== 测试GPT-2 Tokenizer ===")
     
+    print(f"提示词长度: {len(social_prompt)} 字符")
+    
+    # 测试GPT-2
+    print_section("Testing GPT-2")
     try:
-        print("1. 加载tokenizer...")
-        tokenizer = transformers.AutoTokenizer.from_pretrained("gpt2")
-        
-        print("2. 设置特殊token...")
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-            tokenizer.pad_token_id = tokenizer.eos_token_id
-        
-        print(f"   pad_token: {tokenizer.pad_token}")
-        print(f"   pad_token_id: {tokenizer.pad_token_id}")
-        print(f"   eos_token: {tokenizer.eos_token}")
-        print(f"   eos_token_id: {tokenizer.eos_token_id}")
-        
-        print("\n3. 测试tokenization...")
-        test_text = "Hello, this is a test."
-        tokens = tokenizer.encode(test_text, return_tensors="pt")
-        print(f"   输入: {test_text}")
-        print(f"   tokens shape: {tokens.shape}")
-        print(f"   tokens: {tokens}")
-        
-        decoded = tokenizer.decode(tokens[0], skip_special_tokens=True)
-        print(f"   解码: {decoded}")
-        
-        return True
-        
+        gpt2_manager = create_gpt2_manager("gpt2", device="auto")
+        test_model_response("GPT-2", gpt2_manager, social_prompt)
     except Exception as e:
-        print(f"❌ Tokenizer测试失败: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
+        print(f"❌ GPT-2 测试失败: {e}")
+    
+    # 测试Qwen-7B
+    print_section("Testing Qwen-7B")
+    try:
+        qwen_manager = create_qwen_manager("Qwen/Qwen-7B-Chat", device="auto")
+        test_model_response("Qwen-7B", qwen_manager, social_prompt)
+    except Exception as e:
+        print(f"❌ Qwen-7B 测试失败: {e}")
+    
+    print_section("Test Summary")
+    print("测试完成！请比较两个模型的响应质量和格式遵循情况。")
+
 
 if __name__ == "__main__":
-    print("开始GPT-2直接测试...")
-    
-    success1 = test_gpt2_tokenizer()
-    success2 = test_gpt2_direct()
-    
-    if success1 and success2:
-        print("\n✅ 所有测试通过！GPT-2工作正常。")
-    else:
-        print("\n❌ 部分测试失败，需要进一步调试。")
-    
-    print("\n测试完成。") 
+    main() 
