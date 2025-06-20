@@ -44,7 +44,8 @@ def test_model_response(model_name: str, llm_manager, prompt: str):
             "social_decision", 
             prompt,
             temperature=0.7,
-            max_new_tokens=128,
+            max_new_tokens=256,
+            max_length=2048,
             do_sample=True,
             pad_token_id=llm_manager.tokenizer.eos_token_id if hasattr(llm_manager, 'tokenizer') else None
         )
