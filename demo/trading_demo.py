@@ -316,12 +316,13 @@ class LLMDecisionMaker:
 7. 投资组合变化：总价值变化趋势
 8. 风险控制：当前持仓和现金状况
 
+重要：您必须做出买入或卖出决策，不允许持有观望！
+
 请选择以下之一：
 1. 买入股票：写"买入[股票代码] [数量]股"
 2. 卖出股票：写"卖出[股票代码] [数量]股"  
-3. 持有观望：写"持有观望"
 
-示例：买入AAPL 100股、卖出GOOGL 50股、持有观望
+示例：买入AAPL 100股、卖出GOOGL 50股
 
 请给出决策并简要说明理由："""
 
@@ -332,20 +333,15 @@ class LLMDecisionMaker:
         # 清理响应文本
         response = response.strip()
         
-        # 尝试多种解析方式
-        # 方式1: 直接匹配HOLD
-        if "HOLD" in response.upper() or "持有" in response or "观望" in response:
-            return {"action": "HOLD", "reasoning": response}
+        # 强制要求买入或卖出，不允许HOLD
+        symbols = state.get("symbols", ["AAPL", "GOOGL", "MSFT", "AMZN"])
+        market_data = state.get("market_data", {})
         
-        # 方式2: 查找BUY/SELL关键词
-        response_upper = response.upper()
-        
-        # 查找BUY决策
-        if "BUY" in response_upper or "买入" in response:
+        # 方式1: 查找中文买入/卖出关键词
+        if "买入" in response:
             # 尝试提取股票代码和数量
-            symbols = state.get("symbols", ["AAPL", "GOOGL", "MSFT", "AMZN"])
             for symbol in symbols:
-                if symbol in response_upper:
+                if symbol in response:
                     # 尝试提取数量
                     import re
                     amount_match = re.search(r'(\d+(?:\.\d+)?)', response)
@@ -357,12 +353,10 @@ class LLMDecisionMaker:
                         "reasoning": response
                     }
         
-        # 查找SELL决策
-        if "SELL" in response_upper or "卖出" in response:
+        if "卖出" in response:
             # 尝试提取股票代码和数量
-            symbols = state.get("symbols", ["AAPL", "GOOGL", "MSFT", "AMZN"])
             for symbol in symbols:
-                if symbol in response_upper:
+                if symbol in response:
                     # 尝试提取数量
                     import re
                     amount_match = re.search(r'(\d+(?:\.\d+)?)', response)
@@ -374,66 +368,222 @@ class LLMDecisionMaker:
                         "reasoning": response
                     }
         
-        # 方式3: 基于市场分析做智能决策
-        # 如果LLM分析了市场但没有明确决策，我们基于分析做决策
-        market_data = state.get("market_data", {})
+        # 方式2: 查找英文BUY/SELL关键词
+        response_upper = response.upper()
+        
+        # 查找BUY决策
+        if "BUY" in response_upper:
+            for symbol in symbols:
+                if symbol in response_upper:
+                    import re
+                    amount_match = re.search(r'(\d+(?:\.\d+)?)', response)
+                    amount = float(amount_match.group(1)) if amount_match else 100
+                    return {
+                        "action": "BUY",
+                        "symbol": symbol,
+                        "amount": amount,
+                        "reasoning": response
+                    }
+        
+        # 查找SELL决策
+        if "SELL" in response_upper:
+            for symbol in symbols:
+                if symbol in response_upper:
+                    import re
+                    amount_match = re.search(r'(\d+(?:\.\d+)?)', response)
+                    amount = float(amount_match.group(1)) if amount_match else 100
+                    return {
+                        "action": "SELL",
+                        "symbol": symbol,
+                        "amount": amount,
+                        "reasoning": response
+                    }
+        
+        # 方式3: 基于市场分析做智能决策（强制买入或卖出）
         if market_data:
-            # 简单的趋势分析
-            total_change = 0
-            for symbol_data in market_data.values():
-                if "close" in symbol_data and "open" in symbol_data:
-                    change = (symbol_data["close"] - symbol_data["open"]) / symbol_data["open"]
-                    total_change += change
+            # 分析每个股票的技术指标
+            best_buy_symbol = None
+            best_buy_score = -1
+            best_sell_symbol = None
+            best_sell_score = -1
             
-            avg_change = total_change / len(market_data) if market_data else 0
+            for symbol in symbols:
+                if symbol in market_data:
+                    # 获取技术指标
+                    technical_indicators = state.get("technical_indicators", {}).get(symbol, {})
+                    
+                    # 计算买入评分
+                    rsi = technical_indicators.get("rsi", 50)
+                    ma5 = technical_indicators.get("ma5", 0)
+                    ma20 = technical_indicators.get("ma20", 0)
+                    price = market_data[symbol]["close"]
+                    
+                    # 买入条件：RSI < 70 (非超买)，MA5 > MA20 (上涨趋势)
+                    buy_score = 0
+                    if rsi < 70:  # 非超买
+                        buy_score += 0.3
+                    if ma5 > ma20:  # 上涨趋势
+                        buy_score += 0.4
+                    if ma5 > 0 and ma20 > 0:
+                        trend_strength = (ma5 - ma20) / ma20
+                        buy_score += min(0.3, trend_strength * 10)
+                    
+                    # 卖出条件：RSI > 30 (非超卖)，MA5 < MA20 (下跌趋势)
+                    sell_score = 0
+                    if rsi > 30:  # 非超卖
+                        sell_score += 0.3
+                    if ma5 < ma20:  # 下跌趋势
+                        sell_score += 0.4
+                    if ma5 > 0 and ma20 > 0:
+                        trend_strength = (ma20 - ma5) / ma20
+                        sell_score += min(0.3, trend_strength * 10)
+                    
+                    # 更新最佳选择
+                    if buy_score > best_buy_score:
+                        best_buy_score = buy_score
+                        best_buy_symbol = symbol
+                    
+                    if sell_score > best_sell_score:
+                        best_sell_score = sell_score
+                        best_sell_symbol = symbol
             
-            # 基于趋势做决策
-            if avg_change > 0.01:  # 上涨趋势
-                # 选择涨幅最大的股票买入
-                best_symbol = max(market_data.keys(), 
-                                key=lambda s: market_data[s].get("close", 0) - market_data[s].get("open", 0))
+            # 选择评分更高的操作
+            if best_buy_score > best_sell_score and best_buy_score > 0.3:
                 return {
                     "action": "BUY",
-                    "symbol": best_symbol,
+                    "symbol": best_buy_symbol,
                     "amount": 100,
-                    "reasoning": f"基于LLM分析，市场呈上涨趋势，选择买入{best_symbol}"
+                    "reasoning": f"基于技术分析，{best_buy_symbol}呈现买入信号（RSI: {technical_indicators.get('rsi', 0):.1f}, 趋势: 上涨）"
                 }
-            elif avg_change < -0.01:  # 下跌趋势
-                # 选择跌幅最大的股票卖出
-                worst_symbol = min(market_data.keys(), 
-                                 key=lambda s: market_data[s].get("close", 0) - market_data[s].get("open", 0))
+            elif best_sell_score > 0.3:
                 return {
                     "action": "SELL",
-                    "symbol": worst_symbol,
+                    "symbol": best_sell_symbol,
                     "amount": 100,
-                    "reasoning": f"基于LLM分析，市场呈下跌趋势，选择卖出{worst_symbol}"
+                    "reasoning": f"基于技术分析，{best_sell_symbol}呈现卖出信号（RSI: {technical_indicators.get('rsi', 0):.1f}, 趋势: 下跌）"
                 }
         
-        # 如果所有解析都失败，返回HOLD
-        return {"action": "HOLD", "reasoning": f"LLM响应: {response[:100]}... 无法解析具体决策，选择持有观望"}
+        # 方式4: 如果所有解析都失败，强制买入表现最好的股票
+        if market_data:
+            # 选择涨幅最大的股票买入
+            best_symbol = max(market_data.keys(), 
+                            key=lambda s: market_data[s].get("close", 0) - market_data[s].get("open", 0))
+            return {
+                "action": "BUY",
+                "symbol": best_symbol,
+                "amount": 100,
+                "reasoning": f"强制决策：选择买入{best_symbol}（当日涨幅最大）"
+            }
+        
+        # 最后的备用方案
+        if symbols:
+            return {
+                "action": "BUY",
+                "symbol": symbols[0],
+                "amount": 100,
+                "reasoning": f"备用决策：买入{symbols[0]}（默认选择）"
+            }
+        
+        # 如果连股票列表都没有，返回错误
+        return {
+            "action": "BUY",
+            "symbol": "AAPL",
+            "amount": 100,
+            "reasoning": "错误：无法解析决策，使用默认买入AAPL"
+        }
 
     def _fallback_decision(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """LLM调用失败时的备用决策"""
         market_data = state.get("market_data", {})
         if not market_data:
-            return {"action": "HOLD", "reasoning": "无市场数据，选择持有观望"}
+            # 如果没有市场数据，强制买入第一个股票
+            symbols = state.get("symbols", ["AAPL", "GOOGL", "MSFT", "AMZN"])
+            return {
+                "action": "BUY",
+                "symbol": symbols[0],
+                "amount": 100,
+                "reasoning": "备用决策：无市场数据，买入默认股票"
+            }
         
-        # 简单的随机决策
+        # 分析市场数据，选择最佳买入或卖出
         symbols = list(market_data.keys())
         if symbols:
-            symbol = random.choice(symbols)
-            action = random.choice(["BUY", "SELL", "HOLD"])
-            if action == "HOLD":
-                return {"action": "HOLD", "reasoning": "备用决策：持有观望"}
-            else:
+            # 计算每个股票的评分
+            best_buy_symbol = None
+            best_buy_score = -1
+            best_sell_symbol = None
+            best_sell_score = -1
+            
+            for symbol in symbols:
+                symbol_data = market_data[symbol]
+                technical_indicators = state.get("technical_indicators", {}).get(symbol, {})
+                
+                # 计算买入评分
+                rsi = technical_indicators.get("rsi", 50)
+                ma5 = technical_indicators.get("ma5", 0)
+                ma20 = technical_indicators.get("ma20", 0)
+                
+                buy_score = 0
+                if rsi < 70:  # 非超买
+                    buy_score += 0.3
+                if ma5 > ma20:  # 上涨趋势
+                    buy_score += 0.4
+                if ma5 > 0 and ma20 > 0:
+                    trend_strength = (ma5 - ma20) / ma20
+                    buy_score += min(0.3, trend_strength * 10)
+                
+                # 计算卖出评分
+                sell_score = 0
+                if rsi > 30:  # 非超卖
+                    sell_score += 0.3
+                if ma5 < ma20:  # 下跌趋势
+                    sell_score += 0.4
+                if ma5 > 0 and ma20 > 0:
+                    trend_strength = (ma20 - ma5) / ma20
+                    sell_score += min(0.3, trend_strength * 10)
+                
+                # 更新最佳选择
+                if buy_score > best_buy_score:
+                    best_buy_score = buy_score
+                    best_buy_symbol = symbol
+                
+                if sell_score > best_sell_score:
+                    best_sell_score = sell_score
+                    best_sell_symbol = symbol
+            
+            # 选择评分更高的操作
+            if best_buy_score > best_sell_score and best_buy_score > 0.3:
                 return {
-                    "action": action,
-                    "symbol": symbol,
+                    "action": "BUY",
+                    "symbol": best_buy_symbol,
                     "amount": 100,
-                    "reasoning": f"备用决策：{action} {symbol} 100股"
+                    "reasoning": f"备用决策：基于技术分析买入{best_buy_symbol}"
+                }
+            elif best_sell_score > 0.3:
+                return {
+                    "action": "SELL",
+                    "symbol": best_sell_symbol,
+                    "amount": 100,
+                    "reasoning": f"备用决策：基于技术分析卖出{best_sell_symbol}"
+                }
+            else:
+                # 如果技术分析不明确，选择买入涨幅最大的股票
+                best_symbol = max(symbols, 
+                                key=lambda s: market_data[s].get("close", 0) - market_data[s].get("open", 0))
+                return {
+                    "action": "BUY",
+                    "symbol": best_symbol,
+                    "amount": 100,
+                    "reasoning": f"备用决策：买入{best_symbol}（涨幅最大）"
                 }
         
-        return {"action": "HOLD", "reasoning": "备用决策：持有观望"}
+        # 最后的备用方案
+        return {
+            "action": "BUY",
+            "symbol": "AAPL",
+            "amount": 100,
+            "reasoning": "备用决策：买入AAPL（默认选择）"
+        }
 
 
 def create_rl_trading_workflow(llm_manager, strategy_type: str = "simulated") -> tuple[SG_Workflow, RLTrainer, LLMDecisionMaker]:
