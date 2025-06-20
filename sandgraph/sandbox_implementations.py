@@ -259,17 +259,30 @@ class TradingGymSandbox(Sandbox):
         # 初始化交易环境
         try:
             import gym  # type: ignore
+            import trading_gym  # type: ignore
             from trading_gym import TradingGym  # type: ignore
-            self.env = TradingGym(
-                initial_balance=initial_balance,
-                trading_fee=trading_fee,
-                max_position=max_position,
-                data_source=data_source,
-                symbols=self.symbols
-            )
-            self.env_available = True
-        except ImportError:
-            print("警告：Trading Gym 未安装，使用模拟实现。请运行: pip install trading-gym")
+            
+            # 验证trading_gym是否正确安装
+            if hasattr(trading_gym, 'TradingGym'):
+                self.env = TradingGym(
+                    initial_balance=initial_balance,
+                    trading_fee=trading_fee,
+                    max_position=max_position,
+                    data_source=data_source,
+                    symbols=self.symbols
+                )
+                self.env_available = True
+                print("✅ Trading Gym 环境初始化成功")
+            else:
+                raise ImportError("TradingGym class not found in trading_gym module")
+                
+        except ImportError as e:
+            print(f"警告：Trading Gym 未正确安装或导入失败: {e}")
+            print("请运行: pip install trading-gym")
+            self.env_available = False
+        except Exception as e:
+            print(f"警告：Trading Gym 初始化失败: {e}")
+            print("使用模拟实现")
             self.env_available = False
     
     def case_generator(self) -> Dict[str, Any]:
