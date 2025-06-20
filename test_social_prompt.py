@@ -28,6 +28,16 @@ def test_model_response(model_name: str, llm_manager, prompt: str):
     print(f"\n--- 测试 {model_name} ---")
     print(f"Prompt Length: {len(prompt)} characters")
     
+    # 计算token数量
+    if hasattr(llm_manager, 'tokenizer'):
+        tokens = llm_manager.tokenizer.encode(prompt)
+        token_count = len(tokens)
+        print(f"Token Count: {token_count}")
+        print(f"Max Length Needed: {token_count + 256}")  # 输入tokens + 新生成tokens
+    else:
+        print("⚠️ 无法计算token数量，使用默认设置")
+        token_count = 0
+    
     try:
         start_time = time.time()
         
@@ -39,13 +49,23 @@ def test_model_response(model_name: str, llm_manager, prompt: str):
             "max_length": 512
         })
         
+        # 根据token数量设置合适的参数
+        if token_count > 0:
+            max_length = token_count + 256  # 输入tokens + 新生成tokens
+            max_new_tokens = 256
+        else:
+            max_length = 4096  # 默认设置
+            max_new_tokens = 256
+        
+        print(f"Using max_length: {max_length}, max_new_tokens: {max_new_tokens}")
+        
         # 生成响应
         response = llm_manager.generate_for_node(
             "social_decision", 
             prompt,
             temperature=0.7,
-            max_new_tokens=256,
-            max_length=2048,
+            max_new_tokens=max_new_tokens,
+            max_length=max_length,
             do_sample=True,
             pad_token_id=llm_manager.tokenizer.eos_token_id if hasattr(llm_manager, 'tokenizer') else None
         )

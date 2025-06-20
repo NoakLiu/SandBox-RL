@@ -371,13 +371,8 @@ class HuggingFaceLLM(BaseLLM):
                 
                 # 安全地tokenize输入
                 try:
-                    # 对于GPT-2，使用更安全的tokenization
-                    if "gpt2" in self.model_name.lower():
-                        # 限制输入长度，避免tokenizer问题
-                        truncated_prompt = prompt[:500] if len(prompt) > 500 else prompt
-                        inputs = self.tokenizer.encode(truncated_prompt, return_tensors="pt", truncation=True, max_length=512)
-                    else:
-                        inputs = self.tokenizer.encode(prompt, return_tensors="pt", truncation=True, max_length=1024)
+                    # 移除输入截断，使用完整的prompt
+                    inputs = self.tokenizer.encode(prompt, return_tensors="pt", truncation=True, max_length=2048)
                 except Exception as tokenize_error:
                     logger.error(f"Tokenization failed: {tokenize_error}")
                     return LLMResponse(
@@ -406,9 +401,9 @@ class HuggingFaceLLM(BaseLLM):
                 
                 inputs = inputs.to(self.device)
                 
-                # 生成参数
+                # 生成参数 - 使用传入的参数，不要过度限制
                 generation_kwargs = {
-                    "max_length": min(max_length, inputs.shape[1] + 128),  # 更保守的长度限制
+                    "max_new_tokens": kwargs.get("max_new_tokens", 256),  # 优先使用max_new_tokens
                     "temperature": temperature,
                     "top_p": top_p,
                     "top_k": top_k,
@@ -417,6 +412,10 @@ class HuggingFaceLLM(BaseLLM):
                     "pad_token_id": self.tokenizer.eos_token_id,  # 使用eos token作为pad token
                     "eos_token_id": self.tokenizer.eos_token_id
                 }
+                
+                # 如果设置了max_length，也添加进去
+                if "max_length" in kwargs:
+                    generation_kwargs["max_length"] = kwargs["max_length"]
                 
                 # 生成响应
                 start_time = time.time()
@@ -454,12 +453,12 @@ class HuggingFaceLLM(BaseLLM):
                         }
                     )
                 
-                # 提取新生成的部分
-                response_text = generated_text[len(prompt):].strip()
+                # 直接使用生成的完整文本，不尝试提取新生成的部分
+                response_text = generated_text.strip()
                 
                 # 如果响应为空，返回默认响应
                 if not response_text:
-                    response_text = "基于当前情况，我建议采取谨慎的策略。"
+                    response_text = "Based on the current situation, I recommend a cautious approach."
                 
                 # 计算置信度（简化实现）
                 confidence = min(0.95, 0.7 + (self.update_count * 0.01))
