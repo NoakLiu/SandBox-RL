@@ -49,40 +49,50 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
     
     # 创建LLM函数
     def create_llm_func(node_id: str):
-        def llm_func(prompt: str, context: Dict[str, Any] = {}) -> str:
+        def llm_func(inputs: Dict[str, Any]) -> Dict[str, Any]:
+            # 从输入中获取数据
+            market_data = inputs.get("market_data", "")
+            analysis_result = inputs.get("analysis_result", "")
+            strategy_result = inputs.get("strategy_result", "")
+            
             # 根据不同节点类型构造不同的提示
             if node_id == "market_analyzer":
                 prompt = f"""作为市场分析师，请分析以下市场数据并提供见解：
-{prompt}
+
+{market_data}
 
 请从以下方面进行分析：
-1. 价格趋势
-2. 成交量分析
-3. 市场情绪
-4. 潜在机会和风险
+1. 价格趋势分析
+2. 成交量分析  
+3. 市场情绪评估
+4. 潜在机会和风险识别
 
 请给出详细的分析报告。"""
             
             elif node_id == "strategy_generator":
                 prompt = f"""作为策略生成器，请基于以下市场分析生成交易策略：
-{prompt}
+
+市场分析结果：
+{analysis_result}
 
 请考虑以下因素：
-1. 市场趋势
-2. 风险控制
-3. 资金管理
+1. 市场趋势判断
+2. 风险控制措施
+3. 资金管理策略
 4. 具体执行计划
 
-请给出详细的交易策略。"""
+请给出详细的交易策略，包括具体的买入/卖出建议。"""
             
             elif node_id == "risk_assessor":
                 prompt = f"""作为风险评估师，请评估以下交易策略的风险：
-{prompt}
+
+交易策略：
+{strategy_result}
 
 请从以下方面进行评估：
-1. 市场风险
-2. 操作风险
-3. 资金风险
+1. 市场风险分析
+2. 操作风险评估
+3. 资金风险控制
 4. 风险控制建议
 
 请给出详细的风险评估报告。"""
@@ -94,7 +104,12 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
                 temperature=0.7,
                 max_length=512
             )
-            return response.text
+            
+            return {
+                "response": response.text,
+                "prompt": prompt,
+                "node_id": node_id
+            }
         return llm_func
     
     # 注册LLM节点
@@ -143,7 +158,7 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
     )
     workflow.add_node(strategy_generator)
     
-    # 添加交易执行节点（唯一的SANDBOX节点）
+    # 添加交易执行节点（SANDBOX节点）
     if strategy_type == "trading_gym":
         sandbox = TradingGymSandbox(
             initial_balance=100000.0,
@@ -163,7 +178,7 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
     
     trading_executor = EnhancedWorkflowNode(
         "trading_executor",
-        NodeType.SANDBOX,  # 唯一的SANDBOX类型节点
+        NodeType.SANDBOX,
         sandbox=sandbox,
         condition=NodeCondition(),
         limits=NodeLimits(max_visits=5, resource_cost={"energy": 10, "tokens": 5})
@@ -180,10 +195,10 @@ def create_trading_workflow(llm_manager, strategy_type: str = "backtrader") -> S
     )
     workflow.add_node(risk_assessor)
     
-    # 添加边
-    workflow.add_edge("market_analyzer", "strategy_generator")
-    workflow.add_edge("strategy_generator", "trading_executor")
-    workflow.add_edge("trading_executor", "risk_assessor")
+    # 添加边 - 修改连接逻辑
+    workflow.add_edge("trading_executor", "market_analyzer")  # 交易环境 -> 市场分析
+    workflow.add_edge("market_analyzer", "strategy_generator")  # 市场分析 -> 策略生成
+    workflow.add_edge("strategy_generator", "risk_assessor")  # 策略生成 -> 风险评估
     
     return workflow
 
