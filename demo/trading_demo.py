@@ -110,11 +110,16 @@ class LLMDecisionMaker:
 
 请分析市场趋势、风险评估和投资机会，然后做出以下决策之一：
 
-1. 买入决策：BUY <symbol> <amount>
-2. 卖出决策：SELL <symbol> <amount>  
-3. 持有观望：HOLD
+1. 买入决策：明确写出"买入"或"BUY"，指定股票代码和数量
+2. 卖出决策：明确写出"卖出"或"SELL"，指定股票代码和数量  
+3. 持有观望：明确写出"持有"或"HOLD"
 
-请给出决策并简要说明理由。"""
+示例格式：
+- "买入AAPL 100股"
+- "卖出GOOGL 50股" 
+- "持有观望"
+
+请给出明确的决策并简要说明理由。"""
 
     def _parse_decision(self, response: str, state: Dict[str, Any]) -> Dict[str, Any]:
         """解析LLM的决策响应"""
