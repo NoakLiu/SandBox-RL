@@ -14,6 +14,7 @@ import os
 import time
 import json
 import argparse
+import random
 from typing import Dict, Any, List, Union
 from datetime import datetime, timedelta
 
@@ -65,7 +66,9 @@ class LLMDecisionMaker:
                 "trading_decision", 
                 prompt,
                 temperature=0.7,
-                max_length=256  # 减少长度避免截断
+                max_new_tokens=128,  # 使用max_new_tokens而不是max_length
+                do_sample=True,
+                pad_token_id=self.llm_manager.tokenizer.eos_token_id if hasattr(self.llm_manager, 'tokenizer') else None
             )
             print(f"LLM响应状态: {response.status if hasattr(response, 'status') else 'unknown'}")
         except Exception as e:
@@ -218,7 +221,6 @@ class LLMDecisionMaker:
             return {"action": "HOLD", "reasoning": "无市场数据，选择持有观望"}
         
         # 简单的随机决策
-        import random
         symbols = list(market_data.keys())
         if symbols:
             symbol = random.choice(symbols)
@@ -236,8 +238,8 @@ class LLMDecisionMaker:
         return {"action": "HOLD", "reasoning": "备用决策：持有观望"}
 
 
-def create_rl_trading_workflow(llm_manager, strategy_type: str = "trading_gym") -> tuple[SG_Workflow, RLTrainer, LLMDecisionMaker]:
-    """创建基于RL的LLM决策交易工作流"""
+def create_rl_trading_workflow(llm_manager, strategy_type: str = "simulated") -> tuple[SG_Workflow, RLTrainer, LLMDecisionMaker]:
+    """创建基于RL的LLM决策交易工作流 - 使用纯模拟数据"""
     
     # 创建RL配置
     rl_config = RLConfig(
@@ -264,23 +266,127 @@ def create_rl_trading_workflow(llm_manager, strategy_type: str = "trading_gym") 
     # 创建工作流
     workflow = SG_Workflow("rl_trading_workflow", WorkflowMode.TRADITIONAL, llm_manager)
     
-    # 创建交易环境沙盒
-    if strategy_type == "trading_gym":
-        sandbox = TradingGymSandbox(
-            initial_balance=100000.0,
-            trading_fee=0.001,
-            max_position=0.2,
-            symbols=["AAPL", "GOOGL", "MSFT", "AMZN"]
-        )
-    else:  # backtrader
-        sandbox = BacktraderSandbox(
-            initial_cash=100000.0,
-            commission=0.001,
-            data_source="yahoo",
-            symbols=["AAPL", "GOOGL", "MSFT", "AMZN"],
-            start_date=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
-            end_date=datetime.now().strftime("%Y-%m-%d")
-        )
+    # 创建纯模拟交易环境
+    class SimulatedTradingSandbox:
+        def __init__(self, initial_balance=100000.0, symbols=["AAPL", "GOOGL", "MSFT", "AMZN"]):
+            self.initial_balance = initial_balance
+            self.symbols = symbols
+            self.sandbox_id = "simulated_trading"
+            self.current_step = 0
+            self.portfolio = {"cash": initial_balance, "positions": {}}
+            self.price_history = {}
+            
+            # 初始化价格历史
+            base_prices = {"AAPL": 150.0, "GOOGL": 2800.0, "MSFT": 300.0, "AMZN": 3300.0}
+            for symbol in symbols:
+                self.price_history[symbol] = [base_prices.get(symbol, 100.0)]
+        
+        def case_generator(self):
+            """生成模拟市场数据"""
+            self.current_step += 1
+            
+            # 生成当前价格（基于随机游走）
+            market_data = {}
+            for symbol in self.symbols:
+                if symbol not in self.price_history:
+                    self.price_history[symbol] = [100.0]
+                
+                # 基于历史价格生成新价格
+                last_price = self.price_history[symbol][-1]
+                change_pct = (random.uniform(0, 0.02) + 0.001)  # 小幅上涨趋势
+                new_price = last_price * (1 + change_pct)
+                
+                # 生成OHLC数据
+                open_price = last_price
+                high_price = max(open_price, new_price) * (1 + abs(random.uniform(0, 0.01)))
+                low_price = min(open_price, new_price) * (1 - abs(random.uniform(0, 0.01)))
+                close_price = new_price
+                volume = int(random.uniform(1000000, 10000000))
+                
+                market_data[symbol] = {
+                    "open": open_price,
+                    "high": high_price,
+                    "low": low_price,
+                    "close": close_price,
+                    "volume": volume
+                }
+                
+                # 更新价格历史
+                self.price_history[symbol].append(close_price)
+            
+            return {
+                "state": {
+                    "market_data": market_data,
+                    "portfolio": self.portfolio.copy(),
+                    "symbols": self.symbols,
+                    "step": self.current_step
+                },
+                "case_id": f"case_{self.current_step}"
+            }
+        
+        def verify_score(self, action_str, case):
+            """验证交易决策并计算评分"""
+            try:
+                # 解析动作
+                parts = action_str.strip().split()
+                if len(parts) < 1:
+                    return 0.0
+                
+                action_type = parts[0].upper()
+                if action_type == "HOLD":
+                    return 0.5  # 持有观望的基准分数
+                
+                if len(parts) < 3:
+                    return 0.0
+                
+                symbol = parts[1]
+                amount = float(parts[2])
+                
+                if symbol not in self.symbols:
+                    return 0.0
+                
+                market_data = case["state"]["market_data"]
+                current_price = market_data[symbol]["close"]
+                
+                # 模拟交易执行
+                if action_type == "BUY":
+                    cost = amount * current_price
+                    if cost <= self.portfolio["cash"]:
+                        self.portfolio["cash"] -= cost
+                        self.portfolio["positions"][symbol] = self.portfolio["positions"].get(symbol, 0) + amount
+                        
+                        # 计算评分：基于价格趋势
+                        price_change = (market_data[symbol]["close"] - market_data[symbol]["open"]) / market_data[symbol]["open"]
+                        return max(0.0, 0.5 + price_change * 10)  # 0.5-1.5分
+                    else:
+                        return 0.0  # 资金不足
+                
+                elif action_type == "SELL":
+                    if symbol in self.portfolio["positions"] and self.portfolio["positions"][symbol] >= amount:
+                        revenue = amount * current_price
+                        self.portfolio["cash"] += revenue
+                        self.portfolio["positions"][symbol] -= amount
+                        
+                        if self.portfolio["positions"][symbol] <= 0:
+                            del self.portfolio["positions"][symbol]
+                        
+                        # 计算评分：基于价格趋势（卖出时反向）
+                        price_change = (market_data[symbol]["close"] - market_data[symbol]["open"]) / market_data[symbol]["open"]
+                        return max(0.0, 0.5 - price_change * 10)  # 0.5-1.5分
+                    else:
+                        return 0.0  # 持仓不足
+                
+                return 0.0
+                
+            except Exception as e:
+                print(f"模拟交易评分错误: {e}")
+                return 0.0
+    
+    # 创建模拟交易沙盒
+    sandbox = SimulatedTradingSandbox(
+        initial_balance=100000.0,
+        symbols=["AAPL", "GOOGL", "MSFT", "AMZN"]
+    )
     
     # 创建交易环境节点
     def trading_env_func(inputs: Dict[str, Any]) -> Dict[str, Any]:
@@ -393,7 +499,7 @@ def _calculate_portfolio_value(state: Dict[str, Any]) -> float:
     return cash + position_value
 
 
-def run_rl_trading_demo(strategy_type: str = "trading_gym", steps: int = 5):
+def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
     """运行基于RL的LLM决策交易演示"""
     
     print_section(f"基于RL的LLM决策交易演示 - {strategy_type.upper()}")
@@ -527,8 +633,8 @@ def main():
     parser.add_argument(
         "--strategy",
         type=str,
-        choices=["trading_gym", "backtrader"],
-        default="trading_gym",
+        choices=["simulated"],
+        default="simulated",
         help="选择交易策略类型"
     )
     parser.add_argument(
