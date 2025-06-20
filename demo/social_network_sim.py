@@ -144,11 +144,15 @@ def create_social_network_workflow(oasis_interface) -> Tuple[SG_Workflow, RLTrai
     
     # Define LLM functions
     def decision_maker_llm(prompt: str) -> str:
+        print(f"🤖 Decision maker LLM called with prompt: {prompt[:100]}...")
         response = llm_manager.generate_for_node("decision_maker", prompt)
+        print(f"🤖 Decision maker LLM response: {response.text[:100]}...")
         return response.text
     
     def content_generator_llm(prompt: str) -> str:
+        print(f"🤖 Content generator LLM called with prompt: {prompt[:100]}...")
         response = llm_manager.generate_for_node("content_generator", prompt)
+        print(f"🤖 Content generator LLM response: {response.text[:100]}...")
         return response.text
     
     # Add nodes
@@ -190,14 +194,33 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
             continue
             
         current_state = env_node.sandbox.case_generator()
+        print(f"Current state generated: {len(current_state['network_state']['users'])} users, {len(current_state['network_state']['connections'])} connections")
         
         # Execute workflow
+        print("Executing workflow...")
         workflow_result = workflow.execute_full_workflow()
+        print(f"Workflow result keys: {list(workflow_result.keys())}")
+        
+        # 从工作流结果中提取LLM响应
+        llm_response = None
+        if "executed_nodes" in workflow_result:
+            for node_execution in workflow_result["executed_nodes"]:
+                node_id = node_execution["node_id"]
+                node_result = node_execution["result"]
+                print(f"Node {node_id} executed with result keys: {list(node_result.keys())}")
+                
+                # 检查是否是LLM节点的结果
+                if node_id in ["decision_maker", "content_generator"]:
+                    if "response" in node_result:
+                        llm_response = node_result["response"]
+                        print(f"✅ Found LLM response from {node_id}: {llm_response[:100]}...")
+                        break
         
         # Update environment state
-        if "response" in workflow_result:
+        if llm_response:
             try:
-                action = json.loads(workflow_result["response"])
+                action = json.loads(llm_response)
+                print(f"✅ LLM generated action: {action.get('action_type')}")
                 
                 # Use RL to update LLM weights
                 state = {
@@ -210,7 +233,7 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                     "action_size": len(action.get("details", {})),
                     "reasoning_size": len(action.get("reasoning", "")),
                     "step": step,
-                    "score": workflow_result.get("score", 0.0)
+                    "score": workflow_result.get("final_score", 0.0)
                 }
                 
                 # Print LLM input
@@ -220,7 +243,7 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                 rl_trainer.add_experience(
                     state=state,
                     action=json.dumps(action),
-                    reward=workflow_result.get("score", 0.0),
+                    reward=workflow_result.get("final_score", 0.0),
                     done=step == steps - 1
                 )
                 
@@ -250,6 +273,11 @@ def run_social_network_simulation(oasis_interface, steps: int = 10) -> List[Dict
                 
             except Exception as e:
                 print(f"Error updating state: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print("❌ No LLM response found in workflow execution")
+            print(f"Executed nodes: {[n['node_id'] for n in workflow_result.get('executed_nodes', [])]}")
         
         # Get updated state
         current_state = env_node.sandbox.case_generator()
