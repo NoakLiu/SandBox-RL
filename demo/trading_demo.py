@@ -64,7 +64,11 @@ class LLMDecisionMaker:
         
         # 构造决策提示（包含历史数据）
         prompt = self._construct_decision_prompt(state)
-        print(f"决策提示: {prompt[:300]}...")  # 调试信息
+        print(f"\n{'='*80}")
+        print(f"第 {self.decision_count} 次决策 - 完整提示内容:")
+        print(f"{'='*80}")
+        print(prompt)
+        print(f"{'='*80}")
         
         # 使用LLM生成决策
         try:
@@ -76,7 +80,8 @@ class LLMDecisionMaker:
                 do_sample=True,
                 pad_token_id=self.llm_manager.tokenizer.eos_token_id if hasattr(self.llm_manager, 'tokenizer') else None
             )
-            print(f"LLM响应状态: {response.status if hasattr(response, 'status') else 'unknown'}")
+            print(f"\nLLM响应状态: {response.status if hasattr(response, 'status') else 'unknown'}")
+            print(f"LLM完整响应: {response.text}")
         except Exception as e:
             print(f"LLM调用错误: {e}")
             # 如果LLM调用失败，使用简单的规则决策
@@ -657,7 +662,7 @@ def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
                     }
                     
                     print(f"LLM决策: {decision['action']} {decision.get('symbol', '')} {decision.get('amount', '')}")
-                    print(f"决策理由: {decision.get('reasoning', '')[:100]}...")
+                    print(f"决策理由: {decision.get('reasoning', '')}")
                     print(f"交易评分: {score:.3f}")
                     print(f"RL奖励: {reward:.3f}")
                     
@@ -665,6 +670,13 @@ def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
                     if "rl_update" in result:
                         rl_update = result["rl_update"]
                         print(f"RL更新状态: {rl_update.get('status', 'unknown')}")
+                    
+                    # 显示当前投资组合状态
+                    portfolio = current_state.get("portfolio", {})
+                    cash = portfolio.get("cash", 0)
+                    positions = portfolio.get("positions", {})
+                    print(f"当前现金: {cash:.2f}")
+                    print(f"当前持仓: {positions}")
                     
                     results.append(result)
                     
