@@ -369,27 +369,45 @@ class HuggingFaceLLM(BaseLLM):
                 top_k = kwargs.get("top_k", self.config.top_k)
                 do_sample = kwargs.get("do_sample", self.config.do_sample)
                 
-                # 安全地tokenize输入
-                try:
-                    # 限制输入长度，避免CUDA错误
-                    max_input_length = 1024  # 安全限制
-                    if len(prompt) > max_input_length * 4:  # 大约4个字符对应1个token
-                        logger.warning(f"输入过长({len(prompt)}字符)，截断到{max_input_length * 4}字符")
-                        prompt = prompt[:max_input_length * 4]
-                    
-                    inputs = self.tokenizer.encode(prompt, return_tensors="pt", truncation=True, max_length=max_input_length)
-                except Exception as tokenize_error:
-                    logger.error(f"Tokenization failed: {tokenize_error}")
+                # 检查是否是Mistral或其他需要特殊格式的模型
+                is_mistral = "mistral" in self.model_name.lower()
+                is_instruct_model = any(keyword in self.model_name.lower() for keyword in ["instruct", "chat", "qwen", "llama"])
+                
+                # 确保tokenizer已加载
+                if self.tokenizer is None:
                     return LLMResponse(
-                        text="输入处理失败，请尝试简化输入",
+                        text="Tokenizer未加载",
                         confidence=0.0,
-                        reasoning="Tokenization error",
+                        reasoning="Tokenizer not loaded",
                         metadata={
                             "backend": self.backend.value,
-                            "error": str(tokenize_error),
+                            "error": "Tokenizer is None",
                             "generation_count": self.generation_count
                         }
                     )
+                
+                # 根据模型类型处理输入格式
+                if is_mistral or is_instruct_model:
+                    # 使用chat template格式
+                    try:
+                        messages = [{"role": "user", "content": prompt}]
+                        inputs = self.tokenizer.apply_chat_template(
+                            messages, 
+                            return_tensors="pt", 
+                            truncation=True, 
+                            max_length=1024
+                        )
+                    except Exception as chat_template_error:
+                        logger.warning(f"Chat template failed, falling back to direct encoding: {chat_template_error}")
+                        # 如果chat template失败，使用Mistral指令格式
+                        if is_mistral:
+                            formatted_prompt = f"<s>[INST] {prompt} [/INST]"
+                        else:
+                            formatted_prompt = prompt
+                        inputs = self.tokenizer.encode(formatted_prompt, return_tensors="pt", truncation=True, max_length=1024)
+                else:
+                    # 普通模型直接编码
+                    inputs = self.tokenizer.encode(prompt, return_tensors="pt", truncation=True, max_length=1024)
                 
                 # 检查tokenization结果
                 if inputs.shape[1] == 0:
@@ -410,9 +428,22 @@ class HuggingFaceLLM(BaseLLM):
                 
                 inputs = inputs.to(self.device)
                 
+                # 确保模型已加载
+                if self.model is None:
+                    return LLMResponse(
+                        text="模型未加载",
+                        confidence=0.0,
+                        reasoning="Model not loaded",
+                        metadata={
+                            "backend": self.backend.value,
+                            "error": "Model is None",
+                            "generation_count": self.generation_count
+                        }
+                    )
+                
                 # 生成参数 - 使用更保守的设置
                 generation_kwargs = {
-                    "max_new_tokens": kwargs.get("max_new_tokens", 128),  # 减少新token数量
+                    "max_new_tokens": kwargs.get("max_new_tokens", 256),  # 增加新token数量
                     "temperature": temperature,
                     "top_p": top_p,
                     "top_k": top_k,
@@ -449,7 +480,14 @@ class HuggingFaceLLM(BaseLLM):
                 
                 # 解码响应
                 try:
-                    generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+                    # 对于Mistral等模型，需要特殊处理解码
+                    if is_mistral or is_instruct_model:
+                        # 只解码新生成的部分（跳过输入部分）
+                        generated_ids = outputs[0][inputs.shape[1]:]
+                        generated_text = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
+                    else:
+                        # 普通模型解码完整输出
+                        generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
                 except Exception as decode_error:
                     logger.error(f"Decoding failed: {decode_error}")
                     return LLMResponse(
@@ -463,7 +501,7 @@ class HuggingFaceLLM(BaseLLM):
                         }
                     )
                 
-                # 直接使用生成的完整文本，不尝试提取新生成的部分
+                # 清理响应文本
                 response_text = generated_text.strip()
                 
                 # 如果响应为空，返回默认响应
@@ -489,7 +527,9 @@ class HuggingFaceLLM(BaseLLM):
                         "max_length": max_length,
                         "prompt_length": len(prompt),
                         "response_length": len(response_text),
-                        "device": self.device
+                        "device": self.device,
+                        "is_mistral": is_mistral,
+                        "is_instruct_model": is_instruct_model
                     }
                 )
                 
