@@ -15,7 +15,8 @@ import time
 import json
 import argparse
 import random
-from typing import Dict, Any, List, Union
+import re
+from typing import Dict, Any, List, Union, Optional
 from datetime import datetime, timedelta
 
 # 添加项目路径
@@ -58,47 +59,74 @@ class LLMDecisionMaker:
             "max_length": 512
         })
     
-    def make_decision(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """基于当前状态做出社交网络决策"""
+    def make_decision(self, current_state: Dict[str, Any]) -> Dict[str, Any]:
+        """基于当前状态做出决策"""
         self.decision_count += 1
         
-        # 构造决策提示（包含历史数据）
-        prompt = self._construct_decision_prompt(state)
-        print(f"\n{'='*80}")
-        print(f"Decision {self.decision_count} - Complete Prompt Content:")
-        print(f"{'='*80}")
-        print(prompt)
-        print(f"{'='*80}")
+        # 构建决策提示
+        prompt = self._construct_decision_prompt(current_state)
         
-        # 使用LLM生成决策
+        print("=" * 80)
+        print(f"Decision {self.decision_count} - Complete Prompt Content:")
+        print("=" * 80)
+        print(prompt)
+        print("=" * 80)
+        
         try:
+            # 生成LLM响应
             response = self.llm_manager.generate_for_node(
-                "social_decision", 
+                "social_decision",
                 prompt,
                 temperature=0.7,
-                max_new_tokens=128,
-                do_sample=True,
-                pad_token_id=self.llm_manager.tokenizer.eos_token_id if hasattr(self.llm_manager, 'tokenizer') else None
+                max_new_tokens=256,  # 增加token数量
+                do_sample=True
             )
-            print(f"\nLLM Response Status: {response.status if hasattr(response, 'status') else 'unknown'}")
+            
+            print(f"LLM Response Status: {response.status if hasattr(response, 'status') else 'unknown'}")
             print(f"LLM Complete Response: {response.text}")
+            
+            # 解析响应
+            decision = self._parse_decision_response(response.text)
+            
+            # 如果解析失败，使用更宽松的解析
+            if decision is None:
+                decision = self._parse_decision_fallback(response.text)
+            
+            # 如果还是失败，使用默认决策
+            if decision is None:
+                decision = {
+                    "action": "CREATE_POST",
+                    "target": "N/A",
+                    "reasoning": "Fallback decision due to parsing failure"
+                }
+            
+            # 更新历史数据
+            self._update_history(current_state, decision, response.text)
+            
+            return {
+                "decision": decision,
+                "llm_response": response.text,
+                "prompt": prompt,
+                "decision_count": self.decision_count
+            }
+            
         except Exception as e:
-            print(f"LLM Call Error: {e}")
-            # 如果LLM调用失败，使用简单的规则决策
-            return self._fallback_decision(state)
-        
-        # 解析决策
-        decision = self._parse_decision(response.text, state)
-        
-        # 更新历史数据
-        self._update_history(state, decision, response.text)
-        
-        return {
-            "decision": decision,
-            "llm_response": response.text,
-            "prompt": prompt,
-            "decision_count": self.decision_count
-        }
+            print(f"❌ Decision generation failed: {e}")
+            fallback_decision = {
+                "action": "CREATE_POST",
+                "target": "N/A", 
+                "reasoning": f"Error in decision generation: {str(e)}"
+            }
+            
+            # 更新历史数据（即使失败）
+            self._update_history(current_state, fallback_decision, f"Error: {str(e)}")
+            
+            return {
+                "decision": fallback_decision,
+                "llm_response": f"Error: {str(e)}",
+                "prompt": prompt,
+                "decision_count": self.decision_count
+            }
     
     def _update_history(self, state: Dict[str, Any], decision: Dict[str, Any], llm_response: str):
         """更新历史数据"""
@@ -267,81 +295,69 @@ What specific action will you take to improve this social network? Respond in th
         
         return prompt
     
-    def _parse_decision(self, response: str, state: Dict[str, Any]) -> Dict[str, Any]:
+    def _parse_decision_response(self, response: str) -> Optional[Dict[str, Any]]:
         """解析LLM决策响应"""
-        response = response.strip().upper()
+        response = response.strip()
         
-        # 定义可能的动作
+        # 尝试解析标准格式
+        try:
+            # 查找ACTION行
+            action_match = re.search(r'ACTION:\s*([A-Z_]+)', response, re.IGNORECASE)
+            if not action_match:
+                return None
+            
+            action = action_match.group(1).upper()
+            
+            # 查找TARGET行
+            target_match = re.search(r'TARGET:\s*(.+?)(?:\n|$)', response, re.IGNORECASE)
+            target = target_match.group(1).strip() if target_match else "N/A"
+            
+            # 查找REASONING行
+            reasoning_match = re.search(r'REASONING:\s*(.+?)(?:\n|$)', response, re.IGNORECASE)
+            reasoning = reasoning_match.group(1).strip() if reasoning_match else "No reasoning provided"
+            
+            # 验证动作是否有效
+            valid_actions = [
+                "CREATE_POST", "ENCOURAGE_INTERACTION", "FEATURE_USER", 
+                "LAUNCH_CAMPAIGN", "IMPROVE_ALGORITHM", "ADD_FEATURE", 
+                "MODERATE_CONTENT", "EXPAND_NETWORK"
+            ]
+            
+            if action not in valid_actions:
+                return None
+            
+            return {
+                "action": action,
+                "target": target,
+                "reasoning": reasoning
+            }
+            
+        except Exception as e:
+            print(f"❌ Decision parsing failed: {e}")
+            return None
+    
+    def _parse_decision_fallback(self, response: str) -> Optional[Dict[str, Any]]:
+        """备用决策解析逻辑"""
+        # 尝试从响应中提取任何可能的动作
+        response_upper = response.upper()
+        
+        # 检查是否包含任何有效动作
         valid_actions = [
             "CREATE_POST", "ENCOURAGE_INTERACTION", "FEATURE_USER", 
             "LAUNCH_CAMPAIGN", "IMPROVE_ALGORITHM", "ADD_FEATURE", 
             "MODERATE_CONTENT", "EXPAND_NETWORK"
         ]
         
-        # 检查响应中的动作
-        selected_action = None
-        target = None
-        reasoning = "No specific reasoning provided"
-        
-        # 提取动作
         for action in valid_actions:
-            if action in response:
-                selected_action = action
-                break
+            if action in response_upper:
+                return {
+                    "action": action,
+                    "target": "N/A",
+                    "reasoning": f"Extracted action '{action}' from response"
+                }
         
-        # 提取目标
-        if "TARGET:" in response:
-            target_start = response.find("TARGET:") + 7
-            target_end = response.find("\n", target_start)
-            if target_end == -1:
-                target_end = len(response)
-            target = response[target_start:target_end].strip()
-        
-        # 提取推理
-        if "REASONING:" in response:
-            reasoning_start = response.find("REASONING:") + 10
-            reasoning_end = response.find("\n", reasoning_start)
-            if reasoning_end == -1:
-                reasoning_end = len(response)
-            reasoning = response[reasoning_start:reasoning_end].strip()
-        
-        # 如果没有找到有效动作，使用默认动作
-        if not selected_action:
-            selected_action = "CREATE_POST"
-            reasoning = "Fallback decision due to unclear response"
-        
-        return {
-            "action": selected_action,
-            "target": target,
-            "reasoning": reasoning,
-            "confidence": 0.8
-        }
-    
-    def _fallback_decision(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """备用决策逻辑"""
-        user_behavior = state.get("user_behavior", {})
-        active_users = user_behavior.get("active_users", 0)
-        
-        # 基于当前状态选择备用动作
-        if active_users < 50:
-            action = "EXPAND_NETWORK"
-            reasoning = "Low user base - need to grow network"
-        elif user_behavior.get("posts_created", 0) < 10:
-            action = "CREATE_POST"
-            reasoning = "Low content creation - need more posts"
-        elif user_behavior.get("likes_given", 0) < 20:
-            action = "ENCOURAGE_INTERACTION"
-            reasoning = "Low interaction - need to encourage engagement"
-        else:
-            action = "IMPROVE_ALGORITHM"
-            reasoning = "Stable state - optimize for better performance"
-        
-        return {
-            "action": action,
-            "target": None,
-            "reasoning": reasoning,
-            "confidence": 0.6
-        }
+        # 如果没有找到有效动作，返回None
+        return None
 
 
 def create_rl_social_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMDecisionMaker]:
@@ -387,7 +403,7 @@ def create_rl_social_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMD
         
         # 使用LLM做出决策
         decision_result = decision_maker.make_decision(current_state)
-        decision = decision_result["decision"]
+        decision = decision_result["decision"]  # 从结果中提取决策
         
         # 执行社交网络决策
         try:
@@ -398,7 +414,7 @@ def create_rl_social_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMD
             )
             
             # 计算奖励
-            reward = score * 10  # 将分数转换为奖励
+            reward = score * 10
             
             # 构建状态特征
             state_features = {
@@ -534,7 +550,7 @@ def run_rl_social_demo(steps: int = 5, model_name: str = "mistralai/Mistral-7B-I
                 
                 # 使用LLM做出决策
                 decision_result = decision_maker.make_decision(current_state)
-                decision = decision_result["decision"]
+                decision = decision_result["decision"]  # 从结果中提取决策
                 
                 # 执行社交网络决策
                 try:
