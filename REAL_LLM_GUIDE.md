@@ -4,20 +4,7 @@
 
 ## 支持的LLM后端
 
-### 1. Mock LLM
-- **用途**: 测试和演示
-- **优点**: 无需额外依赖，快速启动
-- **缺点**: 仅模拟响应，无真实推理能力
-
-### 2. HuggingFace模型
-- **支持模型**: GPT-2、LLaMA、Qwen、ChatGLM等
-- **优点**: 本地运行，隐私保护，可自定义
-- **缺点**: 需要GPU资源，模型下载较大
-
-### 3. OpenAI API
-- **支持模型**: GPT-3.5-turbo、GPT-4等
-- **优点**: 性能强大，无需本地资源
-- **缺点**: 需要API密钥，有使用成本
+包括  HuggingFace模型 如 GPT-2、LLaMA、Qwen、ChatGLM等，OpenAI, Claudi API等
 
 ## 安装依赖
 

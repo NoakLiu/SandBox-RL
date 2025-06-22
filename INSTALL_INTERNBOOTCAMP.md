@@ -431,25 +431,3 @@ pip uninstall sandgraph
 # 完全清理
 pip uninstall mcp internbootcamp
 ```
-
-## 🎯 下一步
-
-安装成功后，您可以：
-
-1. **运行演示**: `python internbootcamp_demo.py`
-2. **启动MCP服务器**: `python internbootcamp_mcp_server.py`
-3. **集成到Claude Desktop**: 按照上述配置步骤
-4. **开发自定义沙盒**: 参考 `sandgraph/internbootcamp_sandbox.py`
-5. **查看文档**: 浏览README和示例文件
-
-## 📞 获取帮助
-
-如果遇到问题：
-
-1. **查看日志**: 启用DEBUG模式查看详细日志
-2. **检查文档**: 阅读README.md和相关文档
-3. **运行验证**: 使用验证脚本检查安装
-4. **提交Issue**: [GitHub Issues](https://github.com/sandgraph/sandgraph/issues)
-5. **社区讨论**: [GitHub Discussions](https://github.com/sandgraph/sandgraph/discussions)
-
-祝您使用愉快！🚀 

@@ -280,22 +280,13 @@ export MCP_LOG_LEVEL=DEBUG
 python sandgraph_mcp_server.py --log-level DEBUG
 ```
 
-### 获取帮助
-
-如果遇到问题，可以：
-
-1. 查看 [GitHub Issues](https://github.com/sandgraph/sandgraph/issues)
-2. 参考 [官方MCP文档](https://modelcontextprotocol.io/)
-3. 在 [讨论区](https://github.com/sandgraph/sandgraph/discussions) 提问
-
 ## 📚 下一步
 
 安装完成后，您可以：
 
-1. 运行演示程序：`python -m sandgraph.demo`
-2. 查看示例代码：浏览 `examples/` 目录
-3. 阅读 API 文档：了解如何创建自定义沙盒
-4. 探索 MCP 生态系统：连接到其他 MCP 服务器
+1. 查看示例代码：浏览 `examples/` 目录
+2. 阅读 API 文档：了解如何创建自定义沙盒
+3. 探索 MCP 生态系统：连接到其他 MCP 服务器
 
 ## 🎯 成功标志
 
@@ -306,4 +297,4 @@ python sandgraph_mcp_server.py --log-level DEBUG
 - ✅ 创建自定义沙盒并通过 MCP 暴露
 - ✅ 使用 SandGraph 的六种使用场景
 
-恭喜！您现在可以开始使用 SandGraph + MCP 构建强大的多智能体系统了！🎉 
+恭喜！您现在可以开始使用 SandGraph + MCP 构建强大的SandBox模拟系统了！🎉 
