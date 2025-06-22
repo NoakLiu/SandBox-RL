@@ -291,6 +291,8 @@ TARGET: N/A
 REASONING: The network has low content creation activity, creating engaging posts will increase user engagement and attract more active users.
 
 What specific action will you take to improve this social network? Respond in the exact format above.
+
+IMPORTANT: Your response must start with "ACTION:" and follow the exact format shown above. Do not provide any other analysis or explanation outside of this format.
 """
         
         return prompt
@@ -299,22 +301,64 @@ What specific action will you take to improve this social network? Respond in th
         """解析LLM决策响应"""
         response = response.strip()
         
+        print(f"🔍 解析响应: {response[:200]}...")  # 打印前200个字符用于调试
+        
         # 尝试解析标准格式
         try:
-            # 查找ACTION行
-            action_match = re.search(r'ACTION:\s*([A-Z_]+)', response, re.IGNORECASE)
-            if not action_match:
+            # 查找ACTION行 - 使用更宽松的正则表达式
+            action_patterns = [
+                r'ACTION:\s*([A-Z_]+)',  # 标准格式
+                r'action:\s*([A-Z_]+)',  # 小写
+                r'Action:\s*([A-Z_]+)',  # 首字母大写
+                r'ACTION\s*:\s*([A-Z_]+)',  # 无冒号空格
+                r'ACTION\s*=\s*([A-Z_]+)',  # 等号格式
+            ]
+            
+            action = None
+            for pattern in action_patterns:
+                action_match = re.search(pattern, response, re.IGNORECASE)
+                if action_match:
+                    action = action_match.group(1).upper()
+                    print(f"✅ 找到ACTION: {action}")
+                    break
+            
+            if not action:
+                print("❌ 未找到ACTION字段")
                 return None
             
-            action = action_match.group(1).upper()
+            # 查找TARGET行 - 使用更宽松的正则表达式
+            target_patterns = [
+                r'TARGET:\s*(.+?)(?:\n|$)',  # 标准格式
+                r'target:\s*(.+?)(?:\n|$)',  # 小写
+                r'Target:\s*(.+?)(?:\n|$)',  # 首字母大写
+                r'TARGET\s*:\s*(.+?)(?:\n|$)',  # 无冒号空格
+                r'TARGET\s*=\s*(.+?)(?:\n|$)',  # 等号格式
+            ]
             
-            # 查找TARGET行
-            target_match = re.search(r'TARGET:\s*(.+?)(?:\n|$)', response, re.IGNORECASE)
-            target = target_match.group(1).strip() if target_match else "N/A"
+            target = "N/A"
+            for pattern in target_patterns:
+                target_match = re.search(pattern, response, re.IGNORECASE)
+                if target_match:
+                    target = target_match.group(1).strip()
+                    print(f"✅ 找到TARGET: {target}")
+                    break
             
-            # 查找REASONING行
-            reasoning_match = re.search(r'REASONING:\s*(.+?)(?:\n|$)', response, re.IGNORECASE)
-            reasoning = reasoning_match.group(1).strip() if reasoning_match else "No reasoning provided"
+            # 查找REASONING行 - 使用更宽松的正则表达式
+            reasoning_patterns = [
+                r'REASONING:\s*(.+?)(?:\n|$)',  # 标准格式
+                r'reasoning:\s*(.+?)(?:\n|$)',  # 小写
+                r'Reasoning:\s*(.+?)(?:\n|$)',  # 首字母大写
+                r'REASONING\s*:\s*(.+?)(?:\n|$)',  # 无冒号空格
+                r'REASONING\s*=\s*(.+?)(?:\n|$)',  # 等号格式
+            ]
+            
+            reasoning = "No reasoning provided"
+            for pattern in reasoning_patterns:
+                reasoning_match = re.search(pattern, response, re.IGNORECASE)
+                if reasoning_match:
+                    reasoning = reasoning_match.group(1).strip()
+                    print(f"✅ 找到REASONING: {reasoning[:50]}...")
+                    break
             
             # 验证动作是否有效
             valid_actions = [
@@ -324,7 +368,10 @@ What specific action will you take to improve this social network? Respond in th
             ]
             
             if action not in valid_actions:
+                print(f"❌ 无效的ACTION: {action}")
                 return None
+            
+            print(f"✅ 解析成功: {action} | {target} | {reasoning[:30]}...")
             
             return {
                 "action": action,
