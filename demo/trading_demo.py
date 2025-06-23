@@ -209,20 +209,24 @@ class LLMDecisionMaker:
         for symbol, amount in positions.items():
             position_summary.append(f"{symbol}: {amount} 股")
         
-        # 重构后的简洁提示
+        # 重构后的简洁提示，格式更清晰
         prompt = f"""You are a trading expert in a simulation game.
 
 REQUIRED RESPONSE FORMAT:
 ACTION: [BUY|SELL] [SYMBOL] [AMOUNT] shares
 REASONING: [brief explanation]
 
+Available Actions:
+1. BUY - Purchase stocks
+2. SELL - Sell stocks
+
 Available Symbols: {', '.join(market_data.keys())}
 
 Current Market:
-{chr(10).join(market_summary[:5])}  # 只显示前5个股票
+{chr(10).join(market_summary[:5])}
 
 Technical Indicators:
-{chr(10).join(technical_summary[:5])}  # 只显示前5个股票
+{chr(10).join(technical_summary[:5])}
 
 Current Portfolio:
 Cash: {cash:.2f}
