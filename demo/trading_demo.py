@@ -743,7 +743,7 @@ def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
     # 1. 创建LLM管理器
     print("\n1. Creating LLM Manager")
     llm_manager = create_shared_llm_manager(
-        model_name="Qwen/Qwen-7B-Chat",
+        model_name="mistralai/Mistral-7B-Instruct-v0.2",#"Qwen/Qwen-7B-Chat",
         backend="huggingface",
         temperature=0.7,
         max_length=512,
