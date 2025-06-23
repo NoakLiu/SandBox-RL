@@ -589,7 +589,7 @@ User Belief Distribution:
         prompt = f"""You are a misinformation intervention expert in a social network simulation.
 
 REQUIRED RESPONSE FORMAT:
-ACTION: [FACT_CHECK|WARNING_LABEL|DOWNRANK|REMOVE|EDUCATE|PROMOTE_TRUTH] [TARGET]
+ACTION: [FACT_CHECK|WARNING_LABEL|DOWNRANK|REMOVE|EDUCATE|PROMOTE_TRUTH] [GENERAL|HIGH_SPREAD|HIGH_BELIEF]
 REASONING: [brief explanation]
 
 Available Actions:
@@ -601,9 +601,9 @@ Available Actions:
 6. PROMOTE_TRUTH - Promote verified true information
 
 Available Targets:
-- general: General intervention
-- high_spread: Target high-spread misinformation
-- high_belief: Target information with many believers
+- GENERAL: General intervention across all misinformation
+- HIGH_SPREAD: Target high-spread misinformation specifically
+- HIGH_BELIEF: Target information with many believers specifically
 
 {network_summary.strip()}
 {misinfo_summary.strip()}
@@ -622,11 +622,20 @@ Choose the best intervention strategy to combat misinformation. Respond ONLY in 
         
         # 尝试解析标准格式
         try:
-            # 查找ACTION行
+            # 查找ACTION行 - 支持多种格式
             action_patterns = [
-                r'ACTION:\s*([A-Z_]+)\s+([A-Z_]+)',  # 标准格式
-                r'action:\s*([A-Z_]+)\s+([A-Z_]+)',  # 小写
-                r'Action:\s*([A-Z_]+)\s+([A-Z_]+)',  # 首字母大写
+                # 标准格式: ACTION: FACT_CHECK GENERAL
+                r'ACTION:\s*([A-Z_]+)\s+([A-Z_]+)',
+                # 带方括号格式: ACTION: EDUCATE [general]
+                r'ACTION:\s*([A-Z_]+)\s+\[([A-Z_]+)\]',
+                # 小写格式: action: fact_check general
+                r'action:\s*([A-Z_]+)\s+([A-Z_]+)',
+                # 首字母大写格式: Action: Fact_Check General
+                r'Action:\s*([A-Z_]+)\s+([A-Z_]+)',
+                # 无冒号空格格式: ACTION FACT_CHECK GENERAL
+                r'ACTION\s+([A-Z_]+)\s+([A-Z_]+)',
+                # 等号格式: ACTION=FACT_CHECK GENERAL
+                r'ACTION\s*=\s*([A-Z_]+)\s+([A-Z_]+)',
             ]
             
             action = None
@@ -654,11 +663,19 @@ Choose the best intervention strategy to combat misinformation. Respond ONLY in 
                 print(f"❌ 无效的ACTION: {action}")
                 return None
             
+            # 验证目标是否有效
+            valid_targets = ["GENERAL", "HIGH_SPREAD", "HIGH_BELIEF"]
+            if target not in valid_targets:
+                print(f"⚠️  无效的TARGET: {target}，使用GENERAL")
+                target = "GENERAL"
+            
             # 查找REASONING行
             reasoning_patterns = [
                 r'REASONING:\s*(.+?)(?:\n|$)',  # 标准格式
                 r'reasoning:\s*(.+?)(?:\n|$)',  # 小写
                 r'Reasoning:\s*(.+?)(?:\n|$)',  # 首字母大写
+                r'REASONING\s*:\s*(.+?)(?:\n|$)',  # 无冒号空格
+                r'REASONING\s*=\s*(.+?)(?:\n|$)',  # 等号格式
             ]
             
             reasoning = "No reasoning provided"
@@ -1155,6 +1172,10 @@ def test_parsing_logic():
         "ACTION: REMOVE HIGH_BELIEF\nREASONING: Remove false information with many believers",
         "action: educate general\nreasoning: Improve user literacy",
         "Action: Promote_Truth General\nReasoning: Promote verified information",
+        "ACTION: EDUCATE [GENERAL]\nREASONING: Improve user media literacy",
+        "ACTION: FACT_CHECK [HIGH_SPREAD]\nREASONING: Target high-spread misinformation",
+        "ACTION WARNING_LABEL GENERAL\nREASONING: Add warning labels",
+        "ACTION=REMOVE HIGH_BELIEF\nREASONING: Remove false information",
     ]
     
     test_state = {
