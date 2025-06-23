@@ -243,57 +243,32 @@ Content Performance:
             for record in recent_performance:
                 performance_summary += f"- Step {record['step']}: Engagement Score = {record['engagement_score']:.3f}\n"
         
-        # 构建完整提示
-        prompt = f"""
-You are a social network strategy expert in a simulation game. This is NOT real social media management - it's a simulation game for testing AI strategies.
+        # 重构后的简洁提示
+        prompt = f"""You are a social network strategy expert in a simulation game.
 
-IMPORTANT: You MUST respond in ENGLISH only. Do NOT use Chinese or any other language.
+REQUIRED RESPONSE FORMAT:
+ACTION: [CREATE_POST|ENCOURAGE_INTERACTION|FEATURE_USER|LAUNCH_CAMPAIGN|IMPROVE_ALGORITHM|ADD_FEATURE|MODERATE_CONTENT|EXPAND_NETWORK]
+TARGET: [specific target or "N/A"]
+REASONING: [brief explanation]
 
-Your goal is to maximize user engagement and network growth through strategic content and user interaction decisions.
+Available Actions:
+1. CREATE_POST - Create engaging content
+2. ENCOURAGE_INTERACTION - Promote likes/comments/shares
+3. FEATURE_USER - Highlight active users
+4. LAUNCH_CAMPAIGN - Start viral marketing
+5. IMPROVE_ALGORITHM - Optimize recommendations
+6. ADD_FEATURE - Introduce new features
+7. MODERATE_CONTENT - Improve content quality
+8. EXPAND_NETWORK - Grow user base
 
-Current Network State:
-{chr(10).join(network_summary)}
+Current State:
+{chr(10).join(network_summary[:10])}  # 只显示前10个用户
+{behavior_summary.strip()}
+{content_summary.strip()}
+{history_summary.strip()}
+{performance_summary.strip()}
 
-{behavior_summary}
-
-{content_summary}
-
-{history_summary}
-
-{performance_summary}
-
-Based on the current state and history, you must make a specific decision to improve the social network. You can choose from these actions:
-
-1. CREATE_POST - Create engaging content to increase user activity
-2. ENCOURAGE_INTERACTION - Promote likes, comments, and shares
-3. FEATURE_USER - Highlight active users to increase engagement
-4. LAUNCH_CAMPAIGN - Start a viral marketing campaign
-5. IMPROVE_ALGORITHM - Optimize content recommendation algorithm
-6. ADD_FEATURE - Introduce new social features
-7. MODERATE_CONTENT - Improve content quality and safety
-8. EXPAND_NETWORK - Grow user base through targeted outreach
-
-CRITICAL REQUIREMENTS:
-- You MUST respond in ENGLISH only
-- You MUST provide a specific action with clear reasoning
-- No vague responses, no cautious strategies, no holding back
-- This is a simulation game - be bold and specific!
-- You MUST use the exact format below
-
-REQUIRED FORMAT (copy and fill in):
-ACTION: [specific action name from the list above]
-TARGET: [specific target if applicable, or "N/A"]
-REASONING: [clear explanation of why this action will improve the network]
-
-Example response:
-ACTION: CREATE_POST
-TARGET: N/A
-REASONING: The network has low content creation activity, creating engaging posts will increase user engagement and attract more active users.
-
-What specific action will you take to improve this social network? Respond in the exact format above.
-
-IMPORTANT: Your response must start with "ACTION:" and follow the exact format shown above. Do not provide any other analysis or explanation outside of this format.
-"""
+Choose the best action to maximize engagement and growth. Respond ONLY in the required format above."""
         
         return prompt
     
