@@ -449,7 +449,7 @@ Choose the best trading action to maximize returns. Respond ONLY in the required
         }
 
 
-def create_rl_trading_workflow(llm_manager, strategy_type: str = "simulated") -> tuple[SG_Workflow, RLTrainer, LLMDecisionMaker]:
+def create_rl_trading_workflow(llm_manager, strategy_type: str = "simulated") -> tuple[SG_Workflow, RLTrainer, LLMDecisionMaker, Any]:
     """创建基于RL的LLM决策交易工作流 - 使用纯模拟数据"""
     
     # 创建RL配置
@@ -462,9 +462,9 @@ def create_rl_trading_workflow(llm_manager, strategy_type: str = "simulated") ->
         value_loss_coef=0.5,
         entropy_coef=0.01,
         max_grad_norm=0.5,
-        batch_size=4,
-        mini_batch_size=2,
-        ppo_epochs=2,
+        batch_size=4,  # 从32减小到4
+        mini_batch_size=2,  # 从8减小到2
+        ppo_epochs=2,  # 从4减小到2
         target_kl=0.01
     )
     
@@ -578,7 +578,7 @@ def create_rl_trading_workflow(llm_manager, strategy_type: str = "simulated") ->
     )
     workflow.add_node(trading_env_node)
     
-    return workflow, rl_trainer, decision_maker
+    return workflow, rl_trainer, decision_maker, trading_env_func
 
 
 def _calculate_volatility(state: Dict[str, Any]) -> float:
@@ -635,7 +635,7 @@ def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
     
     # 2. 创建工作流和RL训练器
     print("\n2. Creating RL Trading Workflow")
-    workflow, rl_trainer, decision_maker = create_rl_trading_workflow(llm_manager, strategy_type)
+    workflow, rl_trainer, decision_maker, trading_env_func = create_rl_trading_workflow(llm_manager, strategy_type)
     
     # 3. 执行多步交易
     print(f"\n3. Executing {steps} Trading Steps")
@@ -645,96 +645,17 @@ def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
         print(f"\n--- 第 {step + 1} 步 ---")
         
         try:
-            # 直接执行交易环境节点
-            node = workflow.nodes.get("trading_environment")
-            if node and node.sandbox:
-                # 获取当前状态
-                case = node.sandbox.case_generator()
-                current_state = case["state"]
-                
-                # 使用LLM做出决策
-                decision_result = decision_maker.make_decision(current_state)
-                decision = decision_result["decision"]
-                
-                # 执行交易决策
-                try:
-                    # 验证和执行交易
-                    score = node.sandbox.verify_score(
-                        f"{decision['action']} {decision.get('symbol', '')} {decision.get('amount', 0)}",
-                        case
-                    )
-                    
-                    # 计算奖励
-                    reward = score * 10  # 将分数转换为奖励
-                    
-                    # 构建状态特征
-                    state_features = {
-                        "market_volatility": _calculate_volatility(current_state),
-                        "portfolio_value": _calculate_portfolio_value(current_state),
-                        "cash_ratio": current_state["portfolio"]["cash"] / 100000.0,
-                        "position_count": len(current_state["portfolio"]["positions"]),
-                        "decision_type": 1 if decision["action"] == "BUY" else (2 if decision["action"] == "SELL" else 0)
-                    }
-                    
-                    # 添加到RL训练器
-                    rl_trainer.add_experience(
-                        state=state_features,
-                        action=json.dumps(decision),
-                        reward=reward,
-                        done=False
-                    )
-                    
-                    # 更新策略
-                    update_result = rl_trainer.update_policy()
-                    
-                    # 显示RL更新状态
-                    print(f"RL Update Status: {update_result.get('status', 'unknown')}")
-                    if update_result.get('status') == 'insufficient_data':
-                        print(f"  Trajectory Count: {update_result.get('trajectory_count', 0)}")
-                        print(f"  Required Batch Size: {update_result.get('required_batch_size', 0)}")
-                    elif update_result.get('status') == 'updated':
-                        print(f"  Training Step: {update_result.get('training_step', 0)}")
-                        print(f"  Algorithm: {update_result.get('algorithm', 'unknown')}")
-                    
-                    result = {
-                        "state": current_state,
-                        "decision": decision,
-                        "llm_response": decision_result["llm_response"],
-                        "score": score,
-                        "reward": reward,
-                        "rl_update": update_result,
-                        "sandbox_id": node.sandbox.sandbox_id
-                    }
-                    
-                    print(f"LLM Decision: {decision['action']} {decision.get('symbol', '')} {decision.get('amount', '')}")
-                    print(f"Decision Reason: {decision.get('reasoning', '')}")
-                    print(f"Trading Score: {score:.3f}")
-                    print(f"RL Reward: {reward:.3f}")
-                    
-                    # 显示当前投资组合状态
-                    portfolio = current_state.get("portfolio", {})
-                    cash = portfolio.get("cash", 0)
-                    positions = portfolio.get("positions", {})
-                    print(f"Current Cash: {cash:.2f}")
-                    print(f"Current Positions: {positions}")
-                    
-                    results.append(result)
-                    
-                except Exception as e:
-                    print(f"❌ Trading Execution Error: {e}")
-                    result = {
-                        "state": current_state,
-                        "decision": {"action": "HOLD", "reasoning": f"Execution Error: {e}"},
-                        "score": 0.0,
-                        "reward": 0.0,
-                        "error": str(e)
-                    }
-                    results.append(result)
-            else:
-                print("❌ Trading Environment Node Not Found or Invalid")
-                
+            # 使用trading_env_func执行交易
+            result = trading_env_func({})
+            results.append(result)
+            
         except Exception as e:
             print(f"❌ Step {step + 1} Execution Error: {e}")
+            result = {
+                "error": str(e),
+                "step": step + 1
+            }
+            results.append(result)
     
     # 4. 输出最终结果
     print("\n4. Final Results")
