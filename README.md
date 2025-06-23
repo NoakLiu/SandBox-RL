@@ -87,7 +87,9 @@ SandGraphX/
 │   ├── interaction_demo.py     # 交互演示
 │   ├── internbootcamp_demo.py  # InternBootcamp演示
 │   ├── internbootcamp_mcp_server.py # InternBootcamp MCP服务器
-│   └── mcp_server_example.py   # MCP服务器示例
+│   ├── mcp_server_example.py   # MCP服务器示例
+│   ├── social_network_demo.py  # 社交网络分析演示
+│   └── misinformation_spread_demo.py # 虚假信息传播演示
 └── setup.py                     # 安装配置
 ```
 
@@ -411,9 +413,30 @@ python demo/trading_demo.py --strategy simulated --steps 5
 python demo/social_network_demo.py --steps 10
 ```
 
+### Example 3: Misinformation Spread Analysis
+
+**Input**: Social network data, user beliefs, information content  
+**Process**: LLM analyzes misinformation patterns → generates intervention strategies → RL optimizes intervention effectiveness  
+**Output**: Intervention actions, belief change metrics, spread reduction statistics
+
+```python
+# Run misinformation spread demo
+python demo/misinformation_spread_demo.py --steps 5
+
+# Run tests for misinformation spread demo
+python demo/misinformation_spread_demo.py --test
+```
+
+**Features**:
+- **Information Types**: TRUE, FALSE, MISLEADING, UNVERIFIED
+- **User Belief States**: BELIEVER, SKEPTIC, NEUTRAL, DISBELIEVER  
+- **Intervention Strategies**: FACT_CHECK, WARNING_LABEL, DOWNRANK, REMOVE, EDUCATE, PROMOTE_TRUTH
+- **Network Dynamics**: User susceptibility, information virality, belief propagation
+- **RL Optimization**: Adaptive intervention strategy learning
+
 ## 🔥 LLM模型使用指南
 
-SandGraph支持多种火热的大语言模型，以下是详细的使用示例：
+SandGraph支持多种主流的大语言模型，以下是详细的使用示例：
 
 ### 1. 基础模型使用
 
