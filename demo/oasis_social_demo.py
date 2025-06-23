@@ -533,11 +533,14 @@ Available Actions:
 6. TREND - Boost trending content
 
 Available Users: user_0, user_1, user_2, user_3, user_4, user_5, user_6, user_7, user_8, user_9
+Available Posts: post_0, post_1, post_2, post_3, post_4, post_5, post_6, post_7, post_8, post_9
 
 {network_summary.strip()}
 {trending_summary.strip()}
 {active_summary.strip()}
 {history_summary.strip()}
+
+IMPORTANT: Use actual user IDs (user_0, user_1, etc.) and post IDs (post_0, post_1, etc.) instead of placeholders like [USER_1] or [TARGET_POST].
 
 Choose the best social action to maximize engagement and network growth. Respond ONLY in the required format above."""
         
@@ -557,6 +560,10 @@ Choose the best social action to maximize engagement and network growth. Respond
                 r'ACTION:\s*([A-Z_]+)\s+([a-z_0-9]+)\s+([a-z_0-9_]+)\s+(.+)',
                 # 无目标格式: ACTION: CREATE_POST user_0 content
                 r'ACTION:\s*([A-Z_]+)\s+([a-z_0-9]+)\s+(.+)',
+                # 方括号格式: ACTION: CREATE_COMMENT [USER_1] [TARGET_POST] content
+                r'ACTION:\s*([A-Z_]+)\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+(.+)',
+                # 方括号格式无目标: ACTION: CREATE_POST [USER_1] content
+                r'ACTION:\s*([A-Z_]+)\s+\[([^\]]+)\]\s+(.+)',
                 # 小写格式: action: create_post user_0 target_id content
                 r'action:\s*([A-Z_]+)\s+([a-z_0-9]+)\s+([a-z_0-9_]+)\s+(.+)',
                 # 首字母大写格式: Action: Create_Post user_0 target_id content
@@ -572,13 +579,28 @@ Choose the best social action to maximize engagement and network growth. Respond
                 action_match = re.search(pattern, response, re.IGNORECASE)
                 if action_match:
                     action = action_match.group(1).upper()
-                    user_id = action_match.group(2)
                     
-                    if len(action_match.groups()) >= 4:
-                        target_id = action_match.group(3)
-                        content = action_match.group(4).strip()
+                    # 处理方括号格式
+                    if '[' in action_match.group(2):
+                        # 方括号格式
+                        user_id_raw = action_match.group(2).strip('[]')
+                        if len(action_match.groups()) >= 4:
+                            target_id_raw = action_match.group(3).strip('[]')
+                            content = action_match.group(4).strip()
+                        else:
+                            content = action_match.group(3).strip()
+                        
+                        # 处理占位符
+                        user_id = self._resolve_placeholder(user_id_raw)
+                        target_id = self._resolve_placeholder(target_id_raw) if 'target_id_raw' in locals() else None
                     else:
-                        content = action_match.group(3).strip()
+                        # 标准格式
+                        user_id = action_match.group(2)
+                        if len(action_match.groups()) >= 4:
+                            target_id = action_match.group(3)
+                            content = action_match.group(4).strip()
+                        else:
+                            content = action_match.group(3).strip()
                     
                     print(f"✅ 找到ACTION: {action} {user_id} {target_id or 'None'} {content[:30]}...")
                     break
@@ -625,6 +647,30 @@ Choose the best social action to maximize engagement and network growth. Respond
         except Exception as e:
             print(f"❌ Decision parsing failed: {e}")
             return None
+    
+    def _resolve_placeholder(self, placeholder: str) -> str:
+        """解析占位符为实际值"""
+        placeholder = placeholder.upper()
+        
+        # 用户ID占位符
+        if "USER_" in placeholder:
+            # 提取数字部分
+            import re
+            match = re.search(r'USER_(\d+)', placeholder)
+            if match:
+                return f"user_{match.group(1)}"
+            else:
+                # 如果没有数字，使用默认用户
+                return "user_0"
+        
+        # 帖子ID占位符
+        elif "POST" in placeholder or "TARGET" in placeholder:
+            # 返回一个默认的帖子ID
+            return "post_0"
+        
+        # 其他占位符
+        else:
+            return placeholder.lower()
     
     def _parse_decision_fallback(self, response: str) -> Optional[Dict[str, Any]]:
         """备用决策解析逻辑"""
