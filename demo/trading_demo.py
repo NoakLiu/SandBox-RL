@@ -251,18 +251,20 @@ Choose the best trading action to maximize returns. Respond ONLY in the required
         try:
             # 查找ACTION行 - 使用更宽松的正则表达式
             action_patterns = [
-                # 新格式: ACTION: BUY GOOGL - 500 shares
-                r'ACTION:\s*([A-Z]+)\s+([A-Z]+)\s*-\s*(\d+(?:\.\d+)?)\s*shares',
+                # 新格式: ACTION: BUY AAPL shares 5000
+                r'ACTION:\s*([A-Z]+)\s+([A-Z]+)\s+shares\s+(\d+(?:\.\d+)?)',
                 # 标准格式: ACTION: BUY GOOGL 500 shares
-                r'ACTION:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',
+                r'ACTION:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s+shares',
+                # 带连字符格式: ACTION: BUY GOOGL - 500 shares
+                r'ACTION:\s*([A-Z]+)\s+([A-Z]+)\s*-\s*(\d+(?:\.\d+)?)\s*shares',
                 # 小写格式: action: buy googl 500 shares
-                r'action:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',
+                r'action:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s+shares',
                 # 首字母大写格式: Action: Buy Googl 500 shares
-                r'Action:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',
+                r'Action:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s+shares',
                 # 无冒号空格格式: ACTION BUY GOOGL 500 shares
-                r'ACTION\s*:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',
+                r'ACTION\s*:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s+shares',
                 # 等号格式: ACTION=BUY GOOGL 500 shares
-                r'ACTION\s*=\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',
+                r'ACTION\s*=\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s+shares',
             ]
             
             action = None
@@ -276,7 +278,9 @@ Choose the best trading action to maximize returns. Respond ONLY in the required
                     symbol = action_match.group(2).upper()
                     amount = float(action_match.group(3))
                     if i == 0:  # 新格式
-                        print(f"✅ 找到新格式ACTION: {action} {symbol} - {amount}")
+                        print(f"✅ 找到新格式ACTION: {action} {symbol} shares {amount}")
+                    elif i == 2:  # 带连字符格式
+                        print(f"✅ 找到连字符格式ACTION: {action} {symbol} - {amount}")
                     else:  # 标准格式
                         print(f"✅ 找到标准格式ACTION: {action} {symbol} {amount}")
                     break
