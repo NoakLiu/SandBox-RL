@@ -434,6 +434,28 @@ python demo/misinformation_spread_demo.py --test
 - **Network Dynamics**: User susceptibility, information virality, belief propagation
 - **RL Optimization**: Adaptive intervention strategy learning
 
+### Example 4: OASIS Social Network Simulation
+
+**Input**: User profiles, social network topology, content data  
+**Process**: LLM analyzes social dynamics → generates user behaviors → RL optimizes engagement strategies  
+**Output**: Social interactions, network growth metrics, engagement optimization
+
+```python
+# Run OASIS social network demo
+python demo/oasis_social_demo.py --steps 5
+
+# Run tests for OASIS social network demo
+python demo/oasis_social_demo.py --test
+```
+
+**Features**:
+- **Social Actions**: CREATE_POST, CREATE_COMMENT, LIKE_POST, FOLLOW, SHARE, TREND
+- **User Profiles**: Interests, personality traits, social connections
+- **Network Dynamics**: User engagement, content virality, network growth
+- **Content Management**: Trending content, user activity tracking
+- **RL Optimization**: Adaptive social behavior learning
+- **Scalability**: Support for large-scale social network simulations
+
 ## 🔥 LLM模型支持
 
 SandGraph支持多种主流大语言模型，以下是支持的模型和基本使用方法：
