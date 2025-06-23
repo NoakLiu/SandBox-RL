@@ -4,7 +4,7 @@
   <img src="assets/logo.png" alt="SandGraphX Logo" width="200"/>
 </div>
 
-SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化目标（Optimization Goal）的智能优化框架。它通过 SandBox Workflow Graph 来协调 LLM 决策和 RL 权重更新，实现复杂任务的自动化优化。
+SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化目标（Optimization Goal）的智能优化框架。它通过 SandBox Workflow Graph 来协调 LLM 决策和 并使用RL 对于LLM进行权重更新，实现复杂任务的自动化优化。
 
 ## 🌟 核心概念
 
@@ -37,22 +37,28 @@ SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化�
 
 ## 🌟 核心特性
 
+- **官方MCP集成**：基于 Anthropic 的官方 MCP Python SDK
 - **沙盒环境**：遵循 InternBootCamp 模式的标准化任务环境
 - **工作流图**：支持Sandbox DAG Workflow
 - **标准化通信**：使用官方 MCP 协议进行 Sandbox通信与LLM进行计算
 - **多种使用场景**：从单一沙盒(single node)执行到复杂多阶段(multiple node, large DAGs)工作流
+- **生态系统兼容**：与 Claude Desktop、Cursor、Windsurf 等 MCP 客户端兼容
 - **动态工作流引擎**：支持复杂的DAG（有向无环图）工作流，实现多节点协作
 - **智能状态管理**：每个节点维护独立的状态，支持动态更新和状态追踪
+- **沙盒(SandBox)环境集成**：提供标准化的沙盒环境，用于任务执行和验证
 - **资源管理系统**：资源（能量、令牌、时间、知识）管理机制
 - **自适应决策**：支持基于历史信息和当前状态的智能决策
 - **可扩展架构**：易于添加新的节点类型和功能模块
 - **🔥 丰富的LLM模型支持**：支持多种火热的大语言模型，包括：
-  - **默认推荐**：Mistral-7B
-  - **中文模型**：Qwen-7B, Yi-6B, ChatGLM3
-  - **代码模型**：CodeLLaMA, StarCoder
-  - **轻量级**：Phi-2, Gemma-2B
-  - **高性能**：LLaMA2-13B
-  - **开源替代**：GPT-2, Falcon
+  - **GPT系列**：GPT-2 (开源)
+  - **LLaMA系列**：LLaMA2, CodeLLaMA (Meta开源)
+  - **Qwen系列**：Qwen-1.8B/7B/14B/72B (阿里云)
+  - **Mistral系列**：Mistral-7B, Mixtral-8x7B
+  - **Gemma系列**：Gemma-2B/7B (Google)
+  - **Phi系列**：Phi-2, Phi-1.5 (Microsoft)
+  - **中文模型**：Yi, ChatGLM, Baichuan, InternLM
+  - **代码模型**：StarCoder, CodeLLaMA
+  - **高性能模型**：Falcon, 其他开源替代品
 
 ## 📁 文件结构
 
@@ -70,10 +76,20 @@ SandGraphX/
 │   ├── sandbox_implementations.py # 沙盒实现
 │   └── examples.py              # 示例代码
 ├── demo/                        # 示例代码目录
+│   ├── sandbox_optimization.py  # 沙盒优化示例
 │   ├── trading_demo.py         # 交易系统示例
+│   ├── sg_workflow_demo.py     # 工作流演示
+│   ├── rl_demo.py              # 强化学习演示
+│   ├── dag_sandbox_demo.py     # DAG沙盒演示
+│   ├── dag_workflow_demo.py    # DAG工作流演示
+│   ├── real_llm_demo.py        # 真实LLM演示
+│   ├── demo.py                 # 基础演示
+│   ├── interaction_demo.py     # 交互演示
+│   ├── internbootcamp_demo.py  # InternBootcamp演示
+│   ├── internbootcamp_mcp_server.py # InternBootcamp MCP服务器
+│   ├── mcp_server_example.py   # MCP服务器示例
 │   ├── social_network_demo.py  # 社交网络分析演示
-│   ├── misinformation_spread_demo.py # 虚假信息传播演示
-│   └── oasis_social_demo.py    # OASIS社交网络模拟
+│   └── misinformation_spread_demo.py # 虚假信息传播演示
 └── setup.py                     # 安装配置
 ```
 
@@ -108,6 +124,28 @@ SandGraphX/
 └─────────────────────────────────────────────────────────┘
 ```
 
+### 架构说明
+
+1. **核心层**
+   - Workflow Engine: 管理工作流执行和节点调度
+   - SandBox Manager: 管理环境子集和状态转换
+   - LLM Manager: 处理决策生成和策略优化
+   - RL Manager: 负责权重更新和策略改进
+
+2. **节点层**
+   - DAG Nodes: 工作流中的计算节点
+   - Environment Subsets: 环境子集实现
+   - Decision Making: LLM决策节点
+   - Weight Updates: RL权重更新节点
+
+3. **管理层**
+   - 用户输入处理：接收环境子集定义和优化目标
+   - 工作流管理：构建和执行DAG图
+   - 优化控制：协调LLM和RL的优化过程
+   - 资源隔离：确保SandBox与全局资源分离
+   - 状态监控：追踪执行状态和性能指标
+   - 扩展支持：提供自定义节点和策略的接口
+
 ## 🚀 快速开始
 
 ### 1. 定义环境子集
@@ -139,9 +177,7 @@ def optimization_goal(state, action, next_state):
 
 ### 3. 创建工作流
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig
+from sandgraph import SG_Workflow, NodeType
 
 # 创建LLM管理器（默认使用Mistral-7B）
 llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2")
@@ -173,13 +209,69 @@ conda create -n sandgraph python=3.11
 conda activate sandgraph
 
 # 2. 克隆仓库
-git clone https://github.com/NoakLiu/SandGraphX.git
+https://github.com/NoakLiu/SandGraphX.git
 cd SandGraphX
 
 # 3. 运行安装脚本
 chmod +x quick_install.sh
 ./quick_install.sh
 ```
+
+<!-- ### 验证安装
+
+```bash
+# 验证 MCP SDK
+python -c "from mcp.server.fastmcp import FastMCP; print('MCP SDK 安装成功')"
+
+# 验证 SandGraph
+python -c "from sandgraph import check_mcp_availability; print(check_mcp_availability())"
+``` -->
+
+<!-- ### 注意事项
+
+1. 确保使用 Python 3.8 或更高版本
+2. 建议使用 conda 环境以避免依赖冲突
+3. 如果遇到权限问题，请确保使用虚拟环境而不是 root 用户
+4. 安装完成后，每次使用前都需要激活环境：`conda activate sandgraph`
+
+## 📚 示例场景
+
+### 1. 游戏分析系统
+- 状态分析
+- 策略生成
+- 风险评估
+- 资源优化
+
+### 2. 动态决策系统
+- 状态分析
+- 策略生成
+- 风险评估
+- 决策执行
+
+### 3. 量化交易系统
+- 市场数据分析
+- 交易策略生成
+- 实时交易执行
+- 风险控制
+- 投资组合管理
+
+### 4. 社交网络分析
+- 信息传播建模
+- 影响力分析
+- 社区发现
+- 趋势预测
+
+## 🔧 开发指南
+
+### 添加新节点类型
+1. 定义节点属性
+2. 实现状态更新逻辑
+3. 注册到工作流系统
+
+### 自定义工作流
+1. 定义节点结构
+2. 设置节点依赖
+3. 配置执行参数 -->
 
 ## 📖 Usage
 
@@ -214,6 +306,62 @@ chmod +x quick_install.sh
 │  • Optimization Statistics                              │
 │  • State Updates                                        │
 └─────────────────────────────────────────────────────────┘
+```
+
+### API Structure & File Mapping
+
+#### Core API Files
+```
+sandgraph/core/
+├── llm_interface.py      # LLM Manager API
+├── sg_workflow.py        # Workflow Engine API  
+├── sandbox.py           # SandBox Base API
+├── rl_algorithms.py     # RL Trainer API
+└── dag_manager.py       # DAG Management API
+```
+
+#### Key API Signatures
+
+**LLM Manager** (`llm_interface.py`)
+```python
+def create_shared_llm_manager(
+    model_name: str,
+    backend: str = "huggingface",
+    temperature: float = 0.7,
+    max_length: int = 512,
+    device: str = "auto"
+) -> LLMManager
+
+class LLMManager:
+    def generate_for_node(self, node_name: str, prompt: str, **kwargs) -> LLMResponse
+    def register_node(self, node_name: str, config: Dict[str, Any]) -> None
+```
+
+**Workflow Engine** (`sg_workflow.py`)
+```python
+class SG_Workflow:
+    def __init__(self, name: str, mode: WorkflowMode, llm_manager: LLMManager)
+    def add_node(self, node_type: NodeType, name: str, config: Dict[str, Any]) -> None
+    def execute_full_workflow(self) -> Dict[str, Any]
+    def execute_node(self, node_name: str, inputs: Dict[str, Any]) -> Dict[str, Any]
+```
+
+**SandBox Base** (`sandbox.py`)
+```python
+class SandBox:
+    def __init__(self, sandbox_id: str = None)
+    def case_generator(self) -> Dict[str, Any]
+    def verify_score(self, action: str, case: Dict[str, Any]) -> float
+    def execute(self, action: str) -> Dict[str, Any]
+```
+
+**RL Trainer** (`rl_algorithms.py`)
+```python
+class RLTrainer:
+    def __init__(self, config: RLConfig, llm_manager: LLMManager)
+    def add_experience(self, state: Dict, action: str, reward: float, done: bool) -> None
+    def update_policy(self) -> Dict[str, Any]
+    def get_training_stats(self) -> Dict[str, Any]
 ```
 
 ### Core API Usage
@@ -274,7 +422,17 @@ python demo/social_network_demo.py --steps 10
 ```python
 # Run misinformation spread demo
 python demo/misinformation_spread_demo.py --steps 5
+
+# Run tests for misinformation spread demo
+python demo/misinformation_spread_demo.py --test
 ```
+
+**Features**:
+- **Information Types**: TRUE, FALSE, MISLEADING, UNVERIFIED
+- **User Belief States**: BELIEVER, SKEPTIC, NEUTRAL, DISBELIEVER  
+- **Intervention Strategies**: FACT_CHECK, WARNING_LABEL, DOWNRANK, REMOVE, EDUCATE, PROMOTE_TRUTH
+- **Network Dynamics**: User susceptibility, information virality, belief propagation
+- **RL Optimization**: Adaptive intervention strategy learning
 
 ### Example 4: OASIS Social Network Simulation
 
@@ -285,6 +443,48 @@ python demo/misinformation_spread_demo.py --steps 5
 ```python
 # Run OASIS social network demo
 python demo/oasis_social_demo.py --steps 5
+
+# Run tests for OASIS social network demo
+python demo/oasis_social_demo.py --test
+```
+
+**Features**:
+- **Social Actions**: CREATE_POST, CREATE_COMMENT, LIKE_POST, FOLLOW, SHARE, TREND
+- **User Profiles**: Interests, personality traits, social connections
+- **Network Dynamics**: User engagement, content virality, network growth
+- **Content Management**: Trending content, user activity tracking
+- **RL Optimization**: Adaptive social behavior learning
+- **Scalability**: Support for large-scale social network simulations
+
+For OASIS API Integration Demo
+
+**Input**: Agent profiles, social network topology, interaction data  
+**Process**: LLM analyzes agent behaviors → generates social actions → RL optimizes agent strategies  
+**Output**: Agent interactions, network dynamics, behavioral optimization
+
+```python
+# Run OASIS API integration demo
+python demo/oasis_api_demo.py --steps 5
+
+# Run with custom profile
+python demo/oasis_api_demo.py --steps 5 --profile ./data/custom_profile.json
+
+# Run tests for OASIS API integration demo
+python demo/oasis_api_demo.py --test
+```
+
+**Features**:
+- **Agent Behaviors**: CREATE_POST, CREATE_COMMENT, LIKE_POST, FOLLOW, SEARCH_POSTS, TREND
+- **Agent Profiles**: Personality traits, interests, social connections
+- **Network Dynamics**: Agent interactions, content creation, engagement patterns
+- **RL Optimization**: Adaptive agent behavior learning
+- **Scalability**: Support for multiple agents and complex interactions
+
+**Installation**:
+```bash
+# Install OASIS dependencies
+chmod +x install_oasis.sh
+./install_oasis.sh
 ```
 
 ## 🔥 LLM模型支持
@@ -302,10 +502,65 @@ SandGraph支持多种主流大语言模型，以下是支持的模型和基本�
 | **高性能** | LLaMA2-13B | 13B | 16-32GB |
 | **开源替代** | GPT-2, Falcon | 1-7B | 2-16GB |
 
+<!-- ### 基本使用方法
+
+```python
+from sandgraph.core.llm_interface import create_shared_llm_manager
+
+# 1. 创建LLM管理器（默认使用Mistral-7B）
+llm_manager = create_shared_llm_manager(
+    model_name="mistralai/Mistral-7B-Instruct-v0.2",  # 默认模型
+    backend="huggingface",                            # 后端
+    temperature=0.7,                                  # 温度参数
+    max_length=512,                                   # 最大长度
+    device="auto"                                     # 设备选择
+)
+
+# 2. 注册节点
+llm_manager.register_node("my_node", {
+    "role": "对话助手",
+    "temperature": 0.7,
+    "max_length": 512
+})
+
+# 3. 生成响应
+response = llm_manager.generate_for_node("my_node", "你好，请介绍一下自己")
+print(response.text)
+```
+
+### 快速模型选择
+
+```python
+# 默认模型（推荐）
+llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2")
+
+# 中文任务
+llm_manager = create_shared_llm_manager("Qwen/Qwen-7B-Chat")
+
+# 代码生成
+llm_manager = create_shared_llm_manager("codellama/CodeLlama-7b-Instruct-hf")
+
+# 轻量级应用
+llm_manager = create_shared_llm_manager("microsoft/Phi-2")
+```
+
+### 设备选择
+
+```python
+# 自动选择（推荐）
+llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2", device="auto")
+
+# 强制使用CPU
+llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2", device="cpu")
+
+# 强制使用GPU
+llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2", device="cuda")
+``` -->
+
 ## 📄 许可证
 
 MIT License
 
 ## 🤝 联系方式
 
-- 邮件联系 - dong.liu.dl2367@yale.edu 
+- 邮件联系 - dong.liu.dl2367@yale.edu
