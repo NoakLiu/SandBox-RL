@@ -1210,26 +1210,43 @@ class TradingSandbox(Sandbox):
     def verify_score(self, response: str, case: Dict[str, Any], format_score: float = 0.0) -> float:
         """验证交易决策并计算评分"""
         try:
+            print(f"🔍 TradingSandbox verify_score 调试信息:")
+            print(f"  响应: {response}")
+            print(f"  响应长度: {len(response)}")
+            
             # 解析动作
             parts = response.strip().split()
+            print(f"  解析后的部分: {parts}")
+            print(f"  部分数量: {len(parts)}")
+            
             if len(parts) < 1:
+                print("  ❌ 响应部分数量不足")
                 return 0.0
             
             action_type = parts[0].upper()
+            print(f"  动作类型: {action_type}")
+            
             if action_type == "HOLD":
+                print("  ✅ 持有操作，返回基准分数0.5")
                 return 0.5  # 持有观望的基准分数
             
             if len(parts) < 3:
+                print("  ❌ 响应部分数量不足3个")
                 return 0.0
             
             symbol = parts[1]
             amount = float(parts[2])
+            print(f"  股票代码: {symbol}")
+            print(f"  数量: {amount}")
+            print(f"  可用股票: {self.symbols}")
             
             if symbol not in self.symbols:
+                print(f"  ❌ 股票代码 {symbol} 不在可用列表中")
                 return 0.0
             
             market_data = case["state"]["market_data"]
             current_price = market_data[symbol]["close"]
+            print(f"  当前价格: {current_price}")
             
             # 记录交易历史
             trade_record = {
@@ -1244,32 +1261,50 @@ class TradingSandbox(Sandbox):
             # 模拟交易执行
             if action_type == "BUY":
                 cost = amount * current_price
+                print(f"  买入成本: {cost}")
+                print(f"  当前现金: {self.portfolio['cash']}")
+                
                 if cost <= self.portfolio["cash"]:
                     self.portfolio["cash"] -= cost
                     self.portfolio["positions"][symbol] = self.portfolio["positions"].get(symbol, 0) + amount
+                    print(f"  ✅ 买入成功，更新现金: {self.portfolio['cash']}")
+                    print(f"  ✅ 更新持仓: {self.portfolio['positions']}")
                     
                     # 计算评分：基于技术指标和价格趋势
+                    print(f"  市场趋势数据: {self.market_trends}")
                     indicators = self.market_trends[symbol]
+                    print(f"  {symbol} 技术指标: {indicators}")
+                    
                     price_change = (market_data[symbol]["close"] - market_data[symbol]["open"]) / market_data[symbol]["open"]
+                    print(f"  价格变化率: {price_change}")
                     
                     # 综合评分：价格趋势 + RSI + MACD
                     trend_score = 0.5 + price_change * 10
                     rsi_score = 0.5 + (indicators["rsi"] - 50) / 100  # RSI偏离中性的程度
                     macd_score = 0.5 + indicators["macd"] / current_price * 100  # MACD信号
                     
+                    print(f"  趋势评分: {trend_score}")
+                    print(f"  RSI评分: {rsi_score}")
+                    print(f"  MACD评分: {macd_score}")
+                    
                     final_score = (trend_score + rsi_score + macd_score) / 3
+                    print(f"  最终评分: {final_score}")
+                    
                     trade_record["score"] = final_score
                     self.trade_history.append(trade_record)
                     
                     return max(0.0, min(1.0, final_score))
                 else:
+                    print(f"  ❌ 资金不足，需要 {cost}，只有 {self.portfolio['cash']}")
                     return 0.0  # 资金不足
             
             elif action_type == "SELL":
+                print(f"  当前持仓: {self.portfolio['positions']}")
                 if symbol in self.portfolio["positions"] and self.portfolio["positions"][symbol] >= amount:
                     revenue = amount * current_price
                     self.portfolio["cash"] += revenue
                     self.portfolio["positions"][symbol] -= amount
+                    print(f"  ✅ 卖出成功，收入: {revenue}")
                     
                     if self.portfolio["positions"][symbol] <= 0:
                         del self.portfolio["positions"][symbol]
@@ -1288,13 +1323,17 @@ class TradingSandbox(Sandbox):
                     
                     return max(0.0, min(1.0, final_score))
                 else:
+                    print(f"  ❌ 持仓不足，需要 {amount}，只有 {self.portfolio['positions'].get(symbol, 0)}")
                     return 0.0  # 持仓不足
             
+            print(f"  ❌ 未知动作类型: {action_type}")
             return 0.0
             
         except Exception as e:
-            print(f"模拟交易评分错误: {e}")
-            return 0.0 
+            print(f"❌ 模拟交易评分错误: {e}")
+            import traceback
+            traceback.print_exc()
+            return 0.0
 
 
 class SocialNetworkSandbox(Sandbox):
