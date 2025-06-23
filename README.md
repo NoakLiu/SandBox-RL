@@ -179,8 +179,8 @@ def optimization_goal(state, action, next_state):
 ```python
 from sandgraph import SG_Workflow, NodeType
 
-# 创建LLM管理器
-llm_manager = create_shared_llm_manager("my_llm")
+# 创建LLM管理器（默认使用Mistral-7B）
+llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2")
 
 # 创建工作流
 workflow = SG_Workflow("my_workflow", WorkflowMode.TRADITIONAL, llm_manager)
@@ -371,9 +371,9 @@ from sandgraph.core.llm_interface import create_shared_llm_manager
 from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode
 from sandgraph.core.rl_algorithms import RLTrainer, RLConfig
 
-# 1. Initialize Core Components
+# 1. Initialize Core Components (默认使用Mistral-7B)
 llm_manager = create_shared_llm_manager(
-    model_name="Qwen/Qwen-7B-Chat",
+    model_name="mistralai/Mistral-7B-Instruct-v0.2",  # 默认模型
     backend="huggingface",
     temperature=0.7
 )
@@ -434,162 +434,75 @@ python demo/misinformation_spread_demo.py --test
 - **Network Dynamics**: User susceptibility, information virality, belief propagation
 - **RL Optimization**: Adaptive intervention strategy learning
 
-## 🔥 LLM模型使用指南
+## 🔥 LLM模型支持
 
-SandGraph支持多种主流的大语言模型，以下是详细的使用示例：
+SandGraph支持多种主流大语言模型，以下是支持的模型和基本使用方法：
 
-### 1. 基础模型使用
+### 支持的模型
+
+| 模型类型 | 推荐模型 | 参数大小 | 内存需求 |
+|---------|---------|---------|---------|
+| **默认推荐** | **Mistral-7B** | 7B | 8-16GB |
+| **中文模型** | Qwen-7B, Yi-6B, ChatGLM3 | 6-7B | 8-16GB |
+| **代码模型** | CodeLLaMA, StarCoder | 7-15B | 8-16GB |
+| **轻量级** | Phi-2, Gemma-2B | 2-3B | 2-4GB |
+| **高性能** | LLaMA2-13B | 13B | 16-32GB |
+| **开源替代** | GPT-2, Falcon | 1-7B | 2-16GB |
+
+<!-- ### 基本使用方法
 
 ```python
 from sandgraph.core.llm_interface import create_shared_llm_manager
 
-# 使用Qwen-7B模型
+# 1. 创建LLM管理器（默认使用Mistral-7B）
 llm_manager = create_shared_llm_manager(
-    model_name="Qwen/Qwen-7B-Chat",
-    backend="huggingface",
-    device="auto"
+    model_name="mistralai/Mistral-7B-Instruct-v0.2",  # 默认模型
+    backend="huggingface",                            # 后端
+    temperature=0.7,                                  # 温度参数
+    max_length=512,                                   # 最大长度
+    device="auto"                                     # 设备选择
 )
 
-# 注册节点
+# 2. 注册节点
 llm_manager.register_node("my_node", {
     "role": "对话助手",
     "temperature": 0.7,
     "max_length": 512
 })
 
-# 生成响应
+# 3. 生成响应
 response = llm_manager.generate_for_node("my_node", "你好，请介绍一下自己")
 print(response.text)
 ```
 
-### 2. 轻量级模型 (适合资源受限环境)
+### 快速模型选择
 
 ```python
-# 使用Phi-2模型 (Microsoft, 2.7B参数)
-llm_manager = create_shared_llm_manager(
-    model_name="microsoft/Phi-2",
-    backend="huggingface",
-    device="cpu"  # 可在CPU上运行
-)
+# 默认模型（推荐）
+llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2")
 
-# 使用Gemma-2B模型 (Google, 2B参数)
-llm_manager = create_shared_llm_manager(
-    model_name="google/gemma-2b-it",
-    backend="huggingface",
-    device="auto"
-)
+# 中文任务
+llm_manager = create_shared_llm_manager("Qwen/Qwen-7B-Chat")
+
+# 代码生成
+llm_manager = create_shared_llm_manager("codellama/CodeLlama-7b-Instruct-hf")
+
+# 轻量级应用
+llm_manager = create_shared_llm_manager("microsoft/Phi-2")
 ```
 
-### 3. 高性能模型 (适合复杂任务)
+### 设备选择
 
 ```python
-# 使用Mistral-7B模型 (高性能推理)
-llm_manager = create_shared_llm_manager(
-    model_name="mistralai/Mistral-7B-Instruct-v0.2",
-    backend="huggingface",
-    device="cuda"
-)
+# 自动选择（推荐）
+llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2", device="auto")
 
-# 使用LLaMA2-13B模型 (Meta开源)
-llm_manager = create_shared_llm_manager(
-    model_name="meta-llama/Llama-2-13b-chat-hf",
-    backend="huggingface",
-    device="cuda"
-)
-```
+# 强制使用CPU
+llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2", device="cpu")
 
-### 4. 中文模型 (适合中文任务)
-
-```python
-# 使用Yi-6B模型 (01.AI, 中文优化)
-llm_manager = create_shared_llm_manager(
-    model_name="01-ai/Yi-6B-Chat",
-    backend="huggingface",
-    device="auto"
-)
-
-# 使用ChatGLM3模型 (清华大学)
-llm_manager = create_shared_llm_manager(
-    model_name="THUDM/chatglm3-6b",
-    backend="huggingface",
-    device="auto"
-)
-```
-
-### 5. 代码生成模型 (适合编程任务)
-
-```python
-# 使用CodeLLaMA模型 (代码专用)
-llm_manager = create_shared_llm_manager(
-    model_name="codellama/CodeLlama-7b-Instruct-hf",
-    backend="huggingface",
-    device="auto"
-)
-
-# 使用StarCoder模型 (BigCode)
-llm_manager = create_shared_llm_manager(
-    model_name="bigcode/starcoder2-7b",
-    backend="huggingface",
-    device="auto"
-)
-```
-
-### 6. 通过类型创建模型
-
-```python
-from sandgraph.core.llm_interface import create_model_by_type
-
-# 根据类型创建模型
-llm_manager = create_model_by_type("mistral", device="auto")
-llm_manager = create_model_by_type("gemma", device="auto")
-llm_manager = create_model_by_type("phi", device="auto")
-llm_manager = create_model_by_type("yi", device="auto")
-```
-
-### 7. 模型性能比较
-
-```python
-# 运行模型测试脚本
-python test_models.py
-```
-
-### 8. 模型选择建议
-
-| 应用场景 | 推荐模型 | 内存需求 | 优势 |
-|---------|---------|---------|------|
-| 中文对话 | Qwen-7B, Yi-6B | 8-16GB | 中文理解能力强 |
-| 代码生成 | CodeLLaMA, StarCoder | 8-16GB | 代码生成能力强 |
-| 轻量级应用 | Phi-2, Gemma-2B | 2-4GB | 资源占用低 |
-| 高性能推理 | Mistral-7B, LLaMA2-13B | 16-32GB | 推理能力强 |
-| 移动端应用 | Phi-2, Gemma-2B | <4GB | 轻量级，速度快 |
-
-### 9. 模型测试示例
-
-```python
-# 测试不同模型的性能
-from sandgraph.core.llm_interface import get_available_models
-
-# 获取所有可用模型
-models = get_available_models()
-for model_type, model_list in models.items():
-    print(f"{model_type}: {model_list}")
-
-# 测试特定模型
-def test_model_performance(model_name, prompt):
-    llm_manager = create_shared_llm_manager(model_name)
-    llm_manager.register_node("test", {"role": "测试"})
-    
-    start_time = time.time()
-    response = llm_manager.generate_for_node("test", prompt)
-    end_time = time.time()
-    
-    print(f"模型: {model_name}")
-    print(f"响应: {response.text}")
-    print(f"时间: {end_time - start_time:.2f}s")
-    print(f"置信度: {response.confidence:.3f}")
-```
-
-更多模型使用示例请参考 `docs/LLM_MODELS.md` 文档。
+# 强制使用GPU
+llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2", device="cuda")
+``` -->
 
 ## 📄 许可证
 
