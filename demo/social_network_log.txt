@@ -1,0 +1,385 @@
+(base) root@dsw-238653-59bcb67999-5kkw2:/mnt/workspace/liudong/SandGraph# python demo/social_network_demo.py 
+🔥 SandGraph Social Network Demo
+============================================================
+Steps: 5
+Model: mistralai/Mistral-7B-Instruct-v0.2
+
+============================================================
+ RL-based LLM Decision Social Network Demo
+============================================================
+
+1. Creating LLM Manager with model: mistralai/Mistral-7B-Instruct-v0.2
+
+2. Creating RL Social Network Workflow
+
+3. Executing 5 Social Network Management Steps
+
+--- 第 1 步 ---
+================================================================================
+Decision 1 - Complete Prompt Content:
+================================================================================
+You are a social network strategy expert in a simulation game.
+
+REQUIRED RESPONSE FORMAT:
+ACTION: [CREATE_POST|ENCOURAGE_INTERACTION|FEATURE_USER|LAUNCH_CAMPAIGN|IMPROVE_ALGORITHM|ADD_FEATURE|MODERATE_CONTENT|EXPAND_NETWORK]
+TARGET: [specific target or "N/A"]
+REASONING: [brief explanation]
+
+Available Actions:
+1. CREATE_POST - Create engaging content
+2. ENCOURAGE_INTERACTION - Promote likes/comments/shares
+3. FEATURE_USER - Highlight active users
+4. LAUNCH_CAMPAIGN - Start viral marketing
+5. IMPROVE_ALGORITHM - Optimize recommendations
+6. ADD_FEATURE - Introduce new features
+7. MODERATE_CONTENT - Improve content quality
+8. EXPAND_NETWORK - Grow user base
+
+Current State:
+User user_0: Followers=40, Following=3, Posts=0, Engagement=0.11%
+User user_1: Followers=47, Following=3, Posts=17, Engagement=0.02%
+User user_2: Followers=5, Following=6, Posts=7, Engagement=0.08%
+User user_3: Followers=45, Following=20, Posts=17, Engagement=0.07%
+User user_4: Followers=0, Following=24, Posts=5, Engagement=0.11%
+User user_5: Followers=13, Following=30, Posts=10, Engagement=0.02%
+User user_6: Followers=22, Following=19, Posts=8, Engagement=0.12%
+User user_7: Followers=7, Following=29, Posts=12, Engagement=0.02%
+User user_8: Followers=39, Following=28, Posts=11, Engagement=0.09%
+User user_9: Followers=42, Following=7, Posts=9, Engagement=0.15%  # 只显示前10个用户
+Current User Behavior:
+- Active Users: 30
+- Posts Created: 26
+- Likes Given: 114
+- Comments Made: 98
+- Shares Made: 18
+- Average Session Time: 22.7 minutes
+Content Performance:
+- Viral Posts: 0
+- Trending Topics: 7
+- Content Quality Score: 0.63
+- User Satisfaction: 0.65
+
+
+
+Choose the best action to maximize engagement and growth. Respond ONLY in the required format above.
+================================================================================
+Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████| 3/3 [00:03<00:00,  1.09s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Both `max_new_tokens` (=256) and `max_length`(=512) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+LLM Response Status: unknown
+LLM Complete Response: ACTION: ENCOURAGE_INTERACTION, TARGET: N/A
+REASONING: Encouraging interaction across all users can increase engagement and potentially attract new followers through shares and comments. This can also improve the overall user experience by making the platform feel more active and engaged.
+🔍 解析响应: ACTION: ENCOURAGE_INTERACTION, TARGET: N/A
+REASONING: Encouraging interaction across all users can increase engagement and potentially attract new followers through shares and comments. This can also ...
+✅ 找到ACTION: ENCOURAGE_INTERACTION
+✅ 找到TARGET: N/A
+✅ 找到REASONING: Encouraging interaction across all users can incre...
+✅ 解析成功: ENCOURAGE_INTERACTION | N/A | Encouraging interaction across...
+Decision: ENCOURAGE_INTERACTION
+Target: N/A
+Reasoning: Encouraging interaction across all users can increase engagement and potentially attract new followers through shares and comments. This can also improve the overall user experience by making the platform feel more active and engaged.
+Score: 0.62
+Reward: 6.18
+Active Users: 30
+Engagement Rate: 0.300
+
+--- 第 2 步 ---
+================================================================================
+Decision 2 - Complete Prompt Content:
+================================================================================
+You are a social network strategy expert in a simulation game.
+
+REQUIRED RESPONSE FORMAT:
+ACTION: [CREATE_POST|ENCOURAGE_INTERACTION|FEATURE_USER|LAUNCH_CAMPAIGN|IMPROVE_ALGORITHM|ADD_FEATURE|MODERATE_CONTENT|EXPAND_NETWORK]
+TARGET: [specific target or "N/A"]
+REASONING: [brief explanation]
+
+Available Actions:
+1. CREATE_POST - Create engaging content
+2. ENCOURAGE_INTERACTION - Promote likes/comments/shares
+3. FEATURE_USER - Highlight active users
+4. LAUNCH_CAMPAIGN - Start viral marketing
+5. IMPROVE_ALGORITHM - Optimize recommendations
+6. ADD_FEATURE - Introduce new features
+7. MODERATE_CONTENT - Improve content quality
+8. EXPAND_NETWORK - Grow user base
+
+Current State:
+User user_0: Followers=40, Following=3, Posts=0, Engagement=0.11%
+User user_1: Followers=47, Following=3, Posts=17, Engagement=0.02%
+User user_2: Followers=5, Following=6, Posts=7, Engagement=0.08%
+User user_3: Followers=45, Following=20, Posts=17, Engagement=0.07%
+User user_4: Followers=0, Following=24, Posts=5, Engagement=0.11%
+User user_5: Followers=13, Following=30, Posts=10, Engagement=0.02%
+User user_6: Followers=22, Following=19, Posts=8, Engagement=0.12%
+User user_7: Followers=7, Following=29, Posts=12, Engagement=0.02%
+User user_8: Followers=39, Following=28, Posts=11, Engagement=0.09%
+User user_9: Followers=42, Following=7, Posts=9, Engagement=0.15%  # 只显示前10个用户
+Current User Behavior:
+- Active Users: 33
+- Posts Created: 34
+- Likes Given: 119
+- Comments Made: 105
+- Shares Made: 23
+- Average Session Time: 22.7 minutes
+Content Performance:
+- Viral Posts: 0
+- Trending Topics: 7
+- Content Quality Score: 0.72
+- User Satisfaction: 0.64
+Recent Decision History:
+- Step 1: ENCOURAGE_INTERACTION - Encouraging interaction across all users can increase engagement and potentially attract new followers through shares and comments. This can also improve the overall user experience by making the platform feel more active and engaged.
+Recent Performance:
+- Step 1: Engagement Score = 1.000
+
+Choose the best action to maximize engagement and growth. Respond ONLY in the required format above.
+================================================================================
+Both `max_new_tokens` (=256) and `max_length`(=512) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+LLM Response Status: unknown
+LLM Complete Response: ACTION: LAUNCH_CAMPAIGN
+REASONING: To attract new users and increase engagement, a viral marketing campaign can be launched, which may lead to an expansion of the network and an improvement in content performance. This can also encourage current users to create and share more content, leading to a positive feedback loop.
+🔍 解析响应: ACTION: LAUNCH_CAMPAIGN
+REASONING: To attract new users and increase engagement, a viral marketing campaign can be launched, which may lead to an expansion of the network and an improvement in content...
+✅ 找到ACTION: LAUNCH_CAMPAIGN
+✅ 找到REASONING: To attract new users and increase engagement, a vi...
+✅ 解析成功: LAUNCH_CAMPAIGN | N/A | To attract new users and incre...
+Decision: LAUNCH_CAMPAIGN
+Target: N/A
+Reasoning: To attract new users and increase engagement, a viral marketing campaign can be launched, which may lead to an expansion of the network and an improvement in content performance. This can also encourage current users to create and share more content, leading to a positive feedback loop.
+Score: 0.92
+Reward: 9.17
+Active Users: 33
+Engagement Rate: 0.330
+
+--- 第 3 步 ---
+================================================================================
+Decision 3 - Complete Prompt Content:
+================================================================================
+You are a social network strategy expert in a simulation game.
+
+REQUIRED RESPONSE FORMAT:
+ACTION: [CREATE_POST|ENCOURAGE_INTERACTION|FEATURE_USER|LAUNCH_CAMPAIGN|IMPROVE_ALGORITHM|ADD_FEATURE|MODERATE_CONTENT|EXPAND_NETWORK]
+TARGET: [specific target or "N/A"]
+REASONING: [brief explanation]
+
+Available Actions:
+1. CREATE_POST - Create engaging content
+2. ENCOURAGE_INTERACTION - Promote likes/comments/shares
+3. FEATURE_USER - Highlight active users
+4. LAUNCH_CAMPAIGN - Start viral marketing
+5. IMPROVE_ALGORITHM - Optimize recommendations
+6. ADD_FEATURE - Introduce new features
+7. MODERATE_CONTENT - Improve content quality
+8. EXPAND_NETWORK - Grow user base
+
+Current State:
+User user_0: Followers=40, Following=3, Posts=0, Engagement=0.11%
+User user_1: Followers=47, Following=3, Posts=17, Engagement=0.02%
+User user_2: Followers=5, Following=6, Posts=7, Engagement=0.08%
+User user_3: Followers=45, Following=20, Posts=17, Engagement=0.07%
+User user_4: Followers=0, Following=24, Posts=5, Engagement=0.11%
+User user_5: Followers=13, Following=30, Posts=10, Engagement=0.02%
+User user_6: Followers=22, Following=19, Posts=8, Engagement=0.12%
+User user_7: Followers=7, Following=29, Posts=12, Engagement=0.02%
+User user_8: Followers=39, Following=28, Posts=11, Engagement=0.09%
+User user_9: Followers=42, Following=7, Posts=9, Engagement=0.15%  # 只显示前10个用户
+Current User Behavior:
+- Active Users: 37
+- Posts Created: 44
+- Likes Given: 131
+- Comments Made: 114
+- Shares Made: 27
+- Average Session Time: 22.7 minutes
+Content Performance:
+- Viral Posts: 1
+- Trending Topics: 7
+- Content Quality Score: 0.70
+- User Satisfaction: 0.66
+Recent Decision History:
+- Step 1: ENCOURAGE_INTERACTION - Encouraging interaction across all users can increase engagement and potentially attract new followers through shares and comments. This can also improve the overall user experience by making the platform feel more active and engaged.
+- Step 2: LAUNCH_CAMPAIGN - To attract new users and increase engagement, a viral marketing campaign can be launched, which may lead to an expansion of the network and an improvement in content performance. This can also encourage current users to create and share more content, leading to a positive feedback loop.
+Recent Performance:
+- Step 1: Engagement Score = 1.000
+- Step 2: Engagement Score = 1.000
+
+Choose the best action to maximize engagement and growth. Respond ONLY in the required format above.
+================================================================================
+Both `max_new_tokens` (=256) and `max_length`(=512) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+LLM Response Status: unknown
+LLM Complete Response: ACTION: LAunch_Campaign
+REASONING: A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform.
+🔍 解析响应: ACTION: LAunch_Campaign
+REASONING: A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform....
+✅ 找到ACTION: LAUNCH_CAMPAIGN
+✅ 找到REASONING: A viral marketing campaign can attract new users a...
+✅ 解析成功: LAUNCH_CAMPAIGN | N/A | A viral marketing campaign can...
+Decision: LAUNCH_CAMPAIGN
+Target: N/A
+Reasoning: A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform.
+Score: 0.98
+Reward: 9.81
+Active Users: 37
+Engagement Rate: 0.370
+
+--- 第 4 步 ---
+================================================================================
+Decision 4 - Complete Prompt Content:
+================================================================================
+You are a social network strategy expert in a simulation game.
+
+REQUIRED RESPONSE FORMAT:
+ACTION: [CREATE_POST|ENCOURAGE_INTERACTION|FEATURE_USER|LAUNCH_CAMPAIGN|IMPROVE_ALGORITHM|ADD_FEATURE|MODERATE_CONTENT|EXPAND_NETWORK]
+TARGET: [specific target or "N/A"]
+REASONING: [brief explanation]
+
+Available Actions:
+1. CREATE_POST - Create engaging content
+2. ENCOURAGE_INTERACTION - Promote likes/comments/shares
+3. FEATURE_USER - Highlight active users
+4. LAUNCH_CAMPAIGN - Start viral marketing
+5. IMPROVE_ALGORITHM - Optimize recommendations
+6. ADD_FEATURE - Introduce new features
+7. MODERATE_CONTENT - Improve content quality
+8. EXPAND_NETWORK - Grow user base
+
+Current State:
+User user_0: Followers=40, Following=3, Posts=0, Engagement=0.11%
+User user_1: Followers=47, Following=3, Posts=17, Engagement=0.02%
+User user_2: Followers=5, Following=6, Posts=7, Engagement=0.08%
+User user_3: Followers=45, Following=20, Posts=17, Engagement=0.07%
+User user_4: Followers=0, Following=24, Posts=5, Engagement=0.11%
+User user_5: Followers=13, Following=30, Posts=10, Engagement=0.02%
+User user_6: Followers=22, Following=19, Posts=8, Engagement=0.12%
+User user_7: Followers=7, Following=29, Posts=12, Engagement=0.02%
+User user_8: Followers=39, Following=28, Posts=11, Engagement=0.09%
+User user_9: Followers=42, Following=7, Posts=9, Engagement=0.15%  # 只显示前10个用户
+Current User Behavior:
+- Active Users: 44
+- Posts Created: 52
+- Likes Given: 140
+- Comments Made: 125
+- Shares Made: 28
+- Average Session Time: 22.7 minutes
+Content Performance:
+- Viral Posts: 1
+- Trending Topics: 7
+- Content Quality Score: 0.73
+- User Satisfaction: 0.62
+Recent Decision History:
+- Step 1: ENCOURAGE_INTERACTION - Encouraging interaction across all users can increase engagement and potentially attract new followers through shares and comments. This can also improve the overall user experience by making the platform feel more active and engaged.
+- Step 2: LAUNCH_CAMPAIGN - To attract new users and increase engagement, a viral marketing campaign can be launched, which may lead to an expansion of the network and an improvement in content performance. This can also encourage current users to create and share more content, leading to a positive feedback loop.
+- Step 3: LAUNCH_CAMPAIGN - A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform.
+Recent Performance:
+- Step 1: Engagement Score = 1.000
+- Step 2: Engagement Score = 1.000
+- Step 3: Engagement Score = 1.000
+
+Choose the best action to maximize engagement and growth. Respond ONLY in the required format above.
+================================================================================
+Both `max_new_tokens` (=256) and `max_length`(=512) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+LLM Response Status: unknown
+LLM Complete Response: ACTION: LAunch_Campaign
+REASONING: A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform.
+🔍 解析响应: ACTION: LAunch_Campaign
+REASONING: A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform....
+✅ 找到ACTION: LAUNCH_CAMPAIGN
+✅ 找到REASONING: A viral marketing campaign can attract new users a...
+✅ 解析成功: LAUNCH_CAMPAIGN | N/A | A viral marketing campaign can...
+Decision: LAUNCH_CAMPAIGN
+Target: N/A
+Reasoning: A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform.
+Score: 1.00
+Reward: 10.00
+Active Users: 44
+Engagement Rate: 0.440
+
+--- 第 5 步 ---
+================================================================================
+Decision 5 - Complete Prompt Content:
+================================================================================
+You are a social network strategy expert in a simulation game.
+
+REQUIRED RESPONSE FORMAT:
+ACTION: [CREATE_POST|ENCOURAGE_INTERACTION|FEATURE_USER|LAUNCH_CAMPAIGN|IMPROVE_ALGORITHM|ADD_FEATURE|MODERATE_CONTENT|EXPAND_NETWORK]
+TARGET: [specific target or "N/A"]
+REASONING: [brief explanation]
+
+Available Actions:
+1. CREATE_POST - Create engaging content
+2. ENCOURAGE_INTERACTION - Promote likes/comments/shares
+3. FEATURE_USER - Highlight active users
+4. LAUNCH_CAMPAIGN - Start viral marketing
+5. IMPROVE_ALGORITHM - Optimize recommendations
+6. ADD_FEATURE - Introduce new features
+7. MODERATE_CONTENT - Improve content quality
+8. EXPAND_NETWORK - Grow user base
+
+Current State:
+User user_0: Followers=40, Following=3, Posts=0, Engagement=0.11%
+User user_1: Followers=47, Following=3, Posts=17, Engagement=0.02%
+User user_2: Followers=5, Following=6, Posts=7, Engagement=0.08%
+User user_3: Followers=45, Following=20, Posts=17, Engagement=0.07%
+User user_4: Followers=0, Following=24, Posts=5, Engagement=0.11%
+User user_5: Followers=13, Following=30, Posts=10, Engagement=0.02%
+User user_6: Followers=22, Following=19, Posts=8, Engagement=0.12%
+User user_7: Followers=7, Following=29, Posts=12, Engagement=0.02%
+User user_8: Followers=39, Following=28, Posts=11, Engagement=0.09%
+User user_9: Followers=42, Following=7, Posts=9, Engagement=0.15%  # 只显示前10个用户
+Current User Behavior:
+- Active Users: 55
+- Posts Created: 55
+- Likes Given: 146
+- Comments Made: 131
+- Shares Made: 35
+- Average Session Time: 22.7 minutes
+Content Performance:
+- Viral Posts: 1
+- Trending Topics: 7
+- Content Quality Score: 0.70
+- User Satisfaction: 0.66
+Recent Decision History:
+- Step 1: ENCOURAGE_INTERACTION - Encouraging interaction across all users can increase engagement and potentially attract new followers through shares and comments. This can also improve the overall user experience by making the platform feel more active and engaged.
+- Step 2: LAUNCH_CAMPAIGN - To attract new users and increase engagement, a viral marketing campaign can be launched, which may lead to an expansion of the network and an improvement in content performance. This can also encourage current users to create and share more content, leading to a positive feedback loop.
+- Step 3: LAUNCH_CAMPAIGN - A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform.
+- Step 4: LAUNCH_CAMPAIGN - A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform.
+Recent Performance:
+- Step 1: Engagement Score = 1.000
+- Step 2: Engagement Score = 1.000
+- Step 3: Engagement Score = 1.000
+- Step 4: Engagement Score = 1.000
+
+Choose the best action to maximize engagement and growth. Respond ONLY in the required format above.
+================================================================================
+Both `max_new_tokens` (=256) and `max_length`(=512) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+LLM Response Status: unknown
+LLM Complete Response: ACTION: LAUNCH_CAMPAIGN
+REASONING: A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform.
+🔍 解析响应: ACTION: LAUNCH_CAMPAIGN
+REASONING: A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform....
+✅ 找到ACTION: LAUNCH_CAMPAIGN
+✅ 找到REASONING: A viral marketing campaign can attract new users a...
+✅ 解析成功: LAUNCH_CAMPAIGN | N/A | A viral marketing campaign can...
+Decision: LAUNCH_CAMPAIGN
+Target: N/A
+Reasoning: A viral marketing campaign can attract new users and increase engagement, leading to growth and a positive feedback loop for the platform.
+Score: 1.00
+Reward: 10.00
+Active Users: 55
+Engagement Rate: 0.550
+
+============================================================
+ Final Results
+============================================================
+Average Score: 0.90
+Average Reward: 9.03
+Final Engagement Rate: 0.550
+Successful Steps: 5/5
+
+============================================================
+ RL Training Statistics
+============================================================
+Training Steps: 0
+Algorithm: ppo
+Recent Updates: 0
+
+✅ Demo completed successfully!
