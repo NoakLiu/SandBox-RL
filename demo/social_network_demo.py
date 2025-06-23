@@ -260,10 +260,9 @@ Network Dynamics:
         # 构建策略建议
         strategy_advice = self._generate_strategy_advice(state)
         
-        # 重构后的增强提示
-        prompt = f"""You are a social network strategy expert in a simulation game.
+        # 重构后的增强提示 - 更严格的格式要求
+        prompt = f"""You are a social network strategy expert. You MUST respond in EXACTLY this format:
 
-REQUIRED RESPONSE FORMAT:
 ACTION: [CREATE_POST|ENCOURAGE_INTERACTION|FEATURE_USER|LAUNCH_CAMPAIGN|IMPROVE_ALGORITHM|ADD_FEATURE|MODERATE_CONTENT|EXPAND_NETWORK]
 TARGET: [specific target or "N/A"]
 REASONING: [brief explanation]
@@ -296,7 +295,12 @@ IMPORTANT: Consider the network dynamics when choosing actions:
 - High controversy → Use MODERATE_CONTENT to control the situation
 - High bounce rate → Use IMPROVE_ALGORITHM to improve user experience
 
-Choose the best action to maximize engagement and growth. Respond ONLY in the required format above."""
+CRITICAL: You MUST respond with EXACTLY 3 lines in this format:
+ACTION: [ACTION_NAME]
+TARGET: [TARGET_VALUE]
+REASONING: [REASONING_TEXT]
+
+Do not add any other text before or after these 3 lines."""
         
         return prompt
     
@@ -365,11 +369,12 @@ Choose the best action to maximize engagement and growth. Respond ONLY in the re
                 r'Action:\s*([A-Z_]+)',  # 首字母大写
                 r'ACTION\s*:\s*([A-Z_]+)',  # 无冒号空格
                 r'ACTION\s*=\s*([A-Z_]+)',  # 等号格式
+                r'^([A-Z_]+)\s*$',  # 单独一行
             ]
             
             action = None
             for pattern in action_patterns:
-                action_match = re.search(pattern, response, re.IGNORECASE)
+                action_match = re.search(pattern, response, re.IGNORECASE | re.MULTILINE)
                 if action_match:
                     action = action_match.group(1).upper()
                     print(f"✅ 找到ACTION: {action}")
@@ -390,7 +395,7 @@ Choose the best action to maximize engagement and growth. Respond ONLY in the re
             
             target = "N/A"
             for pattern in target_patterns:
-                target_match = re.search(pattern, response, re.IGNORECASE)
+                target_match = re.search(pattern, response, re.IGNORECASE | re.MULTILINE)
                 if target_match:
                     target = target_match.group(1).strip()
                     print(f"✅ 找到TARGET: {target}")
@@ -407,7 +412,7 @@ Choose the best action to maximize engagement and growth. Respond ONLY in the re
             
             reasoning = "No reasoning provided"
             for pattern in reasoning_patterns:
-                reasoning_match = re.search(pattern, response, re.IGNORECASE)
+                reasoning_match = re.search(pattern, response, re.IGNORECASE | re.MULTILINE)
                 if reasoning_match:
                     reasoning = reasoning_match.group(1).strip()
                     print(f"✅ 找到REASONING: {reasoning[:50]}...")
@@ -581,13 +586,48 @@ def create_rl_social_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMD
 def _calculate_engagement_rate(state: Dict[str, Any]) -> float:
     """计算用户参与率"""
     user_behavior = state.get("user_behavior", {})
+    network_state = state.get("network_state", {})
+    
+    # 获取基础数据
     active_users = user_behavior.get("active_users", 0)
-    total_users = len(state.get("network_state", {}))
+    total_users = len(network_state)
     
     if total_users == 0:
         return 0.0
     
-    return active_users / total_users
+    # 计算基础参与率
+    base_engagement = active_users / total_users
+    
+    # 考虑用户行为质量
+    posts_created = user_behavior.get("posts_created", 0)
+    likes_given = user_behavior.get("likes_given", 0)
+    comments_made = user_behavior.get("comments_made", 0)
+    shares_made = user_behavior.get("shares_made", 0)
+    
+    # 计算互动质量分数
+    total_interactions = posts_created + likes_given + comments_made + shares_made
+    interaction_quality = min(1.0, total_interactions / (total_users * 10))  # 每个用户平均10次互动为满分
+    
+    # 考虑会话时间和留存率
+    avg_session_time = user_behavior.get("avg_session_time", 0)
+    retention_rate = user_behavior.get("retention_rate", 0)
+    bounce_rate = user_behavior.get("bounce_rate", 0)
+    
+    # 会话质量分数
+    session_quality = min(1.0, avg_session_time / 30.0)  # 30分钟为满分
+    
+    # 留存质量分数
+    retention_quality = retention_rate * (1 - bounce_rate)
+    
+    # 综合参与率计算
+    engagement_rate = (
+        base_engagement * 0.4 +           # 基础参与率权重40%
+        interaction_quality * 0.3 +       # 互动质量权重30%
+        session_quality * 0.2 +           # 会话质量权重20%
+        retention_quality * 0.1           # 留存质量权重10%
+    )
+    
+    return min(1.0, max(0.0, engagement_rate))
 
 
 def _calculate_network_growth(state: Dict[str, Any]) -> float:
