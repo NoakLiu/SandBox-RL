@@ -39,7 +39,7 @@ def print_section(title: str):
 
 
 class LLMDecisionMaker:
-    """LLM决策器 - 不是节点，而是决策引擎"""
+    """LLM决策器 - 而是决策引擎"""
     
     def __init__(self, llm_manager):
         self.llm_manager = llm_manager

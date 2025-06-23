@@ -1,0 +1,299 @@
+(base) root@dsw-238653-59bcb67999-5kkw2:/mnt/workspace/liudong/SandGraph# python demo/trading_demo.py 
+
+============================================================
+ RL-based LLM Decision Trading Demo
+============================================================
+
+1. Creating LLM Manager
+
+2. Creating RL Trading Workflow
+
+3. Executing 5 Trading Steps
+
+--- 第 1 步 ---
+
+================================================================================
+Decision 1 - Complete Prompt Content:
+================================================================================
+You are a trading expert in a simulation game.
+
+REQUIRED RESPONSE FORMAT:
+ACTION: [BUY|SELL] [SYMBOL] [AMOUNT] shares
+REASONING: [brief explanation]
+
+Available Actions:
+1. BUY - Purchase stocks
+2. SELL - Sell stocks
+
+Available Symbols: AAPL, GOOGL, MSFT, AMZN
+
+Current Market:
+AAPL: 价格=146.08, 成交量=7823481
+GOOGL: 价格=3159.80, 成交量=8136395
+MSFT: 价格=336.47, 成交量=3755854
+AMZN: 价格=4499.49, 成交量=4829534
+
+Technical Indicators:
+AAPL: MA5=152.24, RSI=33.0, 趋势=down
+GOOGL: MA5=3137.29, RSI=61.3, 趋势=up
+MSFT: MA5=342.57, RSI=26.6, 趋势=down
+AMZN: MA5=4303.01, RSI=82.6, 趋势=up
+
+Current Portfolio:
+Cash: 100000.00
+Positions: None
+
+
+Choose the best trading action to maximize returns. Respond ONLY in the required format above.
+================================================================================
+Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████| 3/3 [00:02<00:00,  1.08it/s]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Both `max_new_tokens` (=128) and `max_length`(=512) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+
+LLM Response Status: unknown
+LLM Complete Response: ACTION: BUY MSFT 500 shares
+REASONING: MSFT is currently undervalued based on its moving average and RSI. The downward trend may reverse, providing an opportunity for potential gains.
+🔍 解析响应: ACTION: BUY MSFT 500 shares
+REASONING: MSFT is currently undervalued based on its moving average and RSI. The downward trend may reverse, providing an opportunity for potential gains....
+✅ 找到标准格式ACTION: BUY MSFT 500.0
+✅ 找到REASONING: MSFT is currently undervalued based on its moving ...
+✅ 解析成功: BUY MSFT 500.0 | MSFT is currently undervalued ...
+LLM Decision: BUY MSFT 500.0
+Decision Reason: MSFT is currently undervalued based on its moving average and RSI. The downward trend may reverse, providing an opportunity for potential gains.
+Trading Score: 0.000
+RL Reward: 0.000
+RL Update Status: insufficient_data
+Current Cash: 100000.00
+Current Positions: {}
+
+--- 第 2 步 ---
+
+================================================================================
+Decision 2 - Complete Prompt Content:
+================================================================================
+You are a trading expert in a simulation game.
+
+REQUIRED RESPONSE FORMAT:
+ACTION: [BUY|SELL] [SYMBOL] [AMOUNT] shares
+REASONING: [brief explanation]
+
+Available Actions:
+1. BUY - Purchase stocks
+2. SELL - Sell stocks
+
+Available Symbols: AAPL, GOOGL, MSFT, AMZN
+
+Current Market:
+AAPL: 价格=145.08, 成交量=3438247
+GOOGL: 价格=3186.00, 成交量=2075992
+MSFT: 价格=331.96, 成交量=2947461
+AMZN: 价格=4567.17, 成交量=5721731
+
+Technical Indicators:
+AAPL: MA5=150.21, RSI=35.4, 趋势=down
+GOOGL: MA5=3151.80, RSI=68.2, 趋势=up
+MSFT: MA5=338.52, RSI=27.3, 趋势=down
+AMZN: MA5=4371.98, RSI=82.2, 趋势=up
+
+Current Portfolio:
+Cash: 100000.00
+Positions: None
+Recent Decisions:
+- Step 1: BUY MSFT - MSFT is currently undervalued ...
+
+Choose the best trading action to maximize returns. Respond ONLY in the required format above.
+================================================================================
+Both `max_new_tokens` (=128) and `max_length`(=512) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+
+LLM Response Status: unknown
+LLM Complete Response: ACTION: BUY AAPL 500 shares
+REASONING: AAPL is currently oversold with a RSI of 35.4 and a downward trend. Buying at this price could potentially lead to significant gains as the market recovers.
+🔍 解析响应: ACTION: BUY AAPL 500 shares
+REASONING: AAPL is currently oversold with a RSI of 35.4 and a downward trend. Buying at this price could potentially lead to significant gains as the market recovers....
+✅ 找到标准格式ACTION: BUY AAPL 500.0
+✅ 找到REASONING: AAPL is currently oversold with a RSI of 35.4 and ...
+✅ 解析成功: BUY AAPL 500.0 | AAPL is currently oversold wit...
+LLM Decision: BUY AAPL 500.0
+Decision Reason: AAPL is currently oversold with a RSI of 35.4 and a downward trend. Buying at this price could potentially lead to significant gains as the market recovers.
+Trading Score: 0.000
+RL Reward: 0.000
+RL Update Status: insufficient_data
+Current Cash: 100000.00
+Current Positions: {'AAPL': 500.0}
+
+--- 第 3 步 ---
+
+================================================================================
+Decision 3 - Complete Prompt Content:
+================================================================================
+You are a trading expert in a simulation game.
+
+REQUIRED RESPONSE FORMAT:
+ACTION: [BUY|SELL] [SYMBOL] [AMOUNT] shares
+REASONING: [brief explanation]
+
+Available Actions:
+1. BUY - Purchase stocks
+2. SELL - Sell stocks
+
+Available Symbols: AAPL, GOOGL, MSFT, AMZN
+
+Current Market:
+AAPL: 价格=142.00, 成交量=3047348
+GOOGL: 价格=3205.77, 成交量=3468801
+MSFT: 价格=332.03, 成交量=2136515
+AMZN: 价格=4686.76, 成交量=6166577
+
+Technical Indicators:
+AAPL: MA5=147.60, RSI=37.8, 趋势=down
+GOOGL: MA5=3145.02, RSI=70.1, 趋势=up
+MSFT: MA5=337.66, RSI=17.9, 趋势=down
+AMZN: MA5=4486.50, RSI=82.2, 趋势=up
+
+Current Portfolio:
+Cash: 27460.06
+Positions: AAPL: 500.0 股
+Recent Decisions:
+- Step 1: BUY MSFT - MSFT is currently undervalued ...
+- Step 2: BUY AAPL - AAPL is currently oversold wit...
+
+Choose the best trading action to maximize returns. Respond ONLY in the required format above.
+================================================================================
+Both `max_new_tokens` (=128) and `max_length`(=512) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+
+LLM Response Status: unknown
+LLM Complete Response: ACTION: BUY AAPL 1000 shares
+REASONING: AAPL is currently oversold with a RSI of 37.8 and a down trend, indicating a potential buying opportunity. Additionally, holding MSFT shares and observing a downtrend may suggest a good time to add to the position in a stock that is showing signs of oversold conditions.
+🔍 解析响应: ACTION: BUY AAPL 1000 shares
+REASONING: AAPL is currently oversold with a RSI of 37.8 and a down trend, indicating a potential buying opportunity. Additionally, holding MSFT shares and observing a dow...
+✅ 找到标准格式ACTION: BUY AAPL 1000.0
+✅ 找到REASONING: AAPL is currently oversold with a RSI of 37.8 and ...
+✅ 解析成功: BUY AAPL 1000.0 | AAPL is currently oversold wit...
+LLM Decision: BUY AAPL 1000.0
+Decision Reason: AAPL is currently oversold with a RSI of 37.8 and a down trend, indicating a potential buying opportunity. Additionally, holding MSFT shares and observing a downtrend may suggest a good time to add to the position in a stock that is showing signs of oversold conditions.
+Trading Score: 0.000
+RL Reward: 0.000
+RL Update Status: insufficient_data
+Current Cash: 27460.06
+Current Positions: {'AAPL': 500.0}
+
+--- 第 4 步 ---
+
+================================================================================
+Decision 4 - Complete Prompt Content:
+================================================================================
+You are a trading expert in a simulation game.
+
+REQUIRED RESPONSE FORMAT:
+ACTION: [BUY|SELL] [SYMBOL] [AMOUNT] shares
+REASONING: [brief explanation]
+
+Available Actions:
+1. BUY - Purchase stocks
+2. SELL - Sell stocks
+
+Available Symbols: AAPL, GOOGL, MSFT, AMZN
+
+Current Market:
+AAPL: 价格=139.81, 成交量=1462390
+GOOGL: 价格=3296.46, 成交量=4606366
+MSFT: 价格=322.83, 成交量=2342778
+AMZN: 价格=4767.95, 成交量=2066064
+
+Technical Indicators:
+AAPL: MA5=144.63, RSI=37.5, 趋势=down
+GOOGL: MA5=3188.55, RSI=70.9, 趋势=up
+MSFT: MA5=333.83, RSI=17.8, 趋势=down
+AMZN: MA5=4588.38, RSI=82.4, 趋势=up
+
+Current Portfolio:
+Cash: 27460.06
+Positions: AAPL: 500.0 股
+Recent Decisions:
+- Step 1: BUY MSFT - MSFT is currently undervalued ...
+- Step 2: BUY AAPL - AAPL is currently oversold wit...
+- Step 3: BUY AAPL - AAPL is currently oversold wit...
+
+Choose the best trading action to maximize returns. Respond ONLY in the required format above.
+================================================================================
+Both `max_new_tokens` (=128) and `max_length`(=512) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+
+LLM Response Status: unknown
+LLM Complete Response: ACTION: BUY AMZN 1000 shares
+REASONING: AMZN is currently oversold with a RSI of 82.4 and an uptrend. This indicates that it may be due for a pullback, making it a good time to buy. Additionally, its moving average is significantly higher than its current price, suggesting potential for price appreciation.
+🔍 解析响应: ACTION: BUY AMZN 1000 shares
+REASONING: AMZN is currently oversold with a RSI of 82.4 and an uptrend. This indicates that it may be due for a pullback, making it a good time to buy. Additionally, its ...
+✅ 找到标准格式ACTION: BUY AMZN 1000.0
+✅ 找到REASONING: AMZN is currently oversold with a RSI of 82.4 and ...
+✅ 解析成功: BUY AMZN 1000.0 | AMZN is currently oversold wit...
+LLM Decision: BUY AMZN 1000.0
+Decision Reason: AMZN is currently oversold with a RSI of 82.4 and an uptrend. This indicates that it may be due for a pullback, making it a good time to buy. Additionally, its moving average is significantly higher than its current price, suggesting potential for price appreciation.
+Trading Score: 0.000
+RL Reward: 0.000
+RL Update Status: insufficient_data
+Current Cash: 27460.06
+Current Positions: {'AAPL': 500.0}
+
+--- 第 5 步 ---
+
+================================================================================
+Decision 5 - Complete Prompt Content:
+================================================================================
+You are a trading expert in a simulation game.
+
+REQUIRED RESPONSE FORMAT:
+ACTION: [BUY|SELL] [SYMBOL] [AMOUNT] shares
+REASONING: [brief explanation]
+
+Available Actions:
+1. BUY - Purchase stocks
+2. SELL - Sell stocks
+
+Available Symbols: AAPL, GOOGL, MSFT, AMZN
+
+Current Market:
+AAPL: 价格=138.93, 成交量=3031184
+GOOGL: 价格=3349.71, 成交量=8741499
+MSFT: 价格=323.05, 成交量=6486678
+AMZN: 价格=4875.05, 成交量=2899226
+
+Technical Indicators:
+AAPL: MA5=142.38, RSI=43.7, 趋势=down
+GOOGL: MA5=3239.55, RSI=75.5, 趋势=up
+MSFT: MA5=329.27, RSI=18.3, 趋势=down
+AMZN: MA5=4679.28, RSI=82.8, 趋势=up
+
+Current Portfolio:
+Cash: 27460.06
+Positions: AAPL: 500.0 股
+Recent Decisions:
+- Step 2: BUY AAPL - AAPL is currently oversold wit...
+- Step 3: BUY AAPL - AAPL is currently oversold wit...
+- Step 4: BUY AMZN - AMZN is currently oversold wit...
+
+Choose the best trading action to maximize returns. Respond ONLY in the required format above.
+================================================================================
+Both `max_new_tokens` (=128) and `max_length`(=512) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+
+LLM Response Status: unknown
+LLM Complete Response: ACTION: BUY MSFT 1000 shares
+REASONING: MSFT is currently oversold with a low RSI of 18.3 and a downward trend. This indicates that the stock is undervalued and may be a good buy for potential future gains. Additionally, having cash on hand allows for this opportunity to be taken advantage of.
+🔍 解析响应: ACTION: BUY MSFT 1000 shares
+REASONING: MSFT is currently oversold with a low RSI of 18.3 and a downward trend. This indicates that the stock is undervalued and may be a good buy for potential future ...
+✅ 找到标准格式ACTION: BUY MSFT 1000.0
+✅ 找到REASONING: MSFT is currently oversold with a low RSI of 18.3 ...
+✅ 解析成功: BUY MSFT 1000.0 | MSFT is currently oversold wit...
+LLM Decision: BUY MSFT 1000.0
+Decision Reason: MSFT is currently oversold with a low RSI of 18.3 and a downward trend. This indicates that the stock is undervalued and may be a good buy for potential future gains. Additionally, having cash on hand allows for this opportunity to be taken advantage of.
+Trading Score: 0.000
+RL Reward: 0.000
+RL Update Status: insufficient_data
+Current Cash: 27460.06
+Current Positions: {'AAPL': 500.0}
+
+4. Final Results
+Total Decisions: 5
+Total Reward: 0.000
+Average Score: 0.000
+RL Training Steps: 0
+RL Algorithm: ppo
