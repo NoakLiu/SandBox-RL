@@ -525,11 +525,12 @@ def create_rl_trading_workflow(llm_manager, strategy_type: str = "simulated") ->
         
         # 执行交易决策
         try:
+            # 将LLM决策转换为TradingSandbox期望的格式
+            # TradingSandbox期望: "BUY AAPL 500" 而不是 "ACTION: BUY AAPL 500 shares"
+            sandbox_response = f"{decision['action']} {decision['symbol']} {decision['amount']}"
+            
             # 验证和执行交易
-            score = sandbox.verify_score(
-                f"{decision['action']} {decision.get('symbol', '')} {decision.get('amount', 0)}",
-                case
-            )
+            score = sandbox.verify_score(sandbox_response, case)
             
             # 计算奖励
             reward = score * 10  # 将分数转换为奖励
@@ -567,6 +568,7 @@ def create_rl_trading_workflow(llm_manager, strategy_type: str = "simulated") ->
                 "state": current_state,
                 "decision": decision,
                 "llm_response": decision_result["llm_response"],
+                "sandbox_response": sandbox_response,  # 添加转换后的响应
                 "score": score,
                 "reward": reward,
                 "rl_update": update_result,
@@ -575,6 +577,7 @@ def create_rl_trading_workflow(llm_manager, strategy_type: str = "simulated") ->
             
             print(f"LLM Decision: {decision['action']} {decision.get('symbol', '')} {decision.get('amount', '')}")
             print(f"Decision Reason: {decision.get('reasoning', '')}")
+            print(f"Sandbox Response: {sandbox_response}")
             print(f"Trading Score: {score:.3f}")
             print(f"RL Reward: {reward:.3f}")
             
