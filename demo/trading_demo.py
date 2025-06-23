@@ -251,24 +251,34 @@ Choose the best trading action to maximize returns. Respond ONLY in the required
         try:
             # 查找ACTION行 - 使用更宽松的正则表达式
             action_patterns = [
-                r'ACTION:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',  # 标准格式
-                r'action:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',  # 小写
-                r'Action:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',  # 首字母大写
-                r'ACTION\s*:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',  # 无冒号空格
-                r'ACTION\s*=\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',  # 等号格式
+                # 新格式: ACTION: BUY GOOGL - 500 shares
+                r'ACTION:\s*([A-Z]+)\s+([A-Z]+)\s*-\s*(\d+(?:\.\d+)?)\s*shares',
+                # 标准格式: ACTION: BUY GOOGL 500 shares
+                r'ACTION:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',
+                # 小写格式: action: buy googl 500 shares
+                r'action:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',
+                # 首字母大写格式: Action: Buy Googl 500 shares
+                r'Action:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',
+                # 无冒号空格格式: ACTION BUY GOOGL 500 shares
+                r'ACTION\s*:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',
+                # 等号格式: ACTION=BUY GOOGL 500 shares
+                r'ACTION\s*=\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s*shares',
             ]
             
             action = None
             symbol = None
             amount = None
             
-            for pattern in action_patterns:
+            for i, pattern in enumerate(action_patterns):
                 action_match = re.search(pattern, response, re.IGNORECASE)
                 if action_match:
                     action = action_match.group(1).upper()
                     symbol = action_match.group(2).upper()
                     amount = float(action_match.group(3))
-                    print(f"✅ 找到ACTION: {action} {symbol} {amount}")
+                    if i == 0:  # 新格式
+                        print(f"✅ 找到新格式ACTION: {action} {symbol} - {amount}")
+                    else:  # 标准格式
+                        print(f"✅ 找到标准格式ACTION: {action} {symbol} {amount}")
                     break
             
             if not action or not symbol or not amount:
