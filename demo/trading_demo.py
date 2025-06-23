@@ -265,6 +265,10 @@ Choose the best trading action to maximize returns. Respond ONLY in the required
                 r'ACTION\s*:\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s+shares',
                 # 等号格式: ACTION=BUY GOOGL 500 shares
                 r'ACTION\s*=\s*([A-Z]+)\s+([A-Z]+)\s+(\d+(?:\.\d+)?)\s+shares',
+                # 缺少数量格式: ACTION: BUY AAPL shares
+                r'ACTION:\s*([A-Z]+)\s+([A-Z]+)\s+shares',
+                # 缺少数量格式: ACTION: BUY AAPL
+                r'ACTION:\s*([A-Z]+)\s+([A-Z]+)',
             ]
             
             action = None
@@ -276,16 +280,25 @@ Choose the best trading action to maximize returns. Respond ONLY in the required
                 if action_match:
                     action = action_match.group(1).upper()
                     symbol = action_match.group(2).upper()
-                    amount = float(action_match.group(3))
+                    
+                    # 检查是否有数量参数
+                    if len(action_match.groups()) >= 3:
+                        amount = float(action_match.group(3))
+                    else:
+                        # 如果没有数量，使用默认数量
+                        amount = 100.0
+                    
                     if i == 0:  # 新格式
                         print(f"✅ 找到新格式ACTION: {action} {symbol} shares {amount}")
                     elif i == 2:  # 带连字符格式
                         print(f"✅ 找到连字符格式ACTION: {action} {symbol} - {amount}")
+                    elif i >= 7:  # 缺少数量格式
+                        print(f"✅ 找到缺少数量格式ACTION: {action} {symbol} (使用默认数量: {amount})")
                     else:  # 标准格式
                         print(f"✅ 找到标准格式ACTION: {action} {symbol} {amount}")
                     break
             
-            if not action or not symbol or not amount:
+            if not action or not symbol:
                 print("❌ 未找到完整的ACTION字段")
                 return None
             
