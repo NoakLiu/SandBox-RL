@@ -73,13 +73,21 @@ class LLMDecisionMaker:
         print("=" * 80)
         
         try:
-            # 生成LLM响应
+            # 生成LLM响应 - 添加系统消息强制格式
+            system_message = """You are a social network strategy expert. You MUST respond with EXACTLY 3 lines in this format:
+ACTION: [ACTION_NAME]
+TARGET: [TARGET_VALUE] 
+REASONING: [REASONING_TEXT]
+
+Do not add any other text, explanations, or formatting. Only the 3 lines above."""
+            
             response = self.llm_manager.generate_for_node(
                 "social_decision",
                 prompt,
-                temperature=0.7,
-                max_new_tokens=256,  # 增加token数量
-                do_sample=True
+                temperature=0.3,  # 降低温度以获得更一致的格式
+                max_new_tokens=128,  # 减少token数量
+                do_sample=True,
+                system_message=system_message
             )
             
             print(f"LLM Response Status: {response.status if hasattr(response, 'status') else 'unknown'}")
@@ -261,46 +269,28 @@ Network Dynamics:
         strategy_advice = self._generate_strategy_advice(state)
         
         # 重构后的增强提示 - 更严格的格式要求
-        prompt = f"""You are a social network strategy expert. You MUST respond in EXACTLY this format:
+        prompt = f"""You are a social network strategy expert. You MUST respond with EXACTLY 3 lines:
 
 ACTION: [CREATE_POST|ENCOURAGE_INTERACTION|FEATURE_USER|LAUNCH_CAMPAIGN|IMPROVE_ALGORITHM|ADD_FEATURE|MODERATE_CONTENT|EXPAND_NETWORK]
 TARGET: [specific target or "N/A"]
 REASONING: [brief explanation]
 
-Available Actions:
-1. CREATE_POST - Create engaging content (good when posts are low or quality needs improvement)
-2. ENCOURAGE_INTERACTION - Promote likes/comments/shares (good when engagement is low or mood is negative)
-3. FEATURE_USER - Highlight active users (good when active users are low or competition is high)
-4. LAUNCH_CAMPAIGN - Start viral marketing (good when viral posts are low, mood is negative, or crisis exists)
-5. IMPROVE_ALGORITHM - Optimize recommendations (good when quality is low, bounce rate is high, or innovation is needed)
-6. ADD_FEATURE - Introduce new features (good when session time is low, innovation is needed, or diversity is low)
-7. MODERATE_CONTENT - Improve content quality (good when satisfaction is low, controversy is high, or crisis exists)
-8. EXPAND_NETWORK - Grow user base (good when user count is low, mood is positive, or competition is low)
-
 Current State:
-{chr(10).join(network_summary[:10])}  # 只显示前10个用户
-{behavior_summary.strip()}
-{content_summary.strip()}
-{dynamics_summary.strip()}
-{history_summary.strip()}
-{performance_summary.strip()}
+- Active Users: {user_behavior.get('active_users', 0)}
+- Posts Created: {user_behavior.get('posts_created', 0)}
+- Content Quality: {content_metrics.get('quality_score', 0):.2f}
+- Network Mood: {network_dynamics.get('mood', 0):.2f}
+- Crisis Level: {network_dynamics.get('crisis_level', 0):.2f}
+- Bounce Rate: {user_behavior.get('bounce_rate', 0):.2f}
 
-Strategy Advice:
-{strategy_advice}
+Strategy Guidelines:
+- Negative mood → LAUNCH_CAMPAIGN or ENCOURAGE_INTERACTION
+- High crisis → MODERATE_CONTENT or LAUNCH_CAMPAIGN  
+- Low innovation → ADD_FEATURE or IMPROVE_ALGORITHM
+- High controversy → MODERATE_CONTENT
+- High bounce rate → IMPROVE_ALGORITHM
 
-IMPORTANT: Consider the network dynamics when choosing actions:
-- Negative mood → Use LAUNCH_CAMPAIGN or ENCOURAGE_INTERACTION to boost morale
-- High crisis level → Use MODERATE_CONTENT or LAUNCH_CAMPAIGN to address issues
-- Low innovation rate → Use ADD_FEATURE or IMPROVE_ALGORITHM to drive innovation
-- High controversy → Use MODERATE_CONTENT to control the situation
-- High bounce rate → Use IMPROVE_ALGORITHM to improve user experience
-
-CRITICAL: You MUST respond with EXACTLY 3 lines in this format:
-ACTION: [ACTION_NAME]
-TARGET: [TARGET_VALUE]
-REASONING: [REASONING_TEXT]
-
-Do not add any other text before or after these 3 lines."""
+Respond with EXACTLY 3 lines in the format above. No other text."""
         
         return prompt
     
@@ -337,7 +327,7 @@ Do not add any other text before or after these 3 lines."""
         # 基于用户体验的建议
         bounce_rate = user_behavior.get("bounce_rate", 0)
         if bounce_rate > 0.5:
-            advice.append("📉 High bounce rate - use IMPROVE_ALGORITHM to enhance user experience")
+            advice.append("📉 High bounce rate - use IMPROVE_ALGORITHM to improve user experience")
         
         # 基于内容质量的建议
         quality_score = content_metrics.get("quality_score", 0)
@@ -453,13 +443,31 @@ Do not add any other text before or after these 3 lines."""
             "MODERATE_CONTENT", "EXPAND_NETWORK"
         ]
         
+        # 按优先级排序动作（基于当前状态）
+        action_priority = []
         for action in valid_actions:
             if action in response_upper:
-                return {
-                    "action": action,
-                    "target": "N/A",
-                    "reasoning": f"Extracted action '{action}' from response"
-                }
+                action_priority.append(action)
+        
+        if action_priority:
+            # 选择第一个找到的动作
+            selected_action = action_priority[0]
+            
+            # 尝试从响应中提取一些上下文作为推理
+            reasoning = "Action extracted from response"
+            
+            # 查找包含动作的句子
+            sentences = response.split('.')
+            for sentence in sentences:
+                if selected_action.lower().replace('_', ' ') in sentence.lower():
+                    reasoning = sentence.strip()
+                    break
+            
+            return {
+                "action": selected_action,
+                "target": "N/A",
+                "reasoning": reasoning[:100] + "..." if len(reasoning) > 100 else reasoning
+            }
         
         # 如果没有找到有效动作，返回None
         return None
