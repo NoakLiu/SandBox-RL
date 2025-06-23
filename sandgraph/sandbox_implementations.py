@@ -1278,17 +1278,69 @@ class TradingSandbox(Sandbox):
                     price_change = (market_data[symbol]["close"] - market_data[symbol]["open"]) / market_data[symbol]["open"]
                     print(f"  价格变化率: {price_change}")
                     
-                    # 综合评分：价格趋势 + RSI + MACD
-                    trend_score = 0.5 + price_change * 10
-                    rsi_score = 0.5 + (indicators["rsi"] - 50) / 100  # RSI偏离中性的程度
-                    macd_score = 0.5 + indicators["macd"] / current_price * 100  # MACD信号
+                    # 重写评分算法 - 买入时评分逻辑
+                    # 1. 价格趋势评分 (0-1)
+                    if price_change > 0:
+                        trend_score = 0.5 + min(0.4, price_change * 20)  # 上涨时加分
+                    else:
+                        trend_score = 0.5 - min(0.4, abs(price_change) * 20)  # 下跌时减分
                     
-                    print(f"  趋势评分: {trend_score}")
-                    print(f"  RSI评分: {rsi_score}")
-                    print(f"  MACD评分: {macd_score}")
+                    # 2. RSI评分 (0-1) - 买入时RSI低是好事
+                    rsi = indicators["rsi"]
+                    if rsi < 30:
+                        rsi_score = 0.8  # 超卖，很好的买入机会
+                    elif rsi < 50:
+                        rsi_score = 0.6  # 中性偏低，不错的买入机会
+                    elif rsi < 70:
+                        rsi_score = 0.4  # 中性偏高，一般
+                    else:
+                        rsi_score = 0.2  # 超买，不好的买入时机
                     
-                    final_score = (trend_score + rsi_score + macd_score) / 3
-                    print(f"  最终评分: {final_score}")
+                    # 3. 移动平均线评分 (0-1)
+                    ma5 = indicators["ma5"]
+                    ma20 = indicators["ma20"]
+                    current_price = market_data[symbol]["close"]
+                    
+                    if current_price > ma5 > ma20:
+                        ma_score = 0.8  # 强势上涨
+                    elif current_price > ma5 and ma5 > ma20:
+                        ma_score = 0.6  # 上涨趋势
+                    elif current_price < ma5 < ma20:
+                        ma_score = 0.2  # 强势下跌
+                    elif current_price < ma5 and ma5 < ma20:
+                        ma_score = 0.4  # 下跌趋势
+                    else:
+                        ma_score = 0.5  # 震荡
+                    
+                    # 4. 布林带位置评分 (0-1)
+                    bb_upper = indicators["bollinger_upper"]
+                    bb_lower = indicators["bollinger_lower"]
+                    bb_position = (current_price - bb_lower) / (bb_upper - bb_lower) if bb_upper > bb_lower else 0.5
+                    
+                    if bb_position < 0.2:
+                        bb_score = 0.8  # 接近下轨，超卖
+                    elif bb_position < 0.4:
+                        bb_score = 0.6  # 偏下，不错
+                    elif bb_position < 0.6:
+                        bb_score = 0.5  # 中间位置
+                    elif bb_position < 0.8:
+                        bb_score = 0.4  # 偏上
+                    else:
+                        bb_score = 0.2  # 接近上轨，超买
+                    
+                    # 综合评分 - 加权平均
+                    final_score = (
+                        trend_score * 0.3 +
+                        rsi_score * 0.3 +
+                        ma_score * 0.2 +
+                        bb_score * 0.2
+                    )
+                    
+                    print(f"  趋势评分: {trend_score:.3f}")
+                    print(f"  RSI评分: {rsi_score:.3f}")
+                    print(f"  MA评分: {ma_score:.3f}")
+                    print(f"  布林带评分: {bb_score:.3f}")
+                    print(f"  最终评分: {final_score:.3f}")
                     
                     trade_record["score"] = final_score
                     self.trade_history.append(trade_record)
