@@ -624,6 +624,8 @@ Choose the best intervention strategy to combat misinformation. Respond ONLY in 
         try:
             # 查找ACTION行 - 支持多种格式
             action_patterns = [
+                # 新格式: ACTION: HIGH_SPREAD | DOWNRANK
+                r'ACTION:\s*([A-Z_]+)\s*\|\s*([A-Z_]+)',
                 # 标准格式: ACTION: FACT_CHECK GENERAL
                 r'ACTION:\s*([A-Z_]+)\s+([A-Z_]+)',
                 # 带方括号格式: ACTION: EDUCATE [general]
@@ -641,12 +643,17 @@ Choose the best intervention strategy to combat misinformation. Respond ONLY in 
             action = None
             target = None
             
-            for pattern in action_patterns:
+            for i, pattern in enumerate(action_patterns):
                 action_match = re.search(pattern, response, re.IGNORECASE)
                 if action_match:
-                    action = action_match.group(1).upper()
-                    target = action_match.group(2).upper()
-                    print(f"✅ 找到ACTION: {action} {target}")
+                    if i == 0:  # 新格式: ACTION: HIGH_SPREAD | DOWNRANK
+                        target = action_match.group(1).upper()
+                        action = action_match.group(2).upper()
+                        print(f"✅ 找到新格式ACTION: {target} | {action}")
+                    else:  # 其他格式: ACTION: DOWNRANK HIGH_SPREAD
+                        action = action_match.group(1).upper()
+                        target = action_match.group(2).upper()
+                        print(f"✅ 找到标准格式ACTION: {action} {target}")
                     break
             
             if not action or not target:
