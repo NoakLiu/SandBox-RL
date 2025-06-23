@@ -659,7 +659,64 @@ def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
                 # 执行交易决策
                 try:
                     # 验证和执行交易
-                    result = trading_env_func(None)
+                    score = node.sandbox.verify_score(
+                        f"{decision['action']} {decision.get('symbol', '')} {decision.get('amount', 0)}",
+                        case
+                    )
+                    
+                    # 计算奖励
+                    reward = score * 10  # 将分数转换为奖励
+                    
+                    # 构建状态特征
+                    state_features = {
+                        "market_volatility": _calculate_volatility(current_state),
+                        "portfolio_value": _calculate_portfolio_value(current_state),
+                        "cash_ratio": current_state["portfolio"]["cash"] / 100000.0,
+                        "position_count": len(current_state["portfolio"]["positions"]),
+                        "decision_type": 1 if decision["action"] == "BUY" else (2 if decision["action"] == "SELL" else 0)
+                    }
+                    
+                    # 添加到RL训练器
+                    rl_trainer.add_experience(
+                        state=state_features,
+                        action=json.dumps(decision),
+                        reward=reward,
+                        done=False
+                    )
+                    
+                    # 更新策略
+                    update_result = rl_trainer.update_policy()
+                    
+                    # 显示RL更新状态
+                    print(f"RL Update Status: {update_result.get('status', 'unknown')}")
+                    if update_result.get('status') == 'insufficient_data':
+                        print(f"  Trajectory Count: {update_result.get('trajectory_count', 0)}")
+                        print(f"  Required Batch Size: {update_result.get('required_batch_size', 0)}")
+                    elif update_result.get('status') == 'updated':
+                        print(f"  Training Step: {update_result.get('training_step', 0)}")
+                        print(f"  Algorithm: {update_result.get('algorithm', 'unknown')}")
+                    
+                    result = {
+                        "state": current_state,
+                        "decision": decision,
+                        "llm_response": decision_result["llm_response"],
+                        "score": score,
+                        "reward": reward,
+                        "rl_update": update_result,
+                        "sandbox_id": node.sandbox.sandbox_id
+                    }
+                    
+                    print(f"LLM Decision: {decision['action']} {decision.get('symbol', '')} {decision.get('amount', '')}")
+                    print(f"Decision Reason: {decision.get('reasoning', '')}")
+                    print(f"Trading Score: {score:.3f}")
+                    print(f"RL Reward: {reward:.3f}")
+                    
+                    # 显示当前投资组合状态
+                    portfolio = current_state.get("portfolio", {})
+                    cash = portfolio.get("cash", 0)
+                    positions = portfolio.get("positions", {})
+                    print(f"Current Cash: {cash:.2f}")
+                    print(f"Current Positions: {positions}")
                     
                     results.append(result)
                     
