@@ -1347,8 +1347,8 @@ class TradingSandbox(Sandbox):
                     
                     return max(0.0, min(1.0, final_score))
                 else:
-                    print(f"  ❌ 资金不足，需要 {cost}，只有 {self.portfolio['cash']}")
-                    return 0.0  # 资金不足
+                    print(f"  ❌ 持仓不足，需要 {amount}，只有 {self.portfolio['positions'].get(symbol, 0)}")
+                    return 0.0  # 持仓不足
             
             elif action_type == "SELL":
                 print(f"  当前持仓: {self.portfolio['positions']}")
@@ -1417,62 +1417,34 @@ class TradingSandbox(Sandbox):
                     
                     # 综合评分 - 加权平均
                     final_score = (
-                base_score += 0.1
-        
-        elif action == "LAUNCH_CAMPAIGN":
-            if content_metrics["viral_posts"] < 3:
-                base_score += 0.4  # 需要病毒内容
-            elif network_dynamics["mood"] < 0.2:
-                base_score += 0.3  # 提升网络情绪
-            elif network_dynamics["crisis_level"] > 0.4:
-                base_score += 0.2  # 危机时期需要提振
-            else:
-                base_score += 0.2
-        
-        elif action == "IMPROVE_ALGORITHM":
-            if content_metrics["quality_score"] < 0.6:
-                base_score += 0.3  # 需要提高质量
-            elif user_behavior["bounce_rate"] > 0.5:
-                base_score += 0.3  # 需要改善用户体验
-            elif network_dynamics["innovation_rate"] < 0.3:
-                base_score += 0.2  # 需要创新
-            else:
-                base_score += 0.1
-        
-        elif action == "ADD_FEATURE":
-            if user_behavior["avg_session_time"] < 15:
-                base_score += 0.3  # 需要增加用户停留时间
-            elif network_dynamics["innovation_rate"] < 0.3:
-                base_score += 0.3  # 需要创新
-            elif content_metrics["diversity_score"] < 0.5:
-                base_score += 0.2  # 需要增加多样性
-            else:
-                base_score += 0.1
-        
-        elif action == "MODERATE_CONTENT":
-            if content_metrics["satisfaction_score"] < 0.7:
-                base_score += 0.3  # 需要提高满意度
-            elif content_metrics["controversy_level"] > 0.4:
-                base_score += 0.4  # 需要控制争议
-            elif network_dynamics["crisis_level"] > 0.3:
-                base_score += 0.3  # 危机时期需要管控
-            else:
-                base_score += 0.1
-        
-        elif action == "EXPAND_NETWORK":
-            if len(state["network_state"]) < 200:
-                base_score += 0.3  # 需要扩大网络
-            elif network_dynamics["mood"] > 0.3:
-                base_score += 0.2  # 积极情绪下适合扩张
-            elif network_dynamics["competition_level"] < 0.4:
-                base_score += 0.2  # 低竞争环境下适合扩张
-            else:
-                base_score += 0.1
-        
-        # 添加随机波动
-        random_factor = self.random.uniform(0.8, 1.2)
-        
-        return min(1.0, base_score * random_factor)
+                        trend_score * 0.3 +
+                        rsi_score * 0.3 +
+                        ma_score * 0.2 +
+                        bb_score * 0.2
+                    )
+                    
+                    print(f"  趋势评分: {trend_score:.3f}")
+                    print(f"  RSI评分: {rsi_score:.3f}")
+                    print(f"  MA评分: {ma_score:.3f}")
+                    print(f"  布林带评分: {bb_score:.3f}")
+                    print(f"  最终评分: {final_score:.3f}")
+                    
+                    trade_record["score"] = final_score
+                    self.trade_history.append(trade_record)
+                    
+                    return max(0.0, min(1.0, final_score))
+                else:
+                    print(f"  ❌ 持仓不足，需要 {amount}，只有 {self.portfolio['positions'].get(symbol, 0)}")
+                    return 0.0  # 持仓不足
+            
+            print(f"  ❌ 未知动作类型: {action_type}")
+            return 0.0
+            
+        except Exception as e:
+            print(f"❌ 模拟交易评分错误: {e}")
+            import traceback
+            traceback.print_exc()
+            return 0.0
 
 
 # 沙盒注册表，方便动态创建
