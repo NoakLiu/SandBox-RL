@@ -209,7 +209,24 @@ class LLMDecisionMaker:
         for symbol, amount in positions.items():
             position_summary.append(f"{symbol}: {amount} 股")
         
-        # 重构后的简洁提示，格式更清晰
+        # 计算合理的交易数量建议
+        reasonable_amounts = {}
+        for symbol, data in market_data.items():
+            price = data.get('close', 0)
+            if price > 0:
+                # 建议买入数量：现金的10-20%，但不超过1000股
+                max_shares_by_cash = int(cash * 0.15 / price)  # 现金的15%
+                max_shares = min(max_shares_by_cash, 1000)  # 不超过1000股
+                reasonable_amounts[symbol] = max(1, max_shares)  # 至少1股
+        
+        # 构建交易数量建议
+        amount_suggestions = []
+        for symbol, amount in reasonable_amounts.items():
+            price = market_data[symbol].get('close', 0)
+            cost = amount * price
+            amount_suggestions.append(f"{symbol}: {amount}股 (约${cost:.0f})")
+        
+        # 重构后的简洁提示，格式更清晰，包含资金限制
         prompt = f"""You are a trading expert in a simulation game.
 
 REQUIRED RESPONSE FORMAT:
@@ -222,6 +239,13 @@ Available Actions:
 
 Available Symbols: {', '.join(market_data.keys())}
 
+IMPORTANT - FUNDING CONSTRAINTS:
+- Current Cash: ${cash:.2f}
+- Choose reasonable amounts to avoid insufficient funds
+- Suggested amounts: {', '.join(amount_suggestions)}
+- For expensive stocks (like AMZN), consider smaller amounts (10-50 shares)
+- For cheaper stocks (like AAPL), you can buy more (100-500 shares)
+
 Current Market:
 {chr(10).join(market_summary[:5])}
 
@@ -233,7 +257,7 @@ Cash: {cash:.2f}
 Positions: {chr(10).join(position_summary) if position_summary else 'None'}
 {history_summary.strip()}
 
-Choose the best trading action to maximize returns. Respond ONLY in the required format above."""
+Choose the best trading action to maximize returns. Consider your cash limit and choose reasonable amounts. Respond ONLY in the required format above."""
         
         return prompt
 
