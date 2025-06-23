@@ -456,6 +456,39 @@ python demo/oasis_social_demo.py --test
 - **RL Optimization**: Adaptive social behavior learning
 - **Scalability**: Support for large-scale social network simulations
 
+For OASIS API Integration Demo
+
+**Input**: Agent profiles, social network topology, interaction data  
+**Process**: LLM analyzes agent behaviors → generates social actions → RL optimizes agent strategies  
+**Output**: Agent interactions, network dynamics, behavioral optimization
+
+```python
+# Run OASIS API integration demo
+python demo/oasis_api_demo.py --steps 5
+
+# Run with custom profile
+python demo/oasis_api_demo.py --steps 5 --profile ./data/custom_profile.json
+
+# Run tests for OASIS API integration demo
+python demo/oasis_api_demo.py --test
+```
+
+**Features**:
+- **Mock OASIS Environment**: Simulated multi-agent social network
+- **Agent Behaviors**: CREATE_POST, CREATE_COMMENT, LIKE_POST, FOLLOW, SEARCH_POSTS, TREND
+- **Agent Profiles**: Personality traits, interests, social connections
+- **Network Dynamics**: Agent interactions, content creation, engagement patterns
+- **RL Optimization**: Adaptive agent behavior learning
+- **API Simulation**: Mock OASIS API for testing and development
+- **Scalability**: Support for multiple agents and complex interactions
+
+**Installation**:
+```bash
+# Install OASIS dependencies
+chmod +x install_oasis.sh
+./install_oasis.sh
+```
+
 ## 🔥 LLM模型支持
 
 SandGraph支持多种主流大语言模型，以下是支持的模型和基本使用方法：

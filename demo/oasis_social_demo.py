@@ -718,10 +718,10 @@ def create_rl_oasis_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMSo
             
             # 构建状态特征
             state_features = {
-                "total_users": current_state["network_state"]["total_users"],
-                "network_density": current_state["network_state"]["network_density"],
-                "total_posts": current_state["network_state"]["total_posts"],
-                "total_likes": current_state["network_state"]["total_likes"],
+                "total_users": current_state["network_state"].get("total_users", 0),
+                "network_density": current_state["network_state"].get("network_density", 0.0),
+                "total_posts": current_state["network_state"].get("total_posts", 0),
+                "total_likes": current_state["network_state"].get("total_likes", 0),
                 "decision_type": _encode_social_action(decision["action"])
             }
             
@@ -844,10 +844,10 @@ def run_rl_oasis_demo(steps: int = 5):
                     
                     # 构建状态特征
                     state_features = {
-                        "total_users": current_state["network_state"]["total_users"],
-                        "network_density": current_state["network_state"]["network_density"],
-                        "total_posts": current_state["network_state"]["total_posts"],
-                        "total_likes": current_state["network_state"]["total_likes"],
+                        "total_users": current_state["network_state"].get("total_users", 0),
+                        "network_density": current_state["network_state"].get("network_density", 0.0),
+                        "total_posts": current_state["network_state"].get("total_posts", 0),
+                        "total_likes": current_state["network_state"].get("total_likes", 0),
                         "decision_type": _encode_social_action(decision["action"])
                     }
                     
@@ -881,9 +881,9 @@ def run_rl_oasis_demo(steps: int = 5):
                     
                     # 显示当前网络状态
                     network_state = current_state["network_state"]
-                    print(f"Total Users: {network_state['total_users']}")
-                    print(f"Total Posts: {network_state['total_posts']}")
-                    print(f"Network Density: {network_state['network_density']:.3f}")
+                    print(f"Total Users: {network_state.get('total_users', 0)}")
+                    print(f"Total Posts: {network_state.get('total_posts', 0)}")
+                    print(f"Network Density: {network_state.get('network_density', 0.0):.3f}")
                     
                     results.append(result)
                     
