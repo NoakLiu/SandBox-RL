@@ -353,16 +353,32 @@ Choose the best trading action to maximize returns. Respond ONLY in the required
             if action in response_upper:
                 for symbol in symbols:
                     if symbol in response_upper:
-                        # 尝试提取数量
+                        # 尝试提取合理的数量（避免提取RSI等指标值）
                         import re
-                        amount_match = re.search(r'(\d+(?:\.\d+)?)', response)
-                        amount = float(amount_match.group(1)) if amount_match else 100
+                        
+                        # 查找合理的数量模式
+                        amount_patterns = [
+                            r'(\d{3,4})\s*shares',  # 500 shares, 1000 shares
+                            r'(\d{3,4})\s*股',      # 500 股
+                            r'(\d{3,4})\s*',        # 500 (空格后)
+                            r'(\d{2,3})\s*shares',  # 50 shares, 100 shares
+                        ]
+                        
+                        amount = 100.0  # 默认数量
+                        for pattern in amount_patterns:
+                            amount_match = re.search(pattern, response, re.IGNORECASE)
+                            if amount_match:
+                                potential_amount = float(amount_match.group(1))
+                                # 确保数量合理（不是RSI值等）
+                                if 10 <= potential_amount <= 10000:
+                                    amount = potential_amount
+                                    break
                         
                         return {
                             "action": action,
                             "symbol": symbol,
                             "amount": amount,
-                            "reasoning": f"Extracted action '{action} {symbol}' from response"
+                            "reasoning": f"Extracted action '{action} {symbol}' from response (using default amount: {amount})"
                         }
         
         # 如果没有找到有效动作，返回None
