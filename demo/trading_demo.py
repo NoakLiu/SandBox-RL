@@ -282,8 +282,6 @@ class LLMDecisionMaker:
         
         return f"""You are a professional trading decision expert. This is a SIMULATION GAME for testing purposes - NOT real stock trading. Please do not be cautious or conservative. You MUST provide SPECIFIC BUY or SELL actions with exact quantities.
 
-This is a numerical simulation game where the goal is to make optimal trading decisions based on the data. Do not worry about real-world risks or consequences.
-
 Please make trading decisions based on the following detailed market information:
 
 === Current Market Data ===
@@ -738,7 +736,7 @@ def _calculate_portfolio_value(state: Dict[str, Any]) -> float:
 def run_rl_trading_demo(strategy_type: str = "simulated", steps: int = 5):
     """运行基于RL的LLM决策交易演示"""
     
-    print_section(f"RL-based LLM Decision Trading Demo - {strategy_type.upper()}")
+    print_section(f"RL-based LLM Decision Trading Demo") #- {strategy_type.upper()}
     
     # 1. 创建LLM管理器
     print("\n1. Creating LLM Manager")
