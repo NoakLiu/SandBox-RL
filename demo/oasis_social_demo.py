@@ -710,9 +710,9 @@ def create_rl_oasis_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMSo
         value_loss_coef=0.5,
         entropy_coef=0.01,
         max_grad_norm=0.5,
-        batch_size=32,
-        mini_batch_size=8,
-        ppo_epochs=4,
+        batch_size=4,  # 减小batch_size，使其能在少量步骤后开始训练
+        mini_batch_size=2,
+        ppo_epochs=2,
         target_kl=0.01
     )
     
@@ -782,7 +782,16 @@ def create_rl_oasis_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMSo
             # 更新策略
             update_result = rl_trainer.update_policy()
             
-            return {
+            # 显示RL更新状态
+            print(f"RL Update Status: {update_result.get('status', 'unknown')}")
+            if update_result.get('status') == 'insufficient_data':
+                print(f"  Trajectory Count: {update_result.get('trajectory_count', 0)}")
+                print(f"  Required Batch Size: {update_result.get('required_batch_size', 0)}")
+            elif update_result.get('status') == 'updated':
+                print(f"  Training Step: {update_result.get('training_step', 0)}")
+                print(f"  Algorithm: {update_result.get('algorithm', 'unknown')}")
+            
+            result = {
                 "state": current_state,
                 "decision": decision,
                 "llm_response": decision_result["llm_response"],
@@ -792,6 +801,20 @@ def create_rl_oasis_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMSo
                 "rl_update": update_result,
                 "sandbox_id": sandbox.sandbox_id
             }
+            
+            print(f"LLM Decision: {decision['action']} {decision.get('user_id', '')}")
+            print(f"Decision Reason: {decision.get('reasoning', '')}")
+            print(f"Action Success: {action_result.get('success', False)}")
+            print(f"Social Score: {score:.3f}")
+            print(f"RL Reward: {reward:.3f}")
+            
+            # 显示当前网络状态
+            network_state = current_state["network_state"]
+            print(f"Total Users: {network_state.get('total_users', 0)}")
+            print(f"Total Posts: {network_state.get('total_posts', 0)}")
+            print(f"Network Density: {network_state.get('network_density', 0.0):.3f}")
+            
+            return result
             
         except Exception as e:
             print(f"OASIS社交行动执行错误: {e}")
@@ -907,6 +930,15 @@ def run_rl_oasis_demo(steps: int = 5):
                     
                     # 更新策略
                     update_result = rl_trainer.update_policy()
+                    
+                    # 显示RL更新状态
+                    print(f"RL Update Status: {update_result.get('status', 'unknown')}")
+                    if update_result.get('status') == 'insufficient_data':
+                        print(f"  Trajectory Count: {update_result.get('trajectory_count', 0)}")
+                        print(f"  Required Batch Size: {update_result.get('required_batch_size', 0)}")
+                    elif update_result.get('status') == 'updated':
+                        print(f"  Training Step: {update_result.get('training_step', 0)}")
+                        print(f"  Algorithm: {update_result.get('algorithm', 'unknown')}")
                     
                     result = {
                         "state": current_state,

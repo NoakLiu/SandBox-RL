@@ -474,12 +474,10 @@ python demo/oasis_api_demo.py --test
 ```
 
 **Features**:
-- **Mock OASIS Environment**: Simulated multi-agent social network
 - **Agent Behaviors**: CREATE_POST, CREATE_COMMENT, LIKE_POST, FOLLOW, SEARCH_POSTS, TREND
 - **Agent Profiles**: Personality traits, interests, social connections
 - **Network Dynamics**: Agent interactions, content creation, engagement patterns
 - **RL Optimization**: Adaptive agent behavior learning
-- **API Simulation**: Mock OASIS API for testing and development
 - **Scalability**: Support for multiple agents and complex interactions
 
 **Installation**:
