@@ -194,6 +194,7 @@ class LLMDecisionMaker:
         network_state = state.get("network_state", {})
         user_behavior = state.get("user_behavior", {})
         content_metrics = state.get("content_metrics", {})
+        network_dynamics = state.get("network_dynamics", {})
         
         # 构建网络状态摘要
         network_summary = []
@@ -215,6 +216,8 @@ Current User Behavior:
 - Comments Made: {user_behavior.get('comments_made', 0)}
 - Shares Made: {user_behavior.get('shares_made', 0)}
 - Average Session Time: {user_behavior.get('avg_session_time', 0):.1f} minutes
+- Bounce Rate: {user_behavior.get('bounce_rate', 0):.2f}
+- Retention Rate: {user_behavior.get('retention_rate', 0):.2f}
 """
         
         # 构建内容指标摘要
@@ -224,6 +227,17 @@ Content Performance:
 - Trending Topics: {content_metrics.get('trending_topics', 0)}
 - Content Quality Score: {content_metrics.get('quality_score', 0):.2f}
 - User Satisfaction: {content_metrics.get('satisfaction_score', 0):.2f}
+- Content Diversity: {content_metrics.get('diversity_score', 0):.2f}
+- Controversy Level: {content_metrics.get('controversy_level', 0):.2f}
+"""
+        
+        # 构建网络动态摘要
+        dynamics_summary = f"""
+Network Dynamics:
+- Network Mood: {network_dynamics.get('mood', 0):.2f} (-1=Negative, 1=Positive)
+- Competition Level: {network_dynamics.get('competition_level', 0):.2f}
+- Innovation Rate: {network_dynamics.get('innovation_rate', 0):.2f}
+- Crisis Level: {network_dynamics.get('crisis_level', 0):.2f}
 """
         
         # 构建历史决策摘要
@@ -243,7 +257,10 @@ Content Performance:
             for record in recent_performance:
                 performance_summary += f"- Step {record['step']}: Engagement Score = {record['engagement_score']:.3f}\n"
         
-        # 重构后的简洁提示
+        # 构建策略建议
+        strategy_advice = self._generate_strategy_advice(state)
+        
+        # 重构后的增强提示
         prompt = f"""You are a social network strategy expert in a simulation game.
 
 REQUIRED RESPONSE FORMAT:
@@ -252,25 +269,86 @@ TARGET: [specific target or "N/A"]
 REASONING: [brief explanation]
 
 Available Actions:
-1. CREATE_POST - Create engaging content
-2. ENCOURAGE_INTERACTION - Promote likes/comments/shares
-3. FEATURE_USER - Highlight active users
-4. LAUNCH_CAMPAIGN - Start viral marketing
-5. IMPROVE_ALGORITHM - Optimize recommendations
-6. ADD_FEATURE - Introduce new features
-7. MODERATE_CONTENT - Improve content quality
-8. EXPAND_NETWORK - Grow user base
+1. CREATE_POST - Create engaging content (good when posts are low or quality needs improvement)
+2. ENCOURAGE_INTERACTION - Promote likes/comments/shares (good when engagement is low or mood is negative)
+3. FEATURE_USER - Highlight active users (good when active users are low or competition is high)
+4. LAUNCH_CAMPAIGN - Start viral marketing (good when viral posts are low, mood is negative, or crisis exists)
+5. IMPROVE_ALGORITHM - Optimize recommendations (good when quality is low, bounce rate is high, or innovation is needed)
+6. ADD_FEATURE - Introduce new features (good when session time is low, innovation is needed, or diversity is low)
+7. MODERATE_CONTENT - Improve content quality (good when satisfaction is low, controversy is high, or crisis exists)
+8. EXPAND_NETWORK - Grow user base (good when user count is low, mood is positive, or competition is low)
 
 Current State:
 {chr(10).join(network_summary[:10])}  # 只显示前10个用户
 {behavior_summary.strip()}
 {content_summary.strip()}
+{dynamics_summary.strip()}
 {history_summary.strip()}
 {performance_summary.strip()}
+
+Strategy Advice:
+{strategy_advice}
+
+IMPORTANT: Consider the network dynamics when choosing actions:
+- Negative mood → Use LAUNCH_CAMPAIGN or ENCOURAGE_INTERACTION to boost morale
+- High crisis level → Use MODERATE_CONTENT or LAUNCH_CAMPAIGN to address issues
+- Low innovation rate → Use ADD_FEATURE or IMPROVE_ALGORITHM to drive innovation
+- High controversy → Use MODERATE_CONTENT to control the situation
+- High bounce rate → Use IMPROVE_ALGORITHM to improve user experience
 
 Choose the best action to maximize engagement and growth. Respond ONLY in the required format above."""
         
         return prompt
+    
+    def _generate_strategy_advice(self, state: Dict[str, Any]) -> str:
+        """根据当前状态生成策略建议"""
+        network_dynamics = state.get("network_dynamics", {})
+        user_behavior = state.get("user_behavior", {})
+        content_metrics = state.get("content_metrics", {})
+        
+        advice = []
+        
+        # 基于网络情绪的建议
+        mood = network_dynamics.get("mood", 0)
+        if mood < -0.3:
+            advice.append("⚠️ Network mood is negative - consider LAUNCH_CAMPAIGN or ENCOURAGE_INTERACTION to boost morale")
+        elif mood > 0.3:
+            advice.append("✅ Network mood is positive - good time for EXPAND_NETWORK or ADD_FEATURE")
+        
+        # 基于危机程度的建议
+        crisis_level = network_dynamics.get("crisis_level", 0)
+        if crisis_level > 0.4:
+            advice.append("🚨 Crisis detected - prioritize MODERATE_CONTENT or LAUNCH_CAMPAIGN to address issues")
+        
+        # 基于争议程度的建议
+        controversy_level = content_metrics.get("controversy_level", 0)
+        if controversy_level > 0.4:
+            advice.append("⚠️ High controversy - use MODERATE_CONTENT to control the situation")
+        
+        # 基于创新率的建议
+        innovation_rate = network_dynamics.get("innovation_rate", 0)
+        if innovation_rate < 0.3:
+            advice.append("💡 Low innovation - consider ADD_FEATURE or IMPROVE_ALGORITHM to drive innovation")
+        
+        # 基于用户体验的建议
+        bounce_rate = user_behavior.get("bounce_rate", 0)
+        if bounce_rate > 0.5:
+            advice.append("📉 High bounce rate - use IMPROVE_ALGORITHM to enhance user experience")
+        
+        # 基于内容质量的建议
+        quality_score = content_metrics.get("quality_score", 0)
+        if quality_score < 0.6:
+            advice.append("📝 Low content quality - consider CREATE_POST or IMPROVE_ALGORITHM")
+        
+        # 基于用户参与的建议
+        active_users = user_behavior.get("active_users", 0)
+        if active_users < 50:
+            advice.append("👥 Low active users - consider FEATURE_USER or ENCOURAGE_INTERACTION")
+        
+        if not advice:
+            advice.append("✅ Network is stable - any action can help maintain growth")
+        
+        return "\n".join(advice)
     
     def _parse_decision_response(self, response: str) -> Optional[Dict[str, Any]]:
         """解析LLM决策响应"""
