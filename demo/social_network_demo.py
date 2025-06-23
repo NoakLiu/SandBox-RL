@@ -385,7 +385,7 @@ Choose the best action to maximize engagement and growth. Respond ONLY in the re
 def create_rl_social_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMDecisionMaker]:
     """创建基于RL的LLM决策社交网络工作流"""
     
-    # 创建RL配置
+    # 创建RL配置 - 减小batch size以在少量步骤后开始训练
     rl_config = RLConfig(
         algorithm=RLAlgorithm.PPO,
         learning_rate=3e-4,
@@ -395,9 +395,9 @@ def create_rl_social_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMD
         value_loss_coef=0.5,
         entropy_coef=0.01,
         max_grad_norm=0.5,
-        batch_size=32,
-        mini_batch_size=8,
-        ppo_epochs=4,
+        batch_size=4,  # 从32减小到4
+        mini_batch_size=2,  # 从8减小到2
+        ppo_epochs=2,  # 从4减小到2
         target_kl=0.01
     )
     
@@ -457,6 +457,15 @@ def create_rl_social_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMD
             
             # 更新策略
             update_result = rl_trainer.update_policy()
+            
+            # 显示RL更新状态
+            print(f"RL Update Status: {update_result.get('status', 'unknown')}")
+            if update_result.get('status') == 'insufficient_data':
+                print(f"  Trajectory Count: {update_result.get('trajectory_count', 0)}")
+                print(f"  Required Batch Size: {update_result.get('required_batch_size', 0)}")
+            elif update_result.get('status') == 'updated':
+                print(f"  Training Step: {update_result.get('training_step', 0)}")
+                print(f"  Algorithm: {update_result.get('algorithm', 'unknown')}")
             
             return {
                 "state": current_state,
