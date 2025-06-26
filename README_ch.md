@@ -303,9 +303,9 @@ SandGraph支持多种主流大语言模型，以下是支持的模型和基本�
 | **开源替代** | GPT-2, Falcon | 1-7B | 2-16GB |
 
 
-设计更多的指标和接口 (Social Network) - 用户过程查看 (WanDB, TensorBoard)
+<!-- 设计更多的指标和接口 (Social Network) - 用户过程查看 (WanDB, TensorBoard)
 LLMs frozen & adaptive update
-Demo的最终目的设计，SandGraph LLM要 beat普通的规则和人类用户，最后的结果应该是misinformation spread over large percent of graph.
+Demo的最终目的设计，SandGraph LLM要 beat普通的规则和人类用户，最后的结果应该是misinformation spread over large percent of graph. -->
 
 ## 📄 许可证
 

@@ -302,11 +302,11 @@ SandGraph supports various mainstream large language models. Below are the suppo
 | **High Performance** | LLaMA2-13B | 13B | 16-32GB |
 | **Open Source Alternatives** | GPT-2, Falcon | 1-7B | 2-16GB |
 
-## 🚧 Future Development
+<!-- ## 🚧 Future Development
 
 - Design more metrics and interfaces (Social Network) - User process monitoring (WanDB, TensorBoard)
 - LLMs frozen & adaptive update
-- Demo final goal design: SandGraph LLM should beat ordinary rules and human users, with the final result being misinformation spread over a large percentage of the graph.
+- Demo final goal design: SandGraph LLM should beat ordinary rules and human users, with the final result being misinformation spread over a large percentage of the graph. -->
 
 ## 📄 License
 
