@@ -53,6 +53,12 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Lightweight**: Phi-2, Gemma-2B
   - **High Performance**: LLaMA2-13B
   - **Open Source Alternatives**: GPT-2, Falcon
+- **📊 Advanced Monitoring & Visualization**: Comprehensive real-time monitoring with WanDB and TensorBoard integration
+  - **Real-time Metrics Tracking**: Monitor social network metrics in real-time
+  - **Multi-backend Support**: WanDB, TensorBoard, file logging, and console output
+  - **Alert System**: Configurable alerts for critical thresholds
+  - **Advanced Visualization**: Static dashboards, interactive plots, trend analysis, and correlation heatmaps
+  - **Comprehensive Metrics**: User, engagement, content, network, community, influence, and performance metrics
 
 ## 📁 File Structure
 
@@ -66,14 +72,22 @@ SandGraphX/
 │   │   ├── llm_interface.py     # LLM interface
 │   │   ├── sandbox.py           # Sandbox base class
 │   │   ├── rl_framework.py      # Reinforcement learning framework
-│   │   └── rl_algorithms.py     # Reinforcement learning algorithms
+│   │   ├── rl_algorithms.py     # Reinforcement learning algorithms
+│   │   ├── monitoring.py        # Social network monitoring system
+│   │   └── visualization.py     # Data visualization module
 │   ├── sandbox_implementations.py # Sandbox implementations
 │   └── examples.py              # Example code
 ├── demo/                        # Example code directory
 │   ├── trading_demo.py         # Trading system example
 │   ├── social_network_demo.py  # Social network analysis demo
 │   ├── misinformation_spread_demo.py # Misinformation spread demo
-│   └── oasis_social_demo.py    # OASIS social network simulation
+│   ├── oasis_social_demo.py    # OASIS social network simulation
+│   ├── enhanced_social_network_demo.py # Enhanced demo with monitoring
+│   └── monitoring_example.py   # Monitoring system example
+├── docs/                        # Documentation
+│   └── monitoring_guide.md     # Comprehensive monitoring guide
+├── logs/                        # Log files and monitoring data
+├── visualizations/              # Generated visualizations
 └── setup.py                     # Installation configuration
 ```
 
@@ -105,6 +119,16 @@ SandGraphX/
 │  • Resources: Global resource management and SandBox isolation       │
 │  • Monitoring: Execution state tracking and performance analysis     │
 │  • Extension: Support for custom nodes and optimization strategies   │
+└─────────────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│                Monitoring & Visualization               │
+├─────────────────────────────────────────────────────────┤
+│  • Real-time Metrics: WanDB, TensorBoard, file logging │
+│  • Alert System: Configurable thresholds and callbacks  │
+│  • Visualization: Dashboards, trends, correlation maps │
+│  • Export: JSON, CSV, images, interactive HTML         │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -163,6 +187,32 @@ workflow.add_edge("optimizer", "env")
 result = workflow.execute_full_workflow()
 ```
 
+### 4. Add Monitoring (Optional)
+```python
+from sandgraph.core.monitoring import create_monitor, MonitoringConfig
+from sandgraph.core.visualization import create_visualizer
+
+# Setup monitoring
+config = MonitoringConfig(
+    enable_wandb=True,
+    enable_tensorboard=True,
+    wandb_project_name="my-social-network"
+)
+monitor = create_monitor(config)
+visualizer = create_visualizer("./visualizations")
+
+# Start monitoring
+monitor.start_monitoring()
+
+# During execution, collect and update metrics
+metrics = collect_metrics_from_workflow(workflow)
+monitor.update_metrics(metrics)
+
+# Stop monitoring and create visualizations
+monitor.stop_monitoring()
+visualizer.export_visualization_report(metrics_history)
+```
+
 ## 📦 Installation
 
 ### Using Conda (Recommended)
@@ -179,6 +229,16 @@ cd SandGraphX
 # 3. Run installation script
 chmod +x quick_install.sh
 ./quick_install.sh
+```
+
+### Optional Dependencies for Monitoring
+
+```bash
+# For advanced monitoring and visualization
+pip install wandb tensorboard matplotlib plotly seaborn pandas
+
+# For enhanced social network demos
+pip install networkx scipy
 ```
 
 ## 📖 Usage
@@ -209,10 +269,20 @@ chmod +x quick_install.sh
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
+│                Monitoring & Visualization               │
+│  ┌─────────────┬─────────────┬─────────────┬─────────┐  │
+│  │   WanDB     │ TensorBoard │   File      │ Console │  │
+│  │  Logging    │   Logging   │  Logging    │ Output  │  │
+│  └─────────────┴─────────────┴─────────────┴─────────┘  │
+└─────────────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────┐
 │                   Execution Results                     │
 │  • Performance Metrics                                  │
 │  • Optimization Statistics                              │
 │  • State Updates                                        │
+│  • Visualization Reports                                │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -265,7 +335,34 @@ python demo/trading_demo.py --strategy simulated --steps 5
 python demo/social_network_demo.py --steps 10
 ```
 
-### Example 3: Misinformation Spread Analysis
+### Example 3: Enhanced Social Network with Monitoring
+
+**Input**: Network data with comprehensive monitoring  
+**Process**: LLM analysis → RL optimization → Real-time monitoring → Advanced visualization  
+**Output**: Network insights, performance metrics, interactive dashboards, trend analysis
+
+```python
+# Run enhanced social network demo with monitoring
+python demo/enhanced_social_network_demo.py \
+    --steps 20 \
+    --initial-users 100 \
+    --enable-wandb \
+    --enable-tensorboard \
+    --wandb-project "sandgraph-enhanced-social"
+```
+
+### Example 4: Monitoring System Example
+
+**Input**: Sample social network metrics  
+**Process**: Real-time monitoring → Alert system → Multi-backend logging → Visualization  
+**Output**: Comprehensive monitoring reports, interactive dashboards, trend analysis
+
+```python
+# Run monitoring example
+python demo/monitoring_example.py
+```
+
+### Example 5: Misinformation Spread Analysis
 
 **Input**: Social network data, user beliefs, information content  
 **Process**: LLM analyzes misinformation patterns → generates intervention strategies → RL optimizes intervention effectiveness  
@@ -276,7 +373,7 @@ python demo/social_network_demo.py --steps 10
 python demo/misinformation_spread_demo.py --steps 5
 ```
 
-### Example 4: OASIS Social Network Simulation
+### Example 6: OASIS Social Network Simulation
 
 **Input**: User profiles, social network topology, content data  
 **Process**: LLM analyzes social dynamics → generates user behaviors → RL optimizes engagement strategies  
@@ -304,9 +401,7 @@ SandGraph supports various mainstream large language models. Below are the suppo
 
 <!-- ## 🚧 Future Development
 
-- Design more metrics and interfaces (Social Network) - User process monitoring (WanDB, TensorBoard)
-- LLMs frozen & adaptive update
-- Demo final goal design: SandGraph LLM should beat ordinary rules and human users, with the final result being misinformation spread over a large percentage of the graph. -->
+For detailed monitoring documentation, see [docs/monitoring_guide.md](docs/monitoring_guide.md).
 
 ## 📄 License
 
