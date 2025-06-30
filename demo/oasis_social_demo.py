@@ -702,18 +702,10 @@ def create_rl_oasis_workflow(llm_manager) -> tuple[SG_Workflow, RLTrainer, LLMSo
     
     # 创建RL配置
     rl_config = RLConfig(
-        algorithm=RLAlgorithm.PPO,
-        learning_rate=3e-4,
-        gamma=0.99,
-        gae_lambda=0.95,
-        clip_ratio=0.2,
-        value_loss_coef=0.5,
-        entropy_coef=0.01,
-        max_grad_norm=0.5,
-        batch_size=4,  # 减小batch_size，使其能在少量步骤后开始训练
-        mini_batch_size=2,
-        ppo_epochs=2,
-        target_kl=0.01
+        algorithm="PPO",
+        learning_rate=0.001,
+        batch_size=32,
+        gamma=0.99
     )
     
     # 创建RL训练器
