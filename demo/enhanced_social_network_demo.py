@@ -82,9 +82,10 @@ class EnhancedSocialNetworkDemo:
         
         # Create RL trainer
         rl_config = RLConfig(
-            algorithm=self.config.get("rl_algorithm", "PPO"),
-            learning_rate=self.config.get("learning_rate", 0.001),
-            batch_size=self.config.get("batch_size", 32)
+            algorithm="PPO",
+            learning_rate=0.001,
+            batch_size=32,
+            gamma=0.99
         )
         self.rl_trainer = RLTrainer(rl_config, llm_manager)
         
