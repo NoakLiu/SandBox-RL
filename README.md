@@ -401,7 +401,7 @@ SandGraph supports various mainstream large language models. Below are the suppo
 
 <!-- ## 🚧 Future Development
 
-For detailed monitoring documentation, see [docs/monitoring_guide.md](docs/monitoring_guide.md).
+For detailed monitoring documentation, see [docs/monitoring_guide.md](docs/monitoring_guide.md). -->
 
 ## 📄 License
 
