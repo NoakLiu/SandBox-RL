@@ -1,0 +1,33 @@
+# Areal Framework and Enhanced RL Dependencies
+# ===========================================
+
+# Core Areal Framework
+areal>=0.1.0
+
+# Performance Optimization
+numpy>=1.21.0
+torch>=1.9.0
+psutil>=5.8.0
+
+# Visualization and Monitoring
+matplotlib>=3.5.0
+seaborn>=0.11.0
+plotly>=5.0.0
+pandas>=1.3.0
+
+# Optional: Advanced Caching Backends
+redis>=4.0.0
+python-memcached>=1.59
+
+# Optional: Distributed Computing
+ray>=1.8.0
+dask>=2021.9.0
+
+# Optional: Additional ML Libraries
+scikit-learn>=1.0.0
+xgboost>=1.5.0
+
+# Development and Testing
+pytest>=6.0.0
+black>=21.0.0
+flake8>=3.9.0 
