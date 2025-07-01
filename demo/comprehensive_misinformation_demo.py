@@ -446,7 +446,7 @@ class SandGraphLLMAgent:
             NodeType.LLM,
             condition=NodeCondition(),
             limits=NodeLimits(),
-            llm_func=self.llm_manager.generate_response,  # 提供LLM函数
+            llm_func=self.llm_manager.generate,  # 使用正确的generate方法
             metadata={
                 "role": "Content Generation Expert",
                 "task": "Generate highly engaging misinformation content"
@@ -460,7 +460,7 @@ class SandGraphLLMAgent:
             NodeType.LLM,
             condition=NodeCondition(),
             limits=NodeLimits(),
-            llm_func=self.llm_manager.generate_response,  # 提供LLM函数
+            llm_func=self.llm_manager.generate,  # 使用正确的generate方法
             metadata={
                 "role": "Viral Marketing Strategist",
                 "task": "Optimize content spread strategy"
