@@ -59,6 +59,14 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Alert System**: Configurable alerts for critical thresholds
   - **Advanced Visualization**: Static dashboards, interactive plots, trend analysis, and correlation heatmaps
   - **Comprehensive Metrics**: User, engagement, content, network, community, influence, and performance metrics
+- **🔒 LLMs Frozen & Adaptive Update**: Advanced parameter management for large language models
+  - **Parameter Freezing**: Freeze specific layers or parameters to maintain stability
+  - **Multiple Update Strategies**: FROZEN, ADAPTIVE, SELECTIVE, INCREMENTAL, GRADUAL strategies
+  - **Adaptive Learning Rate**: Automatically adjust learning rates based on performance
+  - **Parameter Importance Analysis**: Analyze and rank parameters by importance
+  - **Performance Monitoring**: Real-time performance tracking and trend analysis
+  - **Checkpoint & Rollback**: Save checkpoints and rollback to optimal states
+  - **Thread-Safe Operations**: Multi-threaded parameter management with locks
 
 ## 📁 File Structure
 
@@ -70,6 +78,7 @@ SandGraphX/
 │   │   ├── sg_workflow.py       # SandGraph workflow implementation
 │   │   ├── dag_manager.py       # DAG graph management
 │   │   ├── llm_interface.py     # LLM interface
+│   │   ├── llm_frozen_adaptive.py # LLMs frozen & adaptive update
 │   │   ├── sandbox.py           # Sandbox base class
 │   │   ├── rl_framework.py      # Reinforcement learning framework
 │   │   ├── rl_algorithms.py     # Reinforcement learning algorithms
@@ -83,9 +92,12 @@ SandGraphX/
 │   ├── misinformation_spread_demo.py # Misinformation spread demo
 │   ├── oasis_social_demo.py    # OASIS social network simulation
 │   ├── enhanced_social_network_demo.py # Enhanced demo with monitoring
-│   └── monitoring_example.py   # Monitoring system example
+│   ├── monitoring_example.py   # Monitoring system example
+│   ├── llm_frozen_adaptive_demo.py # LLMs frozen & adaptive demo (full)
+│   └── llm_frozen_adaptive_simple_demo.py # LLMs frozen & adaptive demo (simple)
 ├── docs/                        # Documentation
-│   └── monitoring_guide.md     # Comprehensive monitoring guide
+│   ├── monitoring_guide.md     # Comprehensive monitoring guide
+│   └── llm_frozen_adaptive_guide.md # LLMs frozen & adaptive guide
 ├── logs/                        # Log files and monitoring data
 ├── visualizations/              # Generated visualizations
 └── setup.py                     # Installation configuration
@@ -119,6 +131,7 @@ SandGraphX/
 │  • Resources: Global resource management and SandBox isolation       │
 │  • Monitoring: Execution state tracking and performance analysis     │
 │  • Extension: Support for custom nodes and optimization strategies   │
+│  • LLM Management: Frozen & adaptive parameter management            │
 └─────────────────────────────────────────────────────────┘
                       │
                       ▼
@@ -129,6 +142,7 @@ SandGraphX/
 │  • Alert System: Configurable thresholds and callbacks  │
 │  • Visualization: Dashboards, trends, correlation maps │
 │  • Export: JSON, CSV, images, interactive HTML         │
+│  • LLM Monitoring: Parameter importance, update history │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -213,6 +227,34 @@ monitor.stop_monitoring()
 visualizer.export_visualization_report(metrics_history)
 ```
 
+### 5. LLMs Frozen & Adaptive Update (Optional)
+```python
+from sandgraph.core.llm_frozen_adaptive import (
+    FrozenAdaptiveLLM, create_frozen_config, UpdateStrategy
+)
+
+# Create frozen adaptive LLM
+frozen_config = create_frozen_config(
+    strategy="adaptive",
+    frozen_layers=["embedding"],
+    adaptive_learning_rate=True
+)
+
+frozen_llm = FrozenAdaptiveLLM(base_llm, frozen_config)
+
+# Freeze specific parameters
+frozen_llm.freeze_parameters(["embedding_weights"])
+
+# Update parameters with gradients
+gradients = compute_gradients()
+performance = evaluate_model()
+updated_params = frozen_llm.update_parameters(gradients, performance)
+
+# Monitor performance
+stats = frozen_llm.get_performance_stats()
+print(f"Current performance: {stats['current_performance']:.3f}")
+```
+
 ## 📦 Installation
 
 ### Using Conda (Recommended)
@@ -239,6 +281,9 @@ pip install wandb tensorboard matplotlib plotly seaborn pandas
 
 # For enhanced social network demos
 pip install networkx scipy
+
+# For LLMs frozen & adaptive update (optional)
+pip install numpy
 ```
 
 ## 📖 Usage
@@ -265,6 +310,18 @@ pip install networkx scipy
 │  │  DAG Nodes  │ │ Environment │ │ Decision│ │Weight │  │
 │  │             │ │  Subsets    │ │ Making  │ │Updates│  │
 │  └─────────────┘ └─────────────┘ └─────────┘ └───────┘  │
+│         │             │             │           │       │
+│         └─────────────┴─────────────┴───────────┘       │
+│                      │                                   │
+│                      ▼                                   │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │           LLMs Frozen & Adaptive Update             │ │
+│  │        (llm_frozen_adaptive.py)                     │ │
+│  │  • Parameter Freezing/Unfreezing                    │ │
+│  │  • Multiple Update Strategies                       │ │
+│  │  • Adaptive Learning Rate                           │ │
+│  │  • Performance Monitoring                           │ │
+│  └─────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
                       │
                       ▼
@@ -283,6 +340,7 @@ pip install networkx scipy
 │  • Optimization Statistics                              │
 │  • State Updates                                        │
 │  • Visualization Reports                                │
+│  • LLM Parameter Analysis                               │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -384,6 +442,23 @@ python demo/misinformation_spread_demo.py --steps 5
 python demo/oasis_social_demo.py --steps 5
 ```
 
+### Example 7: LLMs Frozen & Adaptive Update
+
+**Input**: LLM model, training data, performance metrics  
+**Process**: Parameter importance analysis → selective freezing → adaptive updates → performance monitoring  
+**Output**: Optimized model parameters, performance statistics, update history
+
+```python
+# Run simple demo (no numpy required)
+python demo/llm_frozen_adaptive_simple_demo.py
+
+# Run full demo (requires numpy)
+python demo/llm_frozen_adaptive_demo.py --demo all
+
+# Run specific demo
+python demo/llm_frozen_adaptive_simple_demo.py --demo adaptive
+```
+
 ## 🔥 LLM Model Support
 
 SandGraph supports various mainstream large language models. Below are the supported models and basic usage methods:
@@ -399,9 +474,22 @@ SandGraph supports various mainstream large language models. Below are the suppo
 | **High Performance** | LLaMA2-13B | 13B | 16-32GB |
 | **Open Source Alternatives** | GPT-2, Falcon | 1-7B | 2-16GB |
 
-<!-- ## 🚧 Future Development
+### LLMs Frozen & Adaptive Update Strategies
 
-For detailed monitoring documentation, see [docs/monitoring_guide.md](docs/monitoring_guide.md). -->
+| Strategy | Use Case | Description |
+|----------|----------|-------------|
+| **FROZEN** | Production | Complete parameter freezing, no updates |
+| **ADAPTIVE** | Development | Adaptive learning rate based on performance |
+| **SELECTIVE** | Fine-tuning | Update only important parameters |
+| **INCREMENTAL** | Controlled | Update parameters at fixed intervals |
+| **GRADUAL** | Gradual training | Gradually reduce update intensity |
+
+## 📚 Documentation
+
+For detailed documentation on specific features:
+
+- **Monitoring & Visualization**: [docs/monitoring_guide.md](docs/monitoring_guide.md)
+- **LLMs Frozen & Adaptive Update**: [docs/llm_frozen_adaptive_guide.md](docs/llm_frozen_adaptive_guide.md)
 
 ## 📄 License
 
