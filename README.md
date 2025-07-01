@@ -67,6 +67,14 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Performance Monitoring**: Real-time performance tracking and trend analysis
   - **Checkpoint & Rollback**: Save checkpoints and rollback to optimal states
   - **Thread-Safe Operations**: Multi-threaded parameter management with locks
+- **🚀 AReaL KV Cache Optimization**: Advanced RL training optimizations based on [AReaL](https://github.com/inclusionAI/AReaL)
+  - **Asynchronous RL Training**: Decoupled generation and training for improved efficiency
+  - **Streaming Generation**: Real-time generation with reward computation
+  - **Interruptible Rollout**: KV cache management with task interruption support
+  - **Data Staleness Control**: Rollout controller with configurable staleness thresholds
+  - **Decoupled PPO Loss**: Stable training with separated policy and value losses
+  - **Memory-Efficient KV Cache**: Adaptive cache policies (LRU, LFU, Priority-based)
+  - **Multi-threaded Processing**: Parallel rollout execution with worker pools
 
 ## 📁 File Structure
 
@@ -79,6 +87,8 @@ SandGraphX/
 │   │   ├── dag_manager.py       # DAG graph management
 │   │   ├── llm_interface.py     # LLM interface
 │   │   ├── llm_frozen_adaptive.py # LLMs frozen & adaptive update
+│   │   ├── enhanced_rl_algorithms.py # Enhanced RL algorithms (Areal integration)
+│   │   ├── areal_kv_cache.py      # AReaL-style KV cache optimization
 │   │   ├── sandbox.py           # Sandbox base class
 │   │   ├── rl_framework.py      # Reinforcement learning framework
 │   │   ├── rl_algorithms.py     # Reinforcement learning algorithms
@@ -92,6 +102,9 @@ SandGraphX/
 │   ├── misinformation_spread_demo.py # Misinformation spread demo
 │   ├── oasis_social_demo.py    # OASIS social network simulation
 │   ├── enhanced_social_network_demo.py # Enhanced demo with monitoring
+│   ├── enhanced_oasis_social_demo.py   # Enhanced OASIS demo with monitoring
+│   ├── enhanced_rl_cache_demo.py       # Enhanced RL cache demo
+│   ├── areal_kv_cache_demo.py          # AReaL KV cache optimization demo
 │   ├── monitoring_example.py   # Monitoring system example
 │   ├── llm_frozen_adaptive_demo.py # LLMs frozen & adaptive demo (full)
 │   └── llm_frozen_adaptive_simple_demo.py # LLMs frozen & adaptive demo (simple)
@@ -201,58 +214,59 @@ workflow.add_edge("optimizer", "env")
 result = workflow.execute_full_workflow()
 ```
 
-### 4. Add Monitoring (Optional)
+### 4. AReaL KV Cache Optimization
 ```python
-from sandgraph.core.monitoring import create_monitor, MonitoringConfig
-from sandgraph.core.visualization import create_visualizer
+from sandgraph.core.areal_kv_cache import create_areal_style_trainer
 
-# Setup monitoring
-config = MonitoringConfig(
-    enable_wandb=True,
-    enable_tensorboard=True,
-    wandb_project_name="my-social-network"
+# Create AReaL-style trainer with KV cache optimization
+trainer = create_areal_style_trainer(
+    kv_cache_size=10000,
+    max_memory_gb=8.0,
+    rollout_batch_size=32,
+    enable_streaming=True
 )
-monitor = create_monitor(config)
-visualizer = create_visualizer("./visualizations")
 
-# Start monitoring
-monitor.start_monitoring()
+# Add trajectory data
+trajectory = [
+    {"state": {"user_count": 100}, "action": "CREATE_POST", "reward": 1.0, "ratio": 1.0, "advantage": 0.5},
+    {"state": {"user_count": 101}, "action": "LIKE_POST", "reward": 0.5, "ratio": 1.1, "advantage": 0.3},
+    # ... more steps
+]
+trainer.add_trajectory(trajectory)
 
-# During execution, collect and update metrics
-metrics = collect_metrics_from_workflow(workflow)
-monitor.update_metrics(metrics)
+# Execute decoupled PPO update
+result = trainer.update_policy(batch_size=32)
+print(f"Policy loss: {result['losses']['policy_loss']:.4f}")
 
-# Stop monitoring and create visualizations
-monitor.stop_monitoring()
-visualizer.export_visualization_report(metrics_history)
+# Get comprehensive stats
+stats = trainer.get_stats()
+print(f"Cache hit rate: {stats['kv_cache_stats']['hit_rate']:.3f}")
+print(f"Completed tasks: {stats['rollout_stats']['completed_tasks']}")
 ```
 
-### 5. LLMs Frozen & Adaptive Update (Optional)
+### 5. Enhanced RL with Areal Integration
 ```python
-from sandgraph.core.llm_frozen_adaptive import (
-    FrozenAdaptiveLLM, create_frozen_config, UpdateStrategy
+from sandgraph.core.enhanced_rl_algorithms import create_enhanced_ppo_trainer
+
+# Create enhanced PPO trainer with Areal framework integration
+trainer = create_enhanced_ppo_trainer(
+    llm_manager=llm_manager,
+    learning_rate=0.001,
+    enable_caching=True
 )
 
-# Create frozen adaptive LLM
-frozen_config = create_frozen_config(
-    strategy="adaptive",
-    frozen_layers=["embedding"],
-    adaptive_learning_rate=True
+# Add experience with caching
+trainer.add_experience(
+    state={"user_count": 100, "engagement": 0.3},
+    action="CREATE_POST",
+    reward=1.0,
+    done=False
 )
 
-frozen_llm = FrozenAdaptiveLLM(base_llm, frozen_config)
-
-# Freeze specific parameters
-frozen_llm.freeze_parameters(["embedding_weights"])
-
-# Update parameters with gradients
-gradients = compute_gradients()
-performance = evaluate_model()
-updated_params = frozen_llm.update_parameters(gradients, performance)
-
-# Monitor performance
-stats = frozen_llm.get_performance_stats()
-print(f"Current performance: {stats['current_performance']:.3f}")
+# Update policy with enhanced features
+result = trainer.update_policy()
+print(f"Cache hits: {result['cache_stats']['hits']}")
+print(f"Training steps: {result['performance_stats']['training_steps']}")
 ```
 
 ## 📦 Installation
@@ -457,6 +471,37 @@ python demo/llm_frozen_adaptive_demo.py --demo all
 
 # Run specific demo
 python demo/llm_frozen_adaptive_simple_demo.py --demo adaptive
+```
+
+### Example 8: AReaL KV Cache Optimization
+
+**Input**: RL training data, KV cache configuration, rollout parameters  
+**Process**: Asynchronous RL training → streaming generation → KV cache management → decoupled PPO updates  
+**Output**: Optimized policies, cache performance metrics, training statistics
+
+```python
+# Run all AReaL optimizations
+python demo/areal_kv_cache_demo.py --demo all
+
+# Run specific components
+python demo/areal_kv_cache_demo.py --demo kv_cache --cache-size 5000
+python demo/areal_kv_cache_demo.py --demo rollout --batch-size 8
+python demo/areal_kv_cache_demo.py --demo ppo --memory-gb 4.0
+python demo/areal_kv_cache_demo.py --demo streaming --enable-streaming
+```
+
+### Example 9: Enhanced RL Cache with Areal Integration
+
+**Input**: Enhanced RL configuration, Areal framework integration  
+**Process**: Advanced caching → parallel processing → performance optimization → comprehensive monitoring  
+**Output**: Enhanced training performance, cache statistics, memory efficiency metrics
+
+```python
+# Run enhanced RL cache demo
+python demo/enhanced_rl_cache_demo.py \
+    --demo all \
+    --cache-size 10000 \
+    --enable-parallel
 ```
 
 ## 🔥 LLM Model Support
