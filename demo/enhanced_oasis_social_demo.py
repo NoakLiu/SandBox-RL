@@ -226,12 +226,33 @@ class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
             "max_length": 512
         })
     
-    def make_decision(self, current_state: Dict[str, Any]) -> Dict[str, Any]:
+    def make_decision(self, current_state: Union[str, Dict[str, Any]]) -> Dict[str, Any]:
         """基于当前状态做出决策 - 增强版"""
         self.decision_count += 1
         
+        # 处理输入类型
+        if isinstance(current_state, str):
+            # 如果是字符串，尝试解析为字典或使用默认状态
+            try:
+                # 尝试解析JSON字符串
+                state_dict = json.loads(current_state)
+            except (json.JSONDecodeError, TypeError):
+                # 如果解析失败，使用默认状态
+                state_dict = {
+                    "state": {
+                        "network_state": {"total_users": 100, "total_posts": 30, "network_density": 0.1},
+                        "user_behavior": {"active_users": 50, "engagement_rate": 0.3},
+                        "content_metrics": {"quality_score": 0.7}
+                    },
+                    "trending_posts": [],
+                    "active_users": []
+                }
+        else:
+            # 如果已经是字典，直接使用
+            state_dict = current_state
+        
         # 构建增强的决策提示
-        prompt = self._construct_enhanced_decision_prompt(current_state)
+        prompt = self._construct_enhanced_decision_prompt(state_dict)
         
         try:
             # 生成LLM响应
@@ -253,7 +274,7 @@ class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
                 }
             
             # 更新历史
-            self._update_history(current_state, decision, response.text)
+            self._update_history(state_dict, decision, response.text)
             
             return {
                 "decision": decision,
@@ -269,7 +290,7 @@ class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
                 "reasoning": f"Error: {str(e)}"
             }
             
-            self._update_history(current_state, fallback_decision, f"Error: {str(e)}")
+            self._update_history(state_dict, fallback_decision, f"Error: {str(e)}")
             
             return {
                 "decision": fallback_decision,
