@@ -16,6 +16,7 @@ import time
 import json
 import argparse
 import random
+import re
 from typing import Dict, Any, List, Union, Optional
 from datetime import datetime, timedelta
 
@@ -254,6 +255,12 @@ class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
         # 构建增强的决策提示
         prompt = self._construct_enhanced_decision_prompt(state_dict)
         
+        print("=" * 80)
+        print(f"Enhanced OASIS Decision {self.decision_count} - Complete Prompt:")
+        print("=" * 80)
+        print(prompt)
+        print("=" * 80)
+        
         try:
             # 生成LLM响应
             response = self.llm_manager.generate_for_node(
@@ -262,6 +269,9 @@ class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
                 temperature=0.3,
                 max_new_tokens=128
             )
+            
+            print(f"LLM Response Status: {response.status if hasattr(response, 'status') else 'unknown'}")
+            print(f"LLM Complete Response: {response.text}")
             
             # 解析响应
             decision = self._parse_decision_response(response.text)
@@ -344,6 +354,88 @@ REASONING: [决策理由]
 """
         
         return prompt
+    
+    def _parse_decision_response(self, response: str) -> Optional[Dict[str, Any]]:
+        """解析LLM决策响应 - 增强版"""
+        response = response.strip()
+        
+        print(f"🔍 解析响应: {response[:200]}...")
+        
+        try:
+            # 查找ACTION行 - 支持多种格式
+            action_patterns = [
+                # 标准格式: ACTION: CREATE_POST target reasoning
+                r'ACTION:\s*([A-Z_]+)\s+(.+?)(?:\nREASONING:|$)',
+                # 带TARGET格式: ACTION: CREATE_POST\nTARGET: target\nREASONING: reasoning
+                r'ACTION:\s*([A-Z_]+)',
+                # 小写格式
+                r'action:\s*([A-Z_]+)\s+(.+?)(?:\nreasoning:|$)',
+            ]
+            
+            action = None
+            target = None
+            reasoning = "No reasoning provided"
+            
+            # 查找ACTION
+            for pattern in action_patterns:
+                action_match = re.search(pattern, response, re.IGNORECASE)
+                if action_match:
+                    action = action_match.group(1).upper()
+                    if len(action_match.groups()) > 1:
+                        target = action_match.group(2).strip()
+                    break
+            
+            if not action:
+                print("❌ 未找到ACTION字段")
+                return None
+            
+            # 标准化动作名称
+            action_mapping = {
+                "SHARE_POST": "SHARE",
+                "LIKE_POST": "LIKE_POST", 
+                "CREATE_POST": "CREATE_POST",
+                "FOLLOW": "FOLLOW",
+                "DO_NOTHING": "DO_NOTHING"
+            }
+            
+            if action in action_mapping:
+                action = action_mapping[action]
+            
+            # 查找TARGET
+            target_patterns = [
+                r'TARGET:\s*(.+?)(?:\n|$)',
+                r'target:\s*(.+?)(?:\n|$)',
+            ]
+            
+            for pattern in target_patterns:
+                target_match = re.search(pattern, response, re.IGNORECASE)
+                if target_match:
+                    target = target_match.group(1).strip()
+                    break
+            
+            # 查找REASONING
+            reasoning_patterns = [
+                r'REASONING:\s*(.+?)(?:\n|$)',
+                r'reasoning:\s*(.+?)(?:\n|$)',
+            ]
+            
+            for pattern in reasoning_patterns:
+                reasoning_match = re.search(pattern, response, re.IGNORECASE)
+                if reasoning_match:
+                    reasoning = reasoning_match.group(1).strip()
+                    break
+            
+            print(f"✅ 解析成功: {action} | {target or 'N/A'} | {reasoning[:30]}...")
+            
+            return {
+                "action": action,
+                "target": target or "N/A",
+                "reasoning": reasoning
+            }
+            
+        except Exception as e:
+            print(f"❌ Decision parsing failed: {e}")
+            return None
 
 
 def create_enhanced_rl_oasis_workflow(llm_manager, monitor_config: MonitoringConfig):
