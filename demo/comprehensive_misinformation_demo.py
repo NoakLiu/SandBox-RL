@@ -140,7 +140,16 @@ class MisinformationSocialNetwork:
         
         for user_id in user_ids:
             # 每个用户随机关注其他用户
-            num_following = random.randint(5, int(self.num_users * self.network_density))
+            # 确保至少关注1个用户，最多关注其他所有用户
+            min_following = 1
+            max_following = min(len(user_ids) - 1, max(min_following, int(self.num_users * self.network_density)))
+            
+            if max_following >= min_following:
+                num_following = random.randint(min_following, max_following)
+            else:
+                # 如果计算出的最大值小于最小值，使用默认值
+                num_following = min(3, len(user_ids) - 1)
+            
             following = random.sample([uid for uid in user_ids if uid != user_id], 
                                    min(num_following, len(user_ids) - 1))
             
