@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced SandGraph OASIS社交网络模拟演示 - 集成WanDB和TensorBoard监控
+Enhanced SandGraph OASIS社交网络模拟演示 - 基于原始OASIS demo，集成WanDB和TensorBoard监控
 
 集成OASIS (Open Agent Social Interaction Simulations) 到SandGraph框架：
 1. 大规模智能体社交网络模拟
@@ -24,10 +24,6 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import (
-    SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
-    NodeType, NodeCondition, NodeLimits, GameState
-)
 from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
 from sandgraph.core.monitoring import (
     SocialNetworkMonitor, 
@@ -35,11 +31,6 @@ from sandgraph.core.monitoring import (
     SocialNetworkMetrics, 
     MetricsCollector,
     create_monitor
-)
-from sandgraph.core.visualization import (
-    SocialNetworkVisualizer,
-    create_visualizer,
-    quick_visualization
 )
 
 # 导入原始OASIS demo的类
@@ -58,13 +49,11 @@ class EnhancedOasisSocialSandbox(OasisSocialSandbox):
         # 监控相关
         self.metrics_history = []
         self.monitor = None
-        self.visualizer = None
         self.start_time = time.time()
     
     def setup_monitoring(self, config: MonitoringConfig):
         """设置监控系统"""
         self.monitor = create_monitor(config)
-        self.visualizer = create_visualizer("./visualizations/enhanced_oasis")
         
         # 添加告警回调
         self.monitor.add_alert_callback(self._handle_alert)
@@ -165,53 +154,6 @@ class EnhancedOasisSocialSandbox(OasisSocialSandbox):
         )
         
         return metrics
-    
-    def case_generator(self) -> Dict[str, Any]:
-        """生成当前状态 - 增强版，包含监控"""
-        # 调用父类方法
-        state = super().case_generator()
-        
-        # 收集监控指标
-        if self.monitor:
-            metrics = self._collect_metrics()
-            self.metrics_history.append(metrics)
-            self.monitor.update_metrics(metrics)
-        
-        return state
-    
-    def run_full_cycle(self, llm_func=None) -> Dict[str, Any]:
-        """运行完整的沙盒周期 - 满足Sandbox协议"""
-        # 生成当前状态
-        case = self.case_generator()
-        
-        # 如果有LLM函数，使用它生成响应
-        if llm_func:
-            try:
-                response = llm_func(case)
-                # 验证响应
-                score = self.verify_score(response, case)
-                return {
-                    "case": case,
-                    "response": response,
-                    "score": score,
-                    "status": "success"
-                }
-            except Exception as e:
-                return {
-                    "case": case,
-                    "response": f"Error: {str(e)}",
-                    "score": 0.0,
-                    "status": "error",
-                    "error": str(e)
-                }
-        else:
-            # 没有LLM函数，返回默认响应
-            return {
-                "case": case,
-                "response": "Enhanced OASIS social network simulation",
-                "score": 0.5,
-                "status": "default"
-            }
 
 
 class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
@@ -227,33 +169,12 @@ class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
             "max_length": 512
         })
     
-    def make_decision(self, current_state: Union[str, Dict[str, Any]]) -> Dict[str, Any]:
+    def make_decision(self, current_state: Dict[str, Any]) -> Dict[str, Any]:
         """基于当前状态做出决策 - 增强版"""
         self.decision_count += 1
         
-        # 处理输入类型
-        if isinstance(current_state, str):
-            # 如果是字符串，尝试解析为字典或使用默认状态
-            try:
-                # 尝试解析JSON字符串
-                state_dict = json.loads(current_state)
-            except (json.JSONDecodeError, TypeError):
-                # 如果解析失败，使用默认状态
-                state_dict = {
-                    "state": {
-                        "network_state": {"total_users": 100, "total_posts": 30, "network_density": 0.1},
-                        "user_behavior": {"active_users": 50, "engagement_rate": 0.3},
-                        "content_metrics": {"quality_score": 0.7}
-                    },
-                    "trending_posts": [],
-                    "active_users": []
-                }
-        else:
-            # 如果已经是字典，直接使用
-            state_dict = current_state
-        
         # 构建增强的决策提示
-        prompt = self._construct_enhanced_decision_prompt(state_dict)
+        prompt = self._construct_enhanced_decision_prompt(current_state)
         
         print("=" * 80)
         print(f"Enhanced OASIS Decision {self.decision_count} - Complete Prompt:")
@@ -266,8 +187,8 @@ class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
             response = self.llm_manager.generate_for_node(
                 "enhanced_oasis_decision",
                 prompt,
-                temperature=0.3,
-                max_new_tokens=128
+                temperature=0.7,
+                max_new_tokens=256
             )
             
             print(f"LLM Response Status: {response.status if hasattr(response, 'status') else 'unknown'}")
@@ -279,12 +200,14 @@ class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
             if decision is None:
                 decision = {
                     "action": "CREATE_POST",
-                    "target": "N/A",
+                    "user_id": "user_0",
+                    "target_id": None,
+                    "content": "Hello OASIS world!",
                     "reasoning": "Fallback decision"
                 }
             
             # 更新历史
-            self._update_history(state_dict, decision, response.text)
+            self._update_history(current_state, decision, response.text)
             
             return {
                 "decision": decision,
@@ -296,11 +219,13 @@ class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
             print(f"❌ Decision generation failed: {e}")
             fallback_decision = {
                 "action": "CREATE_POST",
-                "target": "N/A",
+                "user_id": "user_0",
+                "target_id": None,
+                "content": "Hello OASIS world!",
                 "reasoning": f"Error: {str(e)}"
             }
             
-            self._update_history(state_dict, fallback_decision, f"Error: {str(e)}")
+            self._update_history(current_state, fallback_decision, f"Error: {str(e)}")
             
             return {
                 "decision": fallback_decision,
@@ -311,46 +236,43 @@ class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
     def _construct_enhanced_decision_prompt(self, state: Dict[str, Any]) -> str:
         """构建增强的决策提示"""
         network_state = state.get("state", {}).get("network_state", {})
-        user_behavior = state.get("state", {}).get("user_behavior", {})
-        content_metrics = state.get("state", {}).get("content_metrics", {})
-        
-        trending_posts = state.get("trending_posts", [])
-        active_users = state.get("active_users", [])
+        trending_content = state.get("state", {}).get("trending_content", [])
+        active_users = state.get("state", {}).get("active_users", [])
         
         prompt = f"""
 你是一个OASIS社交网络策略专家。基于当前的网络状态，请做出最优的社交网络管理决策。
 
 当前网络状态：
 - 总用户数: {network_state.get('total_users', 0)}
-- 活跃用户数: {user_behavior.get('active_users', 0)}
 - 总帖子数: {network_state.get('total_posts', 0)}
-- 参与度: {user_behavior.get('engagement_rate', 0):.3f}
+- 总点赞数: {network_state.get('total_likes', 0)}
+- 总分享数: {network_state.get('total_shares', 0)}
 - 网络密度: {network_state.get('network_density', 0):.3f}
-- 内容质量: {content_metrics.get('quality_score', 0):.3f}
 
 热门帖子 (前3个):
-{chr(10).join([f"- {post['content'][:50]}... (分数: {post['trending_score']:.2f})" for post in trending_posts[:3]])}
+{chr(10).join([f"- {post['content'][:50]}... (分数: {post['trending_score']:.2f})" for post in trending_content[:3]])}
 
 活跃用户 (前3个):
 {chr(10).join([f"- {user['user_id']} (活跃度: {user['activity_score']}, 关注者: {user['followers_count']})" for user in active_users[:3]])}
 
 可用的动作类型：
 - CREATE_POST: 创建新帖子
+- CREATE_COMMENT: 评论帖子
 - LIKE_POST: 点赞帖子
 - FOLLOW: 关注用户
 - SHARE: 分享帖子
-- DO_NOTHING: 不执行任何动作
+- TREND: 提升帖子热度
 
-请选择最合适的动作来提升网络活跃度和用户参与度。考虑以下因素：
-1. 当前网络状态和趋势
-2. 用户行为和偏好
-3. 内容质量和多样性
-4. 社区建设和发展
+可用用户: user_0, user_1, user_2, user_3, user_4, user_5, user_6, user_7, user_8, user_9
+可用帖子: post_0, post_1, post_2, post_3, post_4, post_5, post_6, post_7, post_8, post_9
 
 请以以下格式回复：
-ACTION: [动作类型]
-TARGET: [目标用户或帖子ID]
+ACTION: [动作类型] [用户ID] [目标ID] [内容]
 REASONING: [决策理由]
+
+例如：
+ACTION: CREATE_POST user_3 "Exploring the latest AI developments! #AI #technology"
+REASONING: Creating content about trending technology topics can increase engagement.
 """
         
         return prompt
@@ -364,72 +286,95 @@ REASONING: [决策理由]
         try:
             # 查找ACTION行 - 支持多种格式
             action_patterns = [
-                # 标准格式: ACTION: CREATE_POST target reasoning
-                r'ACTION:\s*([A-Z_]+)\s+(.+?)(?:\nREASONING:|$)',
-                # 带TARGET格式: ACTION: CREATE_POST\nTARGET: target\nREASONING: reasoning
-                r'ACTION:\s*([A-Z_]+)',
-                # 小写格式
-                r'action:\s*([A-Z_]+)\s+(.+?)(?:\nreasoning:|$)',
+                # 标准格式: ACTION: CREATE_POST user_0 target_id content
+                r'ACTION:\s*([A-Z_]+)\s+([a-z_0-9]+)\s+([a-z_0-9_]+)\s+(.+)',
+                # 无目标格式: ACTION: CREATE_POST user_0 content
+                r'ACTION:\s*([A-Z_]+)\s+([a-z_0-9]+)\s+(.+)',
+                # 连字符格式: ACTION: CREATE_POST - user_5 - content
+                r'ACTION:\s*([A-Z_]+)\s*[-–]\s*([a-z_0-9_]+)\s*[-–]\s*(.+)',
+                # 连字符格式无目标: ACTION: CREATE_POST - user_5 content
+                r'ACTION:\s*([A-Z_]+)\s*[-–]\s*([a-z_0-9_]+)\s+(.+)',
+                # 方括号格式: ACTION: CREATE_COMMENT [USER_1] [TARGET_POST] content
+                r'ACTION:\s*([A-Z_]+)\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+(.+)',
+                # 方括号格式无目标: ACTION: CREATE_POST [USER_1] content
+                r'ACTION:\s*([A-Z_]+)\s+\[([^\]]+)\]\s+(.+)',
+                # 小写格式: action: create_post user_0 target_id content
+                r'action:\s*([A-Z_]+)\s+([a-z_0-9]+)\s+([a-z_0-9_]+)\s+(.+)',
+                # 首字母大写格式: Action: Create_Post user_0 target_id content
+                r'Action:\s*([A-Z_]+)\s+([a-z_0-9]+)\s+([a-z_0-9_]+)\s+(.+)',
             ]
             
             action = None
-            target = None
-            reasoning = "No reasoning provided"
+            user_id = None
+            target_id = None
+            content = None
             
-            # 查找ACTION
             for pattern in action_patterns:
                 action_match = re.search(pattern, response, re.IGNORECASE)
                 if action_match:
                     action = action_match.group(1).upper()
-                    if len(action_match.groups()) > 1:
-                        target = action_match.group(2).strip()
+                    
+                    # 处理方括号格式
+                    if '[' in action_match.group(2):
+                        # 方括号格式
+                        user_id_raw = action_match.group(2).strip('[]')
+                        if len(action_match.groups()) >= 4:
+                            target_id_raw = action_match.group(3).strip('[]')
+                            content = action_match.group(4).strip()
+                        else:
+                            content = action_match.group(3).strip()
+                        
+                        # 处理占位符
+                        user_id = self._resolve_placeholder(user_id_raw)
+                        target_id = self._resolve_placeholder(target_id_raw) if 'target_id_raw' in locals() else None
+                    else:
+                        # 标准格式或连字符格式
+                        user_id = action_match.group(2)
+                        if len(action_match.groups()) >= 4:
+                            target_id = action_match.group(3)
+                            content = action_match.group(4).strip()
+                        else:
+                            content = action_match.group(3).strip()
+                    
+                    print(f"✅ 找到ACTION: {action} {user_id} {target_id or 'None'} {content[:30]}...")
                     break
             
-            if not action:
-                print("❌ 未找到ACTION字段")
+            if not action or not user_id:
+                print("❌ 未找到完整的ACTION字段")
                 return None
             
-            # 标准化动作名称
-            action_mapping = {
-                "SHARE_POST": "SHARE",
-                "LIKE_POST": "LIKE_POST", 
-                "CREATE_POST": "CREATE_POST",
-                "FOLLOW": "FOLLOW",
-                "DO_NOTHING": "DO_NOTHING"
-            }
-            
-            if action in action_mapping:
-                action = action_mapping[action]
-            
-            # 查找TARGET
-            target_patterns = [
-                r'TARGET:\s*(.+?)(?:\n|$)',
-                r'target:\s*(.+?)(?:\n|$)',
+            # 验证动作是否有效
+            valid_actions = [
+                "CREATE_POST", "CREATE_COMMENT", "LIKE_POST", 
+                "FOLLOW", "SHARE", "TREND"
             ]
             
-            for pattern in target_patterns:
-                target_match = re.search(pattern, response, re.IGNORECASE)
-                if target_match:
-                    target = target_match.group(1).strip()
-                    break
+            if action not in valid_actions:
+                print(f"❌ 无效的ACTION: {action}")
+                return None
             
-            # 查找REASONING
+            # 查找REASONING行
             reasoning_patterns = [
-                r'REASONING:\s*(.+?)(?:\n|$)',
-                r'reasoning:\s*(.+?)(?:\n|$)',
+                r'REASONING:\s*(.+?)(?:\n|$)',  # 标准格式
+                r'reasoning:\s*(.+?)(?:\n|$)',  # 小写
+                r'Reasoning:\s*(.+?)(?:\n|$)',  # 首字母大写
             ]
             
+            reasoning = "No reasoning provided"
             for pattern in reasoning_patterns:
                 reasoning_match = re.search(pattern, response, re.IGNORECASE)
                 if reasoning_match:
                     reasoning = reasoning_match.group(1).strip()
+                    print(f"✅ 找到REASONING: {reasoning[:50]}...")
                     break
             
-            print(f"✅ 解析成功: {action} | {target or 'N/A'} | {reasoning[:30]}...")
+            print(f"✅ 解析成功: {action} {user_id} | {reasoning[:30]}...")
             
             return {
                 "action": action,
-                "target": target or "N/A",
+                "user_id": user_id,
+                "target_id": target_id,
+                "content": content,
                 "reasoning": reasoning
             }
             
@@ -438,15 +383,45 @@ REASONING: [决策理由]
             return None
 
 
-def create_enhanced_rl_oasis_workflow(llm_manager, monitor_config: MonitoringConfig):
-    """创建增强版RL OASIS工作流"""
+def run_enhanced_rl_oasis_demo(steps: int = 10, 
+                              enable_wandb: bool = True,
+                              enable_tensorboard: bool = True,
+                              wandb_project: str = "sandgraph-enhanced-oasis"):
+    """运行增强版RL OASIS演示 - 基于原始OASIS demo"""
     
-    # 创建沙盒
+    print("🚀 Enhanced OASIS Social Network Demo with Monitoring")
+    print("=" * 60)
+    
+    # 1. 创建LLM管理器
+    print("\n1. Creating LLM Manager")
+    llm_manager = create_shared_llm_manager(
+        model_name="mistralai/Mistral-7B-Instruct-v0.2",
+        backend="huggingface",
+        temperature=0.7,
+        max_length=512,
+        device="auto",
+        torch_dtype="float16"
+    )
+    
+    # 2. 创建监控配置
+    monitor_config = MonitoringConfig(
+        enable_wandb=enable_wandb,
+        enable_tensorboard=enable_tensorboard,
+        wandb_project_name=wandb_project,
+        wandb_run_name=f"enhanced_oasis_{int(time.time())}",
+        tensorboard_log_dir="./logs/enhanced_oasis",
+        log_file_path="./logs/enhanced_oasis_metrics.json",
+        metrics_sampling_interval=2.0,
+        engagement_rate_threshold=0.15,
+        user_growth_threshold=0.08
+    )
+    
+    # 3. 创建沙盒和决策器
+    print("\n2. Creating Enhanced OASIS Components")
     sandbox = EnhancedOasisSocialSandbox(
-        initial_users=100,
+        initial_users=50,
         max_users=1000,
-        initial_posts=30,
-        interaction_probability=0.3
+        initial_posts=20
     )
     
     # 设置监控
@@ -464,120 +439,136 @@ def create_enhanced_rl_oasis_workflow(llm_manager, monitor_config: MonitoringCon
     )
     rl_trainer = RLTrainer(rl_config, llm_manager)
     
-    # 创建工作流
-    workflow = SG_Workflow("enhanced_oasis_social", WorkflowMode.TRADITIONAL, llm_manager)
+    # 4. 执行多步社交网络模拟
+    print(f"\n3. Executing {steps} Enhanced OASIS Social Network Steps")
     
-    # 添加节点
-    env_node = EnhancedWorkflowNode("oasis_env", NodeType.SANDBOX, sandbox=sandbox)
-    decision_node = EnhancedWorkflowNode("oasis_decision", NodeType.LLM, 
-                                       llm_func=decision_maker.make_decision,
-                                       metadata={"role": "OASIS Social Network Analyst"})
-    optimizer_node = EnhancedWorkflowNode("oasis_optimizer", NodeType.RL, 
-                                        rl_trainer=rl_trainer)
-    
-    workflow.add_node(env_node)
-    workflow.add_node(decision_node)
-    workflow.add_node(optimizer_node)
-    
-    # 连接节点
-    workflow.add_edge("oasis_env", "oasis_decision")
-    workflow.add_edge("oasis_decision", "oasis_optimizer")
-    workflow.add_edge("oasis_optimizer", "oasis_env")
-    
-    return workflow, rl_trainer, decision_maker, sandbox
-
-
-def run_enhanced_rl_oasis_demo(steps: int = 10, 
-                              enable_wandb: bool = True,
-                              enable_tensorboard: bool = True,
-                              wandb_project: str = "sandgraph-enhanced-oasis"):
-    """运行增强版RL OASIS演示"""
-    
-    print("🚀 Enhanced OASIS Social Network Demo with Monitoring")
-    print("=" * 60)
-    
-    # 创建LLM管理器
-    llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2")
-    
-    # 创建监控配置
-    monitor_config = MonitoringConfig(
-        enable_wandb=enable_wandb,
-        enable_tensorboard=enable_tensorboard,
-        wandb_project_name=wandb_project,
-        wandb_run_name=f"enhanced_oasis_{int(time.time())}",
-        tensorboard_log_dir="./logs/enhanced_oasis",
-        log_file_path="./logs/enhanced_oasis_metrics.json",
-        metrics_sampling_interval=2.0,
-        engagement_rate_threshold=0.15,
-        user_growth_threshold=0.08
-    )
-    
-    # 创建工作流
-    workflow, rl_trainer, decision_maker, sandbox = create_enhanced_rl_oasis_workflow(
-        llm_manager, monitor_config
-    )
-    
-    # 启动监控
-    sandbox.monitor.start_monitoring()
-    
-    print("✅ Enhanced OASIS workflow created and monitoring started")
-    print(f"📊 Running simulation for {steps} steps...")
-    
-    try:
-        for step in range(steps):
-            print(f"\n📈 Step {step + 1}/{steps}")
-            print("-" * 40)
-            
-            # 执行工作流
-            start_time = time.time()
-            result = workflow.execute_full_workflow()
-            execution_time = time.time() - start_time
-            
-            # 更新RL策略
-            rl_trainer.update_policy()
-            
+    results = []
+    for step in range(steps):
+        print(f"\n--- 第 {step + 1} 步 ---")
+        
+        try:
             # 获取当前状态
-            current_state = sandbox.case_generator()
+            case = sandbox.case_generator()
+            current_state = case["state"]
             
-            # 打印步骤摘要
-            network_state = current_state.get("state", {}).get("network_state", {})
-            user_behavior = current_state.get("state", {}).get("user_behavior", {})
+            # 使用LLM做出决策
+            decision_result = decision_maker.make_decision(current_state)
+            decision = decision_result["decision"]
             
-            print(f"⏱️  Execution time: {execution_time:.2f}s")
-            print(f"👥 Users: {network_state.get('total_users', 0)} (Active: {user_behavior.get('active_users', 0)})")
-            print(f"📈 Engagement: {user_behavior.get('engagement_rate', 0):.3f}")
-            print(f"🌐 Network Density: {network_state.get('network_density', 0):.3f}")
-            
-            # 延迟
-            if step < steps - 1:
-                time.sleep(2.0)
+            # 执行社交决策
+            try:
+                # 执行社交行动
+                action_result = sandbox.execute_social_action(
+                    decision["action"],
+                    decision["user_id"],
+                    decision.get("target_id"),
+                    decision.get("content")
+                )
                 
-    except KeyboardInterrupt:
-        print("\n⏹️  Simulation interrupted by user")
-    except Exception as e:
-        print(f"\n❌ Error during simulation: {e}")
-    finally:
-        # 停止监控
-        sandbox.monitor.stop_monitoring()
+                # 验证和执行决策
+                score = sandbox.verify_score(
+                    f"{decision['action']} {decision.get('target_id', 'general')}",
+                    case
+                )
+                
+                # 计算奖励
+                reward = score * 10
+                
+                # 构建状态特征
+                state_features = {
+                    "total_users": current_state["network_state"].get("total_users", 0),
+                    "network_density": current_state["network_state"].get("network_density", 0.0),
+                    "total_posts": current_state["network_state"].get("total_posts", 0),
+                    "total_likes": current_state["network_state"].get("total_likes", 0),
+                    "decision_type": _encode_social_action(decision["action"])
+                }
+                
+                # 添加到RL训练器
+                rl_trainer.add_experience(
+                    state=state_features,
+                    action=json.dumps(decision),
+                    reward=reward,
+                    done=False
+                )
+                
+                # 更新策略
+                update_result = rl_trainer.update_policy()
+                
+                # 显示RL更新状态
+                print(f"RL Update Status: {update_result.get('status', 'unknown')}")
+                if update_result.get('status') == 'insufficient_data':
+                    print(f"  Trajectory Count: {update_result.get('trajectory_count', 0)}")
+                    print(f"  Required Batch Size: {update_result.get('required_batch_size', 0)}")
+                elif update_result.get('status') == 'updated':
+                    print(f"  Training Step: {update_result.get('training_step', 0)}")
+                    print(f"  Algorithm: {update_result.get('algorithm', 'unknown')}")
+                
+                result = {
+                    "state": current_state,
+                    "decision": decision,
+                    "llm_response": decision_result["llm_response"],
+                    "action_result": action_result,
+                    "score": score,
+                    "reward": reward,
+                    "rl_update": update_result,
+                    "sandbox_id": sandbox.sandbox_id
+                }
+                
+                print(f"LLM Decision: {decision['action']} {decision.get('user_id', '')}")
+                print(f"Decision Reason: {decision.get('reasoning', '')}")
+                print(f"Action Success: {action_result.get('success', False)}")
+                print(f"Social Score: {score:.3f}")
+                print(f"RL Reward: {reward:.3f}")
+                
+                # 显示当前网络状态
+                network_state = current_state["network_state"]
+                print(f"Total Users: {network_state.get('total_users', 0)}")
+                print(f"Total Posts: {network_state.get('total_posts', 0)}")
+                print(f"Network Density: {network_state.get('network_density', 0.0):.3f}")
+                
+                results.append(result)
+                
+            except Exception as e:
+                print(f"❌ Social Action Execution Error: {e}")
+                result = {
+                    "state": current_state,
+                    "decision": {"action": "CREATE_POST", "reasoning": f"Execution Error: {e}"},
+                    "score": 0.0,
+                    "reward": 0.0,
+                    "error": str(e)
+                }
+                results.append(result)
         
-        # 导出结果
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        # 导出指标
+        except Exception as e:
+            print(f"❌ Step {step + 1} Execution Error: {e}")
+    
+    # 5. 输出最终结果
+    print("\n4. Final Results")
+    
+    # 计算统计信息
+    total_reward = sum(r.get("reward", 0) for r in results)
+    avg_score = sum(r.get("score", 0) for r in results) / len(results) if results else 0
+    decision_count = decision_maker.decision_count
+    
+    print(f"Total Decisions: {decision_count}")
+    print(f"Total Reward: {total_reward:.3f}")
+    print(f"Average Score: {avg_score:.3f}")
+    
+    # 显示RL训练统计
+    rl_stats = rl_trainer.get_training_stats()
+    print(f"RL Training Steps: {rl_stats['training_step']}")
+    print(f"RL Algorithm: {rl_stats['algorithm']}")
+    
+    # 导出监控结果
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # 导出指标
+    if sandbox.monitor:
         metrics_file = f"./logs/enhanced_oasis_metrics_{timestamp}.json"
         sandbox.monitor.export_metrics(metrics_file, "json")
         
-        # 创建可视化
-        if sandbox.metrics_history:
-            report_files = sandbox.visualizer.export_visualization_report(
-                sandbox.metrics_history, 
-                f"./visualizations/enhanced_oasis_{timestamp}"
-            )
-            
-            print(f"\n📁 Results exported:")
-            print(f"   - Metrics: {metrics_file}")
-            for viz_type, path in report_files.items():
-                print(f"   - {viz_type}: {path}")
+        print(f"\n📁 Results exported:")
+        print(f"   - Metrics: {metrics_file}")
         
         # 打印最终统计
         if sandbox.metrics_history:
@@ -587,9 +578,24 @@ def run_enhanced_rl_oasis_demo(steps: int = 10,
             print(f"   - Engagement Rate: {final_metrics.engagement_rate:.3f}")
             print(f"   - Content Quality: {final_metrics.content_quality_score:.3f}")
             print(f"   - Network Density: {final_metrics.network_density:.3f}")
-            print(f"   - Total Alerts: {len(sandbox.monitor.alerts)}")
-        
-        print("\n✅ Enhanced OASIS demo completed!")
+            print(f"   - Total Alerts: {len(sandbox.monitor.alerts) if sandbox.monitor else 0}")
+    
+    print("\n✅ Enhanced OASIS demo completed!")
+    
+    return results
+
+
+def _encode_social_action(action: str) -> int:
+    """编码社交行动类型"""
+    action_map = {
+        "CREATE_POST": 1,
+        "CREATE_COMMENT": 2,
+        "LIKE_POST": 3,
+        "FOLLOW": 4,
+        "SHARE": 5,
+        "TREND": 6
+    }
+    return action_map.get(action, 0)
 
 
 def main():
