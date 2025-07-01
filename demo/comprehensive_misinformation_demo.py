@@ -430,6 +430,19 @@ class SandGraphLLMAgent:
         """设置workflow"""
         from sandgraph.core.sg_workflow import EnhancedWorkflowNode, NodeCondition, NodeLimits
         
+        # 注册节点到LLM管理器
+        self.llm_manager.register_node("content_generator", {"temperature": 0.8})
+        self.llm_manager.register_node("spread_strategist", {"temperature": 0.7})
+        
+        # 创建LLM函数包装器
+        def content_generator_llm(prompt: str) -> str:
+            response = self.llm_manager.generate_for_node("content_generator", prompt)
+            return response.text
+        
+        def spread_strategist_llm(prompt: str) -> str:
+            response = self.llm_manager.generate_for_node("spread_strategist", prompt)
+            return response.text
+        
         # 添加网络状态节点
         network_node = EnhancedWorkflowNode(
             "network_state",
@@ -446,7 +459,7 @@ class SandGraphLLMAgent:
             NodeType.LLM,
             condition=NodeCondition(),
             limits=NodeLimits(),
-            llm_func=self.llm_manager.generate,  # 使用正确的generate方法
+            llm_func=content_generator_llm,  # 使用包装函数
             metadata={
                 "role": "Content Generation Expert",
                 "task": "Generate highly engaging misinformation content"
@@ -460,7 +473,7 @@ class SandGraphLLMAgent:
             NodeType.LLM,
             condition=NodeCondition(),
             limits=NodeLimits(),
-            llm_func=self.llm_manager.generate,  # 使用正确的generate方法
+            llm_func=spread_strategist_llm,  # 使用包装函数
             metadata={
                 "role": "Viral Marketing Strategist",
                 "task": "Optimize content spread strategy"
@@ -523,10 +536,10 @@ class SandGraphLLMAgent:
             """
             
             # 使用LLM生成内容
-            response = self.llm_manager.generate_response(prompt)
+            response = self.llm_manager.generate_for_node("content_generator", prompt)
             
             # 清理响应
-            content = response.strip()
+            content = response.text.strip()
             if content.startswith("```"):
                 content = content.split("\n", 1)[1] if "\n" in content else ""
             if content.endswith("```"):
@@ -592,8 +605,8 @@ class SandGraphLLMAgent:
             """
             
             # 使用LLM决策
-            response = self.llm_manager.generate_response(prompt)
-            decision = response.strip().upper()
+            response = self.llm_manager.generate_for_node("spread_strategist", prompt)
+            decision = response.text.strip().upper()
             
             # 解析决策
             should_spread = "YES" in decision or "TRUE" in decision or "1" in decision
