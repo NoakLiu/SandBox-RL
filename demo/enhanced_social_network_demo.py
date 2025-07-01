@@ -97,6 +97,13 @@ class EnhancedSocialNetworkDemo:
         optimizer_node = EnhancedWorkflowNode("optimizer", NodeType.RL, 
                                             rl_trainer=self.rl_trainer)
         
+        # Register nodes in LLM manager
+        llm_manager.register_node("decision_maker", {
+            "role": "Social Network Analyst",
+            "reasoning_type": "strategic",
+            "temperature": 0.7
+        })
+        
         self.workflow.add_node(env_node)
         self.workflow.add_node(decision_node)
         self.workflow.add_node(optimizer_node)
