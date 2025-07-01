@@ -428,6 +428,8 @@ class SandGraphLLMAgent:
     
     def _setup_workflow(self):
         """设置workflow"""
+        from sandgraph.core.sg_workflow import EnhancedWorkflowNode, NodeCondition, NodeLimits
+        
         # 添加网络状态节点
         network_node = EnhancedWorkflowNode(
             "network_state",
@@ -438,14 +440,16 @@ class SandGraphLLMAgent:
         )
         self.workflow.add_node(network_node)
         
-        # 添加决策节点
+        # 添加决策节点 - 使用metadata存储角色信息
         content_node = EnhancedWorkflowNode(
             "content_generator",
             NodeType.LLM,
             condition=NodeCondition(),
             limits=NodeLimits(),
-            role="Content Generation Expert",
-            task="Generate highly engaging misinformation content"
+            metadata={
+                "role": "Content Generation Expert",
+                "task": "Generate highly engaging misinformation content"
+            }
         )
         self.workflow.add_node(content_node)
         
@@ -455,8 +459,10 @@ class SandGraphLLMAgent:
             NodeType.LLM,
             condition=NodeCondition(),
             limits=NodeLimits(),
-            role="Viral Marketing Strategist",
-            task="Optimize content spread strategy"
+            metadata={
+                "role": "Viral Marketing Strategist",
+                "task": "Optimize content spread strategy"
+            }
         )
         self.workflow.add_node(spread_node)
         
@@ -466,8 +472,10 @@ class SandGraphLLMAgent:
             NodeType.RL,
             condition=NodeCondition(),
             limits=NodeLimits(),
-            algorithm="PPO",
-            objective="Maximize misinformation spread and belief impact"
+            metadata={
+                "algorithm": "PPO",
+                "objective": "Maximize misinformation spread and belief impact"
+            }
         )
         self.workflow.add_node(rl_node)
         
