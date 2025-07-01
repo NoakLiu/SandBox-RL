@@ -21,7 +21,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sandgraph.core.llm_interface import create_shared_llm_manager
 from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, EnhancedWorkflowNode
 from sandgraph.core.workflow import NodeType
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig
+from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
 from sandgraph.core.monitoring import (
     SocialNetworkMonitor, 
     MonitoringConfig, 
@@ -82,7 +82,7 @@ class EnhancedSocialNetworkDemo:
         
         # Create RL trainer
         rl_config = RLConfig(
-            algorithm="PPO",
+            algorithm=RLAlgorithm.PPO,
             learning_rate=0.001,
             batch_size=32,
             gamma=0.99

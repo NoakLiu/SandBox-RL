@@ -16,6 +16,7 @@ class NodeType(Enum):
     INPUT = "input"           # 输入节点
     SANDBOX = "sandbox"       # 沙盒节点
     LLM = "llm"              # LLM节点
+    RL = "rl"                # RL节点
     OUTPUT = "output"         # 输出节点
     AGGREGATOR = "aggregator" # 聚合节点
 
@@ -32,6 +33,7 @@ class WorkflowNode:
     sandbox: Optional[Sandbox] = None
     llm_func: Optional[Callable] = None
     aggregator_func: Optional[Callable] = None
+    rl_trainer: Optional[Any] = None  # RLTrainer实例
     
     def __post_init__(self):
         """初始化后验证"""
@@ -41,6 +43,8 @@ class WorkflowNode:
             raise ValueError(f"LLM节点 {self.node_id} 必须指定llm_func")
         if self.node_type == NodeType.AGGREGATOR and self.aggregator_func is None:
             raise ValueError(f"聚合节点 {self.node_id} 必须指定aggregator_func")
+        if self.node_type == NodeType.RL and self.rl_trainer is None:
+            raise ValueError(f"RL节点 {self.node_id} 必须指定rl_trainer")
     
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """执行节点逻辑"""
@@ -52,6 +56,9 @@ class WorkflowNode:
         
         elif self.node_type == NodeType.LLM:
             return self._execute_llm(inputs)
+        
+        elif self.node_type == NodeType.RL:
+            return self._execute_rl(inputs)
         
         elif self.node_type == NodeType.AGGREGATOR:
             return self._execute_aggregator(inputs)
@@ -107,6 +114,30 @@ class WorkflowNode:
         prompt = inputs.get("prompt", "")
         response = self.llm_func(prompt)
         return {"response": response, "prompt": prompt, "node_id": self.node_id}
+    
+    def _execute_rl(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """执行RL节点"""
+        if not self.rl_trainer:
+            raise ValueError("RL节点缺少rl_trainer实例")
+        
+        # 从输入中提取RL训练所需的数据
+        state = inputs.get("state", {})
+        action = inputs.get("action", "")
+        reward = inputs.get("reward", 0.0)
+        done = inputs.get("done", False)
+        group_id = inputs.get("group_id", "default")
+        
+        # 添加经验到RL训练器
+        self.rl_trainer.add_experience(state, action, reward, done, group_id)
+        
+        # 更新策略
+        update_result = self.rl_trainer.update_policy()
+        
+        return {
+            "rl_update_result": update_result,
+            "training_stats": self.rl_trainer.get_training_stats(),
+            "node_id": self.node_id
+        }
     
     def _execute_aggregator(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """执行聚合节点"""
