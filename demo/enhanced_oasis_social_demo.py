@@ -177,6 +177,40 @@ class EnhancedOasisSocialSandbox(OasisSocialSandbox):
             self.monitor.update_metrics(metrics)
         
         return state
+    
+    def run_full_cycle(self, llm_func=None) -> Dict[str, Any]:
+        """运行完整的沙盒周期 - 满足Sandbox协议"""
+        # 生成当前状态
+        case = self.case_generator()
+        
+        # 如果有LLM函数，使用它生成响应
+        if llm_func:
+            try:
+                response = llm_func(case)
+                # 验证响应
+                score = self.verify_score(response, case)
+                return {
+                    "case": case,
+                    "response": response,
+                    "score": score,
+                    "status": "success"
+                }
+            except Exception as e:
+                return {
+                    "case": case,
+                    "response": f"Error: {str(e)}",
+                    "score": 0.0,
+                    "status": "error",
+                    "error": str(e)
+                }
+        else:
+            # 没有LLM函数，返回默认响应
+            return {
+                "case": case,
+                "response": "Enhanced OASIS social network simulation",
+                "score": 0.5,
+                "status": "default"
+            }
 
 
 class EnhancedLLMSocialDecisionMaker(LLMSocialDecisionMaker):
