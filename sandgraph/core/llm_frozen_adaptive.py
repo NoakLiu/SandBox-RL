@@ -18,7 +18,12 @@ import threading
 import json
 import os
 import copy
-import numpy as np
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    NUMPY_AVAILABLE = False
+    np = None
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict, deque
@@ -109,7 +114,16 @@ class AdaptiveLearningRate:
         # 计算性能变化趋势
         recent_performance = list(self.performance_history)[-10:]
         if len(recent_performance) >= 2:
-            performance_trend = np.mean(np.diff(recent_performance))
+            try:
+                if NUMPY_AVAILABLE and hasattr(np, 'diff') and hasattr(np, 'mean'):
+                    performance_trend = np.mean(np.diff(recent_performance))
+                else:
+                    # 手动计算趋势
+                    diffs = [recent_performance[i] - recent_performance[i-1] 
+                            for i in range(1, len(recent_performance))]
+                    performance_trend = sum(diffs) / len(diffs)
+            except:
+                performance_trend = 0.0
             
             # 根据趋势调整学习率
             if performance_trend > 0.01:  # 性能提升
@@ -147,11 +161,32 @@ class ParameterImportanceAnalyzer:
                 grad = gradients[name]
                 
                 # 计算梯度范数
-                grad_norm = np.linalg.norm(grad) if isinstance(grad, np.ndarray) else abs(grad)
+                try:
+                    if NUMPY_AVAILABLE and isinstance(grad, np.ndarray):
+                        grad_norm = np.linalg.norm(grad)
+                    elif isinstance(grad, list):
+                        grad_norm = sum(g * g for g in grad) ** 0.5
+                    elif isinstance(grad, (int, float)):
+                        grad_norm = abs(grad)
+                    else:
+                        grad_norm = abs(grad)
+                except (TypeError, ValueError):
+                    grad_norm = 0.0
                 
                 # 计算参数敏感性
-                param_norm = np.linalg.norm(param) if isinstance(param, np.ndarray) else abs(param)
-                sensitivity = grad_norm / (param_norm + 1e-8)
+                try:
+                    if NUMPY_AVAILABLE and isinstance(param, np.ndarray):
+                        param_norm = np.linalg.norm(param)
+                    elif isinstance(param, list):
+                        param_norm = sum(p * p for p in param) ** 0.5
+                    elif isinstance(param, (int, float)):
+                        param_norm = abs(param)
+                    else:
+                        param_norm = abs(param)
+                    
+                    sensitivity = grad_norm / (param_norm + 1e-8)
+                except (TypeError, ValueError):
+                    sensitivity = 0.0
                 
                 # 根据敏感性和梯度范数确定重要性
                 if sensitivity > 0.5 and grad_norm > 0.1:
@@ -204,7 +239,20 @@ class FrozenAdaptiveLLM:
         parameters = self.base_llm.get_parameters()
         
         for name, param in parameters.items():
-            shape = param.shape if hasattr(param, 'shape') else (len(param),)
+            # 处理不同类型的参数
+            if hasattr(param, 'shape'):
+                shape = param.shape
+            elif isinstance(param, list):
+                shape = (len(param),)
+            elif isinstance(param, (int, float)):
+                shape = (1,)
+            else:
+                # 对于其他类型，尝试获取长度，如果失败则使用默认形状
+                try:
+                    shape = (len(param),)
+                except (TypeError, AttributeError):
+                    shape = (1,)
+            
             frozen = name in self.config.frozen_parameters or any(
                 layer in name for layer in self.config.frozen_layers
             )
@@ -259,7 +307,18 @@ class FrozenAdaptiveLLM:
                     self.parameter_info[name].importance = importance
                     if name in gradients:
                         grad = gradients[name]
-                        grad_norm = np.linalg.norm(grad) if isinstance(grad, np.ndarray) else abs(grad)
+                        try:
+                            if NUMPY_AVAILABLE and isinstance(grad, np.ndarray):
+                                grad_norm = np.linalg.norm(grad)
+                            elif isinstance(grad, list):
+                                grad_norm = sum(g * g for g in grad) ** 0.5
+                            elif isinstance(grad, (int, float)):
+                                grad_norm = abs(grad)
+                            else:
+                                grad_norm = abs(grad)
+                        except (TypeError, ValueError):
+                            grad_norm = 0.0
+                        
                         self.parameter_info[name].gradient_norm = grad_norm
                         self.parameter_info[name].sensitivity = self.importance_analyzer.get_sensitivity(name)
         
@@ -350,12 +409,20 @@ class FrozenAdaptiveLLM:
     
     def _apply_gradient(self, parameter: Any, gradient: Any, learning_rate: float) -> Any:
         """应用梯度更新"""
-        if isinstance(parameter, np.ndarray) and isinstance(gradient, np.ndarray):
-            return parameter - learning_rate * gradient
-        elif isinstance(parameter, list) and isinstance(gradient, list):
-            return [p - learning_rate * g for p, g in zip(parameter, gradient)]
-        else:
-            return parameter - learning_rate * gradient
+        try:
+            if NUMPY_AVAILABLE and isinstance(parameter, np.ndarray) and isinstance(gradient, np.ndarray):
+                return parameter - learning_rate * gradient
+            elif isinstance(parameter, list) and isinstance(gradient, list):
+                return [p - learning_rate * g for p, g in zip(parameter, gradient)]
+            elif isinstance(parameter, (int, float)) and isinstance(gradient, (int, float)):
+                return parameter - learning_rate * gradient
+            else:
+                # 对于其他类型，尝试进行数值运算
+                return parameter - learning_rate * gradient
+        except (TypeError, ValueError):
+            # 如果无法进行数值运算，返回原参数
+            logger.warning(f"无法更新参数，保持原值: {type(parameter)}")
+            return parameter
     
     def generate(self, prompt: str, **kwargs) -> LLMResponse:
         """生成响应"""
@@ -382,11 +449,36 @@ class FrozenAdaptiveLLM:
                 return {}
             
             performance_list = list(self.performance_history)
+            
+            # 计算基本统计信息
+            current_performance = performance_list[-1]
+            average_performance = sum(performance_list) / len(performance_list)
+            
+            # 计算性能趋势
+            if len(performance_list) > 1:
+                recent_performance = performance_list[-10:] if len(performance_list) >= 10 else performance_list
+                performance_trend = sum(recent_performance[i] - recent_performance[i-1] 
+                                      for i in range(1, len(recent_performance))) / (len(recent_performance) - 1)
+            else:
+                performance_trend = 0.0
+            
+            # 计算标准差
+            try:
+                if NUMPY_AVAILABLE and hasattr(np, 'std'):
+                    performance_std = np.std(performance_list)
+                else:
+                    # 手动计算标准差
+                    mean = average_performance
+                    variance = sum((x - mean) ** 2 for x in performance_list) / len(performance_list)
+                    performance_std = variance ** 0.5
+            except:
+                performance_std = 0.0
+            
             return {
-                "current_performance": performance_list[-1],
-                "average_performance": np.mean(performance_list),
-                "performance_trend": np.mean(np.diff(performance_list[-10:])) if len(performance_list) > 1 else 0,
-                "performance_std": np.std(performance_list),
+                "current_performance": current_performance,
+                "average_performance": average_performance,
+                "performance_trend": performance_trend,
+                "performance_std": performance_std,
                 "update_count": self.update_counter,
                 "current_learning_rate": self.adaptive_lr.get_lr()
             }
