@@ -569,7 +569,7 @@ SandGraph supports various mainstream large language models. Below are the suppo
 | **High Performance** | LLaMA2-13B | 13B | 16-32GB |
 | **Open Source Alternatives** | GPT-2, Falcon | 1-7B | 2-16GB |
 
-### LLMs Frozen & Adaptive Update Strategies
+<!-- ### LLMs Frozen & Adaptive Update Strategies
 
 | Strategy | Use Case | Description |
 |----------|----------|-------------|
@@ -577,7 +577,7 @@ SandGraph supports various mainstream large language models. Below are the suppo
 | **ADAPTIVE** | Development | Adaptive learning rate based on performance |
 | **SELECTIVE** | Fine-tuning | Update only important parameters |
 | **INCREMENTAL** | Controlled | Update parameters at fixed intervals |
-| **GRADUAL** | Gradual training | Gradually reduce update intensity |
+| **GRADUAL** | Gradual training | Gradually reduce update intensity | -->
 
 ## 📚 Documentation
 
