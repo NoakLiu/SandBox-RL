@@ -77,14 +77,22 @@ class FixedOasisSocialSandbox(OasisSocialSandbox):
                     for follow_id in follows:
                         user.following.append(follow_id)
                         self.users[follow_id].followers.append(user_id)
+                        # 同步更新network_graph
+                        if user_id not in self.network_graph:
+                            self.network_graph[user_id] = []
                         self.network_graph[user_id].append(follow_id)
                         total_connections += 1
             
-            # 确保网络图中有该用户
+            # 确保network_graph中有该用户，并且与following列表同步
             if user_id not in self.network_graph:
-                self.network_graph[user_id] = user.following.copy()
+                self.network_graph[user_id] = []
+            
+            # 同步network_graph和following列表
+            self.network_graph[user_id] = user.following.copy()
         
         print(f"✅ Network connections ensured: {total_connections} additional connections created")
+        print(f"📊 Total connections in network_graph: {sum(len(following) for following in self.network_graph.values())}")
+        print(f"📊 Total connections in user following: {sum(len(user.following) for user in self.users.values())}")
     
     def setup_monitoring(self, config: MonitoringConfig):
         """设置监控系统"""
