@@ -310,11 +310,10 @@ def create_enhanced_rl_oasis_workflow(llm_manager, monitor_config: MonitoringCon
     
     # 创建RL训练器
     rl_config = RLConfig(
-        algorithm="PPO",
+        algorithm=RLAlgorithm.PPO,
         learning_rate=0.001,
         batch_size=32,
-        gamma=0.99,
-        epsilon=0.1
+        gamma=0.99
     )
     rl_trainer = RLTrainer(rl_config, llm_manager)
     
