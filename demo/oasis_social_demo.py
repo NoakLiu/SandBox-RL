@@ -560,6 +560,10 @@ Choose the best social action to maximize engagement and network growth. Respond
                 r'ACTION:\s*([A-Z_]+)\s+([a-z_0-9]+)\s+([a-z_0-9_]+)\s+(.+)',
                 # 无目标格式: ACTION: CREATE_POST user_0 content
                 r'ACTION:\s*([A-Z_]+)\s+([a-z_0-9]+)\s+(.+)',
+                # 连字符格式: ACTION: CREATE_POST - user_5 - content
+                r'ACTION:\s*([A-Z_]+)\s*[-–]\s*([a-z_0-9_]+)\s*[-–]\s*(.+)',
+                # 连字符格式无目标: ACTION: CREATE_POST - user_5 content
+                r'ACTION:\s*([A-Z_]+)\s*[-–]\s*([a-z_0-9_]+)\s+(.+)',
                 # 方括号格式: ACTION: CREATE_COMMENT [USER_1] [TARGET_POST] content
                 r'ACTION:\s*([A-Z_]+)\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+(.+)',
                 # 方括号格式无目标: ACTION: CREATE_POST [USER_1] content
@@ -594,7 +598,7 @@ Choose the best social action to maximize engagement and network growth. Respond
                         user_id = self._resolve_placeholder(user_id_raw)
                         target_id = self._resolve_placeholder(target_id_raw) if 'target_id_raw' in locals() else None
                     else:
-                        # 标准格式
+                        # 标准格式或连字符格式
                         user_id = action_match.group(2)
                         if len(action_match.groups()) >= 4:
                             target_id = action_match.group(3)
