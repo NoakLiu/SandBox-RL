@@ -15,6 +15,8 @@ Welcome to the SandGraphX documentation! This directory contains comprehensive g
 ### 🔧 Feature Guides
 - **[Monitoring Guide](monitoring_guide.md)** - Advanced monitoring and visualization
 - **[LLM Frozen & Adaptive Guide](llm_frozen_adaptive_guide.md)** - LLM parameter management
+- **[Reward-Based Slot Management Guide](reward_based_slot_guide.md)** - Intelligent resource allocation
+- **[Training Algorithms Guide](training_algorithms_guide.md)** - RL algorithms and training strategies
 - **[Qwen3 Usage Guide](qwen3_usage_guide.md)** - Qwen3 14B model usage guide
 - **[AReaL Integration Guide](areal_integration_guide.md)** - Deep integration with AReaL framework
 
@@ -30,9 +32,11 @@ Welcome to the SandGraphX documentation! This directory contains comprehensive g
 
 ### For Advanced Users
 1. Explore **[LLM Frozen & Adaptive Guide](llm_frozen_adaptive_guide.md)** for parameter management
-2. Use **[Monitoring Guide](monitoring_guide.md)** for advanced monitoring
-3. Check **[LLM Models Guide](LLM_MODELS.md)** for model-specific features
-4. Study **[AReaL Integration Guide](areal_integration_guide.md)** for performance optimization
+2. Use **[Reward-Based Slot Management Guide](reward_based_slot_guide.md)** for intelligent resource allocation
+3. Study **[Training Algorithms Guide](training_algorithms_guide.md)** for RL optimization strategies
+4. Use **[Monitoring Guide](monitoring_guide.md)** for advanced monitoring
+5. Check **[LLM Models Guide](LLM_MODELS.md)** for model-specific features
+6. Study **[AReaL Integration Guide](areal_integration_guide.md)** for performance optimization
 
 ### For Developers
 1. Review **[API Reference](api_reference.md)** for complete API documentation

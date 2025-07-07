@@ -90,6 +90,15 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **WanDB Integration**: Comprehensive monitoring and visualization of competition results
   - **Network Dynamics Simulation**: Realistic social network behavior modeling
   - **Belief Impact Analysis**: Track misinformation impact on user beliefs
+- **⚡ Reward-Based Slot Management**: Intelligent resource allocation with reward-driven preemption
+  - **Dynamic Priority Scheduling**: Adjust task priorities based on reward values
+  - **Smart Preemption**: High-reward tasks can preempt low-reward tasks
+  - **Resource-Aware Allocation**: Real-time monitoring of CPU, memory, and GPU usage
+  - **Adaptive Frozen Integration**: Deep integration with adaptive frozen LLM management
+  - **Performance Optimization**: Dynamic slot allocation based on model performance
+  - **Fair Scheduling**: Balance high-value tasks with system fairness
+  - **Real-time Monitoring**: Track slot execution states and performance metrics
+  - **Resource Limits**: Configurable resource limits and usage thresholds
 
 ## 📁 File Structure
 
@@ -102,6 +111,7 @@ SandGraphX/
 │   │   ├── dag_manager.py       # DAG graph management
 │   │   ├── llm_interface.py     # LLM interface
 │   │   ├── llm_frozen_adaptive.py # LLMs frozen & adaptive update
+│   │   ├── reward_based_slot_manager.py # Reward-based slot management
 │   │   ├── enhanced_rl_algorithms.py # Enhanced RL algorithms (Areal integration)
 │   │   ├── areal_kv_cache.py      # AReaL-style KV cache optimization
 │   │   ├── areal_integration.py   # AReaL deep integration framework
@@ -125,10 +135,13 @@ SandGraphX/
 │   ├── enhanced_areal_integration_demo.py # Enhanced AReaL integration demo
 │   ├── monitoring_example.py   # Monitoring system example
 │   ├── llm_frozen_adaptive_demo.py # LLMs frozen & adaptive demo (full)
-│   └── llm_frozen_adaptive_simple_demo.py # LLMs frozen & adaptive demo (simple)
+│   ├── llm_frozen_adaptive_simple_demo.py # LLMs frozen & adaptive demo (simple)
+│   ├── reward_based_slot_demo.py # Reward-based slot management demo
+│   └── new_rl_algorithms_demo.py # New RL algorithms (SAC, TD3) demo
 ├── docs/                        # Documentation
 │   ├── monitoring_guide.md     # Comprehensive monitoring guide
 │   ├── llm_frozen_adaptive_guide.md # LLMs frozen & adaptive guide
+│   ├── reward_based_slot_guide.md # Reward-based slot management guide
 │   ├── areal_integration_guide.md # AReaL deep integration guide
 │   ├── examples_guide.md       # Complete examples guide
 │   ├── quick_start_guide.md    # Quick start guide
@@ -169,6 +182,7 @@ SandGraphX/
 │  • Extension: Support for custom nodes and optimization strategies   │
 │  • LLM Management: Frozen & adaptive parameter management            │
 │  • AReaL Integration: Advanced caching, metrics, and optimization    │
+│  • Slot Management: Reward-based resource allocation and preemption  │
 └─────────────────────────────────────────────────────────┘
                       │
                       ▼
@@ -233,6 +247,9 @@ python demo/enhanced_social_network_demo.py --steps 20 --enable-wandb
 
 # Run AReaL integration demo
 python demo/enhanced_areal_integration_demo.py --demo basic
+
+# Run reward-based slot management demo
+python demo/reward_based_slot_demo.py --demo all
 ```
 
 ## 📚 Documentation
@@ -242,6 +259,7 @@ python demo/enhanced_areal_integration_demo.py --demo basic
 - **[API Reference](docs/api_reference.md)** - Comprehensive API documentation
 - **[Monitoring Guide](docs/monitoring_guide.md)** - Advanced monitoring and visualization
 - **[LLM Frozen & Adaptive Guide](docs/llm_frozen_adaptive_guide.md)** - LLM parameter management
+- **[Reward-Based Slot Management Guide](docs/reward_based_slot_guide.md)** - Intelligent resource allocation
 - **[AReaL Integration Guide](docs/areal_integration_guide.md)** - Deep integration with AReaL framework
 
 ## 🔥 LLM Model Support
