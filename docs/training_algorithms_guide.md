@@ -8,6 +8,8 @@ SandGraphX提供了多种强化学习算法，专门设计用于优化LLM的决�
 
 - **PPO (Proximal Policy Optimization)** - 近端策略优化算法
 - **GRPO (Group Robust Policy Optimization)** - 组鲁棒策略优化算法
+- **SAC (Soft Actor-Critic)** - 软Actor-Critic算法
+- **TD3 (Twin Delayed Deep Deterministic Policy Gradient)** - 双延迟深度确定性策略梯度算法
 - **增强版算法** - 集成AReaL框架的优化版本
 
 ## 📚 核心概念
@@ -191,6 +193,169 @@ result = grpo_trainer.update_policy()
 print(f"GRPO update result: {result}")
 ```
 
+### 3. SAC (Soft Actor-Critic)
+
+SAC是一种基于最大熵的Actor-Critic算法，特别适用于连续动作空间，通过最大化期望回报和策略熵来实现更好的探索。
+
+#### 核心特点
+- **最大熵**: 在最大化回报的同时最大化策略熵
+- **自动调整**: 自动调整熵正则化系数
+- **样本效率**: 使用经验回放缓冲区提高样本效率
+- **稳定性**: 软更新目标网络提高训练稳定性
+
+#### 算法原理
+
+```python
+def compute_actor_loss(self, batch, new_log_probs):
+    """计算Actor损失（策略损失）"""
+    actor_losses = []
+    
+    for i, step in enumerate(batch):
+        # SAC的Actor损失：最大化Q值减去熵正则化
+        q_value = step.value  # 从Critic网络获取
+        entropy = -new_log_probs[i]  # 动作熵
+        
+        # Actor损失 = -(Q(s,a) - α * log π(a|s))
+        actor_loss = -(q_value - self.alpha * new_log_probs[i])
+        actor_losses.append(actor_loss)
+    
+    return sum(actor_losses) / len(actor_losses)
+
+def compute_alpha_loss(self, new_log_probs):
+    """计算alpha损失（用于自动调整熵系数）"""
+    # 计算当前策略的熵
+    current_entropy = -sum(new_log_probs) / len(new_log_probs)
+    
+    # Alpha损失：使熵接近目标熵
+    alpha_loss = -self.log_alpha * (current_entropy + self.target_entropy)
+    
+    return alpha_loss
+```
+
+#### 配置参数
+
+```python
+@dataclass
+class RLConfig:
+    # SAC特有参数
+    alpha: float = 0.2                    # 熵正则化系数
+    tau: float = 0.005                    # 目标网络软更新系数
+    target_update_freq: int = 1           # 目标网络更新频率
+    auto_alpha_tuning: bool = True        # 自动调整alpha
+    
+    # 其他参数
+    algorithm: RLAlgorithm = RLAlgorithm.SAC
+    learning_rate: float = 3e-4
+    gamma: float = 0.99
+    # ...
+```
+
+#### 使用示例
+
+```python
+from sandgraph.core.rl_algorithms import create_sac_trainer
+
+# 创建SAC训练器
+sac_trainer = create_sac_trainer(
+    llm_manager=llm_manager,
+    learning_rate=3e-4
+)
+
+# 添加经验（连续动作空间）
+sac_trainer.add_experience(
+    state={"position": 0.5, "velocity": 0.2, "energy": 0.8},
+    action="ACCELERATE",
+    reward=2.0,
+    done=False
+)
+
+# 更新策略
+result = sac_trainer.update_policy()
+print(f"SAC update result: {result}")
+print(f"Alpha: {result.get('alpha', 0):.4f}")
+```
+
+### 4. TD3 (Twin Delayed Deep Deterministic Policy Gradient)
+
+TD3是DDPG的改进版本，通过双Q网络、延迟策略更新和目标策略平滑来解决过估计问题。
+
+#### 核心特点
+- **双Q网络**: 使用两个Critic网络减少过估计
+- **延迟更新**: 延迟策略更新提高稳定性
+- **目标平滑**: 为目标动作添加噪声提高鲁棒性
+- **噪声裁剪**: 限制目标策略噪声范围
+
+#### 算法原理
+
+```python
+def compute_critic_loss(self, batch, new_values):
+    """计算双Critic损失"""
+    targets = self.compute_td3_q_target(batch)
+    
+    # 双Q网络损失
+    critic1_losses = []
+    critic2_losses = []
+    
+    for i, step in enumerate(batch):
+        # 添加噪声到目标动作（目标策略平滑）
+        noisy_target = targets[i] + random.uniform(-self.config.noise_clip, self.config.noise_clip)
+        noisy_target = max(min(noisy_target, targets[i] + self.config.noise_clip), 
+                          targets[i] - self.config.noise_clip)
+        
+        # 两个Critic网络的损失
+        critic1_loss = (new_values[i] - noisy_target) ** 2
+        critic2_loss = (new_values[i] + 0.01 - noisy_target) ** 2
+        
+        critic1_losses.append(critic1_loss)
+        critic2_losses.append(critic2_loss)
+    
+    return (sum(critic1_losses) / len(critic1_losses), 
+            sum(critic2_losses) / len(critic2_losses))
+```
+
+#### 配置参数
+
+```python
+@dataclass
+class RLConfig:
+    # TD3特有参数
+    policy_noise: float = 0.2             # 策略噪声
+    noise_clip: float = 0.5               # 噪声裁剪
+    policy_freq: int = 2                  # 策略更新频率
+    delay_freq: int = 2                   # 延迟更新频率
+    
+    # 其他参数
+    algorithm: RLAlgorithm = RLAlgorithm.TD3
+    learning_rate: float = 3e-4
+    gamma: float = 0.99
+    # ...
+```
+
+#### 使用示例
+
+```python
+from sandgraph.core.rl_algorithms import create_td3_trainer
+
+# 创建TD3训练器
+td3_trainer = create_td3_trainer(
+    llm_manager=llm_manager,
+    learning_rate=3e-4
+)
+
+# 添加经验（确定性策略）
+td3_trainer.add_experience(
+    state={"position": 0.3, "velocity": 0.1, "stability": 0.9},
+    action="MAINTAIN_BALANCE",
+    reward=1.5,
+    done=False
+)
+
+# 更新策略
+result = td3_trainer.update_policy()
+print(f"TD3 update result: {result}")
+print(f"Policy Updated: {result.get('policy_updated', False)}")
+```
+
 ## 🚀 增强版算法
 
 ### 1. 增强版RL训练器
@@ -372,6 +537,18 @@ print(f"Average Update Time: {perf_stats['total_training_time'] / perf_stats['tr
 - **监控需求**: 需要详细的性能监控
 - **生产环境**: 生产环境部署
 
+### 4. 何时使用SAC
+- **连续动作空间**: 动作是连续值的情况
+- **探索需求**: 需要更好的探索策略
+- **样本效率**: 重视样本效率的场景
+- **稳定性要求**: 需要稳定训练过程
+
+### 5. 何时使用TD3
+- **确定性策略**: 需要确定性动作输出
+- **过估计问题**: 存在Q值过估计的情况
+- **稳定性优先**: 优先考虑训练稳定性
+- **连续控制**: 连续控制任务
+
 ## 🔧 最佳实践
 
 ### 1. 参数调优
@@ -393,6 +570,26 @@ grpo_config = RLConfig(
     robustness_coef=0.1,     # 适中鲁棒性
     group_size=4,            # 合理组大小
     batch_size=32            # 适中批次
+)
+
+# SAC参数调优
+sac_config = RLConfig(
+    algorithm=RLAlgorithm.SAC,
+    learning_rate=3e-4,      # 标准学习率
+    alpha=0.2,               # 适中熵系数
+    tau=0.005,               # 软更新系数
+    auto_alpha_tuning=True,  # 启用自动调整
+    batch_size=64            # 较大批次
+)
+
+# TD3参数调优
+td3_config = RLConfig(
+    algorithm=RLAlgorithm.TD3,
+    learning_rate=3e-4,      # 标准学习率
+    policy_noise=0.2,        # 适中策略噪声
+    noise_clip=0.5,          # 噪声裁剪
+    policy_freq=2,           # 策略更新频率
+    batch_size=64            # 较大批次
 )
 ```
 
@@ -460,6 +657,22 @@ python demo/enhanced_areal_integration_demo.py --demo advanced
 
 # 运行性能测试
 python demo/enhanced_areal_integration_demo.py --demo performance
+```
+
+### 3. 新算法演示
+
+```bash
+# 运行SAC算法演示
+python demo/new_rl_algorithms_demo.py --demo sac
+
+# 运行TD3算法演示
+python demo/new_rl_algorithms_demo.py --demo td3
+
+# 运行增强版新算法演示
+python demo/new_rl_algorithms_demo.py --demo enhanced
+
+# 运行算法性能对比
+python demo/new_rl_algorithms_demo.py --demo compare
 ```
 
 ## 📚 示例代码

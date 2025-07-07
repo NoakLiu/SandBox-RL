@@ -9,8 +9,9 @@ from dataclasses import dataclass
 from enum import Enum
 import logging
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 import math
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,8 @@ class RLAlgorithm(Enum):
     """强化学习算法类型"""
     PPO = "ppo"
     GRPO = "grpo"
+    SAC = "sac"      # Soft Actor-Critic
+    TD3 = "td3"      # Twin Delayed Deep Deterministic Policy Gradient
 
 
 @dataclass
@@ -36,6 +39,18 @@ class RLConfig:
     # GRPO特有参数
     group_size: int = 4  # 组大小
     robustness_coef: float = 0.1  # 鲁棒性系数
+    
+    # SAC特有参数
+    alpha: float = 0.2  # 熵正则化系数
+    tau: float = 0.005  # 目标网络软更新系数
+    target_update_freq: int = 1  # 目标网络更新频率
+    auto_alpha_tuning: bool = True  # 自动调整alpha
+    
+    # TD3特有参数
+    policy_noise: float = 0.2  # 策略噪声
+    noise_clip: float = 0.5  # 噪声裁剪
+    policy_freq: int = 2  # 策略更新频率
+    delay_freq: int = 2  # 延迟更新频率
     
     # 训练参数
     batch_size: int = 32
@@ -387,6 +402,342 @@ class GRPOAlgorithm:
         return group_stats
 
 
+class SACAlgorithm:
+    """SAC (Soft Actor-Critic) 算法实现"""
+    
+    def __init__(self, config: RLConfig):
+        self.config = config
+        self.trajectories = []
+        self.replay_buffer = deque(maxlen=100000)  # 经验回放缓冲区
+        self.training_stats = defaultdict(list)
+        self.update_step = 0
+        
+        # SAC特有变量
+        self.alpha = config.alpha
+        self.target_entropy = -1.0  # 目标熵（负的动作空间维度）
+        self.log_alpha = math.log(self.alpha)
+        
+    def add_trajectory_step(self, step: TrajectoryStep) -> None:
+        """添加轨迹步骤到经验回放缓冲区"""
+        self.trajectories.append(step)
+        self.replay_buffer.append(step)
+    
+    def compute_soft_q_target(self, batch: List[TrajectoryStep]) -> List[float]:
+        """计算软Q目标值"""
+        targets = []
+        
+        for i, step in enumerate(batch):
+            if i == len(batch) - 1:
+                # 最后一步
+                if step.done:
+                    target = step.reward
+                else:
+                    # 使用目标网络计算下一状态的价值
+                    next_value = step.value  # 简化实现
+                    target = step.reward + self.config.gamma * next_value
+            else:
+                # 非最后一步
+                next_step = batch[i + 1]
+                target = step.reward + self.config.gamma * next_step.value
+            
+            targets.append(target)
+        
+        return targets
+    
+    def compute_actor_loss(self, batch: List[TrajectoryStep], new_log_probs: List[float]) -> float:
+        """计算Actor损失（策略损失）"""
+        actor_losses = []
+        
+        for i, step in enumerate(batch):
+            # SAC的Actor损失：最大化Q值减去熵正则化
+            q_value = step.value  # 简化实现，实际应该从Critic网络获取
+            entropy = -new_log_probs[i]  # 动作熵
+            
+            # Actor损失 = -(Q(s,a) - α * log π(a|s))
+            actor_loss = -(q_value - self.alpha * new_log_probs[i])
+            actor_losses.append(actor_loss)
+        
+        return sum(actor_losses) / len(actor_losses)
+    
+    def compute_critic_loss(self, batch: List[TrajectoryStep], new_values: List[float]) -> float:
+        """计算Critic损失（Q值损失）"""
+        targets = self.compute_soft_q_target(batch)
+        critic_losses = []
+        
+        for i, step in enumerate(batch):
+            # Critic损失：MSE损失
+            critic_loss = (new_values[i] - targets[i]) ** 2
+            critic_losses.append(critic_loss)
+        
+        return sum(critic_losses) / len(critic_losses)
+    
+    def compute_alpha_loss(self, new_log_probs: List[float]) -> float:
+        """计算alpha损失（用于自动调整熵系数）"""
+        if not self.config.auto_alpha_tuning:
+            return 0.0
+        
+        # 计算当前策略的熵
+        current_entropy = -sum(new_log_probs) / len(new_log_probs)
+        
+        # Alpha损失：使熵接近目标熵
+        alpha_loss = -self.log_alpha * (current_entropy + self.target_entropy)
+        
+        return alpha_loss
+    
+    def update_target_networks(self):
+        """软更新目标网络"""
+        # 简化实现：实际应该更新目标网络的参数
+        # target_params = tau * current_params + (1 - tau) * target_params
+        pass
+    
+    def update_policy(self, llm_manager) -> Dict[str, Any]:
+        """更新策略"""
+        if len(self.replay_buffer) < self.config.batch_size:
+            return {
+                "status": "insufficient_data",
+                "buffer_size": len(self.replay_buffer),
+                "required_batch_size": self.config.batch_size
+            }
+        
+        # 从经验回放缓冲区采样
+        batch = random.sample(self.replay_buffer, self.config.batch_size)
+        
+        total_actor_loss = 0
+        total_critic_loss = 0
+        total_alpha_loss = 0
+        
+        # 多次更新
+        for _ in range(2):  # SAC通常进行多次更新
+            # 模拟新的log概率和价值（实际应该从网络获取）
+            new_log_probs = [step.log_prob + 0.01 for step in batch]
+            new_values = [step.value + 0.001 for step in batch]
+            
+            # 计算损失
+            actor_loss = self.compute_actor_loss(batch, new_log_probs)
+            critic_loss = self.compute_critic_loss(batch, new_values)
+            alpha_loss = self.compute_alpha_loss(new_log_probs)
+            
+            total_actor_loss += actor_loss
+            total_critic_loss += critic_loss
+            total_alpha_loss += alpha_loss
+            
+            # 更新alpha（如果启用自动调整）
+            if self.config.auto_alpha_tuning:
+                self.log_alpha += 0.001 * alpha_loss  # 简化更新
+                self.alpha = math.exp(self.log_alpha)
+            
+            # 计算梯度（简化实现）
+            gradients = {
+                "actor_gradient": actor_loss * 0.1,
+                "critic_gradient": critic_loss * 0.05,
+                "alpha_gradient": alpha_loss * 0.02
+            }
+            
+            # 更新LLM参数
+            llm_manager.update_shared_parameters(gradients, self.config.learning_rate)
+        
+        # 更新目标网络
+        if self.update_step % self.config.target_update_freq == 0:
+            self.update_target_networks()
+        
+        self.update_step += 1
+        
+        # 记录统计信息
+        avg_actor_loss = total_actor_loss / 2
+        avg_critic_loss = total_critic_loss / 2
+        avg_alpha_loss = total_alpha_loss / 2
+        
+        self.training_stats["actor_loss"].append(avg_actor_loss)
+        self.training_stats["critic_loss"].append(avg_critic_loss)
+        self.training_stats["alpha_loss"].append(avg_alpha_loss)
+        self.training_stats["alpha"].append(self.alpha)
+        
+        # 返回更新结果
+        return {
+            "status": "updated",
+            "algorithm": "SAC",
+            "actor_loss": avg_actor_loss,
+            "critic_loss": avg_critic_loss,
+            "alpha_loss": avg_alpha_loss,
+            "alpha": self.alpha,
+            "total_loss": avg_actor_loss + avg_critic_loss + avg_alpha_loss,
+            "batch_size": len(batch),
+            "buffer_size": len(self.replay_buffer),
+            "update_step": self.update_step
+        }
+
+
+class TD3Algorithm:
+    """TD3 (Twin Delayed Deep Deterministic Policy Gradient) 算法实现"""
+    
+    def __init__(self, config: RLConfig):
+        self.config = config
+        self.trajectories = []
+        self.replay_buffer = deque(maxlen=100000)  # 经验回放缓冲区
+        self.training_stats = defaultdict(list)
+        self.update_step = 0
+        
+        # TD3特有变量
+        self.policy_update_counter = 0
+        self.critic_update_counter = 0
+        
+    def add_trajectory_step(self, step: TrajectoryStep) -> None:
+        """添加轨迹步骤到经验回放缓冲区"""
+        self.trajectories.append(step)
+        self.replay_buffer.append(step)
+    
+    def compute_td3_q_target(self, batch: List[TrajectoryStep]) -> List[float]:
+        """计算TD3的Q目标值（使用双Q网络和延迟策略更新）"""
+        targets = []
+        
+        for i, step in enumerate(batch):
+            if i == len(batch) - 1:
+                # 最后一步
+                if step.done:
+                    target = step.reward
+                else:
+                    # 使用目标网络计算下一状态的价值
+                    next_value = step.value  # 简化实现
+                    target = step.reward + self.config.gamma * next_value
+            else:
+                # 非最后一步
+                next_step = batch[i + 1]
+                target = step.reward + self.config.gamma * next_step.value
+            
+            targets.append(target)
+        
+        return targets
+    
+    def add_noise_to_actions(self, actions: List[str]) -> List[str]:
+        """为动作添加噪声（用于目标策略平滑）"""
+        # 简化实现：实际应该为连续动作添加噪声
+        return actions
+    
+    def compute_critic_loss(self, batch: List[TrajectoryStep], new_values: List[float]) -> Tuple[float, float]:
+        """计算双Critic损失"""
+        targets = self.compute_td3_q_target(batch)
+        
+        # 双Q网络损失
+        critic1_losses = []
+        critic2_losses = []
+        
+        for i, step in enumerate(batch):
+            # 添加噪声到目标动作（目标策略平滑）
+            noisy_target = targets[i] + random.uniform(-self.config.noise_clip, self.config.noise_clip)
+            noisy_target = max(min(noisy_target, targets[i] + self.config.noise_clip), 
+                              targets[i] - self.config.noise_clip)
+            
+            # 两个Critic网络的损失
+            critic1_loss = (new_values[i] - noisy_target) ** 2
+            critic2_loss = (new_values[i] + 0.01 - noisy_target) ** 2  # 模拟第二个网络
+            
+            critic1_losses.append(critic1_loss)
+            critic2_losses.append(critic2_loss)
+        
+        return (sum(critic1_losses) / len(critic1_losses), 
+                sum(critic2_losses) / len(critic2_losses))
+    
+    def compute_actor_loss(self, batch: List[TrajectoryStep], new_log_probs: List[float]) -> float:
+        """计算Actor损失（策略损失）"""
+        actor_losses = []
+        
+        for i, step in enumerate(batch):
+            # TD3的Actor损失：最大化第一个Critic的Q值
+            q_value = step.value  # 简化实现，实际应该从第一个Critic网络获取
+            
+            # Actor损失 = -Q(s, π(s))
+            actor_loss = -q_value
+            actor_losses.append(actor_loss)
+        
+        return sum(actor_losses) / len(actor_losses)
+    
+    def update_target_networks(self):
+        """软更新目标网络"""
+        # 简化实现：实际应该更新目标网络的参数
+        # target_params = tau * current_params + (1 - tau) * target_params
+        pass
+    
+    def update_policy(self, llm_manager) -> Dict[str, Any]:
+        """更新策略"""
+        if len(self.replay_buffer) < self.config.batch_size:
+            return {
+                "status": "insufficient_data",
+                "buffer_size": len(self.replay_buffer),
+                "required_batch_size": self.config.batch_size
+            }
+        
+        # 从经验回放缓冲区采样
+        batch = random.sample(self.replay_buffer, self.config.batch_size)
+        
+        total_critic1_loss = 0
+        total_critic2_loss = 0
+        total_actor_loss = 0
+        
+        # 更新Critic网络（每次更新都进行）
+        for _ in range(2):  # TD3通常进行多次Critic更新
+            # 模拟新的log概率和价值（实际应该从网络获取）
+            new_log_probs = [step.log_prob + 0.01 for step in batch]
+            new_values = [step.value + 0.001 for step in batch]
+            
+            # 计算双Critic损失
+            critic1_loss, critic2_loss = self.compute_critic_loss(batch, new_values)
+            
+            total_critic1_loss += critic1_loss
+            total_critic2_loss += critic2_loss
+            
+            # 计算梯度（简化实现）
+            critic_gradients = {
+                "critic1_gradient": critic1_loss * 0.05,
+                "critic2_gradient": critic2_loss * 0.05
+            }
+            
+            # 更新LLM参数
+            llm_manager.update_shared_parameters(critic_gradients, self.config.learning_rate)
+        
+        # 延迟策略更新
+        if self.update_step % self.config.policy_freq == 0:
+            # 更新Actor网络
+            new_log_probs = [step.log_prob + 0.01 for step in batch]
+            actor_loss = self.compute_actor_loss(batch, new_log_probs)
+            total_actor_loss = actor_loss
+            
+            # 计算Actor梯度
+            actor_gradients = {
+                "actor_gradient": actor_loss * 0.1
+            }
+            
+            # 更新LLM参数
+            llm_manager.update_shared_parameters(actor_gradients, self.config.learning_rate)
+            
+            # 更新目标网络
+            if self.update_step % self.config.delay_freq == 0:
+                self.update_target_networks()
+        
+        self.update_step += 1
+        
+        # 记录统计信息
+        avg_critic1_loss = total_critic1_loss / 2
+        avg_critic2_loss = total_critic2_loss / 2
+        
+        self.training_stats["critic1_loss"].append(avg_critic1_loss)
+        self.training_stats["critic2_loss"].append(avg_critic2_loss)
+        self.training_stats["actor_loss"].append(total_actor_loss)
+        
+        # 返回更新结果
+        return {
+            "status": "updated",
+            "algorithm": "TD3",
+            "critic1_loss": avg_critic1_loss,
+            "critic2_loss": avg_critic2_loss,
+            "actor_loss": total_actor_loss,
+            "total_loss": avg_critic1_loss + avg_critic2_loss + total_actor_loss,
+            "batch_size": len(batch),
+            "buffer_size": len(self.replay_buffer),
+            "update_step": self.update_step,
+            "policy_updated": self.update_step % self.config.policy_freq == 0
+        }
+
+
 class RLTrainer:
     """统一的RL训练器"""
     
@@ -399,6 +750,10 @@ class RLTrainer:
             self.algorithm = PPOAlgorithm(config)
         elif config.algorithm == RLAlgorithm.GRPO:
             self.algorithm = GRPOAlgorithm(config)
+        elif config.algorithm == RLAlgorithm.SAC:
+            self.algorithm = SACAlgorithm(config)
+        elif config.algorithm == RLAlgorithm.TD3:
+            self.algorithm = TD3Algorithm(config)
         else:
             raise ValueError(f"不支持的算法: {config.algorithm}")
         
@@ -474,4 +829,16 @@ def create_grpo_trainer(llm_manager, learning_rate: float = 3e-4, robustness_coe
         learning_rate=learning_rate,
         robustness_coef=robustness_coef
     )
+    return RLTrainer(config, llm_manager)
+
+
+def create_sac_trainer(llm_manager, learning_rate: float = 3e-4) -> RLTrainer:
+    """创建SAC训练器"""
+    config = RLConfig(algorithm=RLAlgorithm.SAC, learning_rate=learning_rate)
+    return RLTrainer(config, llm_manager)
+
+
+def create_td3_trainer(llm_manager, learning_rate: float = 3e-4) -> RLTrainer:
+    """创建TD3训练器"""
+    config = RLConfig(algorithm=RLAlgorithm.TD3, learning_rate=learning_rate)
     return RLTrainer(config, llm_manager) 

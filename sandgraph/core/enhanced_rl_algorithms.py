@@ -643,4 +643,32 @@ def create_optimized_rl_trainer(llm_manager,
         enable_batching=True,
         enable_metrics=True
     )
+    return EnhancedRLTrainer(config, llm_manager)
+
+
+def create_enhanced_sac_trainer(llm_manager, 
+                               learning_rate: float = 3e-4,
+                               alpha: float = 0.2,
+                               enable_caching: bool = True) -> EnhancedRLTrainer:
+    """创建增强版SAC训练器"""
+    config = EnhancedRLConfig(
+        algorithm=RLAlgorithm.SAC,
+        learning_rate=learning_rate,
+        alpha=alpha,
+        enable_caching=enable_caching
+    )
+    return EnhancedRLTrainer(config, llm_manager)
+
+
+def create_enhanced_td3_trainer(llm_manager, 
+                               learning_rate: float = 3e-4,
+                               policy_noise: float = 0.2,
+                               enable_caching: bool = True) -> EnhancedRLTrainer:
+    """创建增强版TD3训练器"""
+    config = EnhancedRLConfig(
+        algorithm=RLAlgorithm.TD3,
+        learning_rate=learning_rate,
+        policy_noise=policy_noise,
+        enable_caching=enable_caching
+    )
     return EnhancedRLTrainer(config, llm_manager) 
