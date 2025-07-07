@@ -88,6 +88,13 @@ llm_manager = create_shared_llm_manager(
     backend="huggingface",
     temperature=0.7
 )
+
+# For advanced users: Use Qwen3-14B for better performance
+# llm_manager = create_shared_llm_manager(
+#     model_name="Qwen/Qwen3-14B-Instruct",
+#     backend="huggingface",
+#     temperature=0.7
+# )
 ```
 
 ### 3. Create Workflow

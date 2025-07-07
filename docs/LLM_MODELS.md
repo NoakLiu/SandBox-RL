@@ -62,6 +62,34 @@ from sandgraph.core.llm_interface import create_qwen_manager
 llm_manager = create_qwen_manager("Qwen/Qwen-7B-Chat")
 ```
 
+#### Qwen3模型 (最新版本)
+- **模型**: `Qwen/Qwen3-1.5B-Instruct`, `Qwen/Qwen3-7B-Instruct`, `Qwen/Qwen3-14B-Instruct`, `Qwen/Qwen3-32B-Instruct`
+- **特点**: 阿里云最新发布的Qwen3系列模型，性能大幅提升
+- **优势**: 
+  - **更强的推理能力**: 在多个基准测试中表现优异
+  - **更好的中文理解**: 针对中文进行了深度优化
+  - **更长的上下文**: 支持更长的对话和文档处理
+  - **更快的推理速度**: 优化了模型架构，推理效率更高
+  - **更好的代码能力**: 在代码生成和理解方面有显著提升
+- **适用场景**: 高级对话、复杂推理、代码生成、长文档处理、多语言应用
+
+```python
+from sandgraph.core.llm_interface import create_qwen3_manager
+
+# 创建Qwen3模型管理器
+llm_manager = create_qwen3_manager("Qwen/Qwen3-14B-Instruct")
+
+# 或者使用通用接口
+llm_manager = create_shared_llm_manager("Qwen/Qwen3-14B-Instruct")
+```
+
+**Qwen3 14B特别推荐**:
+- **参数量**: 14B参数，在性能和资源消耗之间达到最佳平衡
+- **性能**: 在多个基准测试中超越GPT-3.5，接近GPT-4水平
+- **内存需求**: 约28-32GB显存（使用4bit量化可降至8-12GB）
+- **推理速度**: 相比Qwen2有显著提升
+- **适用场景**: 企业级应用、高级AI助手、复杂任务处理
+
 ### 4. Mistral系列模型
 
 #### Mistral-7B
@@ -206,7 +234,7 @@ from sandgraph.core.llm_interface import create_shared_llm_manager
 
 # 创建模型管理器
 llm_manager = create_shared_llm_manager(
-    model_name="Qwen/Qwen-7B-Chat",
+    model_name="Qwen/Qwen3-14B-Instruct",
     backend="huggingface",
     device="auto"
 )
@@ -229,7 +257,7 @@ print(response.text)
 from sandgraph.core.llm_interface import create_model_by_type
 
 # 根据类型创建模型
-llm_manager = create_model_by_type("mistral", device="auto")
+llm_manager = create_model_by_type("qwen3", device="auto")
 
 # 注册节点
 llm_manager.register_node("test_node", {
@@ -260,12 +288,13 @@ for model_type, model_list in models.items():
 
 | 应用场景 | 推荐模型 | 理由 |
 |---------|---------|------|
-| 中文对话 | Qwen-7B, Yi-6B, ChatGLM3 | 中文理解能力强 |
-| 代码生成 | CodeLLaMA, StarCoder | 专门针对代码优化 |
+| 中文对话 | **Qwen3-14B**, Qwen-7B, Yi-6B, ChatGLM3 | 中文理解能力强，性能优秀 |
+| 代码生成 | **Qwen3-14B**, CodeLLaMA, StarCoder | 代码能力显著提升 |
 | 轻量级应用 | Phi-2, Gemma-2B | 资源占用低，速度快 |
-| 高性能推理 | Mistral-7B, LLaMA2-13B | 推理能力强 |
-| 长文本处理 | Qwen-14B, InternLM-20B | 支持长文本 |
+| 高性能推理 | **Qwen3-14B**, Mistral-7B, LLaMA2-13B | 推理能力强 |
+| 长文本处理 | **Qwen3-14B**, Qwen-14B, InternLM-20B | 支持长文本 |
 | 移动端应用 | Phi-2, Gemma-2B | 轻量级，适合移动设备 |
+| 企业级应用 | **Qwen3-14B**, Qwen3-32B | 性能稳定，功能全面 |
 
 ### 按资源需求选择
 
@@ -274,8 +303,17 @@ for model_type, model_list in models.items():
 | 极低资源 | Phi-2, Gemma-2B | <4GB | 可选 |
 | 低资源 | Qwen-1.8B, Yi-6B | 4-8GB | 推荐 |
 | 中等资源 | Mistral-7B, LLaMA2-7B | 8-16GB | 必需 |
-| 高资源 | Qwen-14B, LLaMA2-13B | 16-32GB | 必需 |
-| 极高资源 | Qwen-72B, LLaMA2-70B | >32GB | 多GPU |
+| 高资源 | **Qwen3-14B**, Qwen-14B, LLaMA2-13B | 16-32GB | 必需 |
+| 极高资源 | **Qwen3-32B**, Qwen-72B, LLaMA2-70B | >32GB | 多GPU |
+
+### Qwen3系列详细对比
+
+| 模型 | 参数量 | 内存需求 | 性能特点 | 适用场景 |
+|------|--------|----------|----------|----------|
+| Qwen3-1.5B | 1.5B | 3-6GB | 轻量快速 | 移动端、实时应用 |
+| Qwen3-7B | 7B | 8-16GB | 平衡性能 | 通用应用、开发测试 |
+| **Qwen3-14B** | **14B** | **16-32GB** | **高性能** | **企业级、复杂任务** |
+| Qwen3-32B | 32B | 32-64GB | 顶级性能 | 研究、高端应用 |
 
 ## 🚀 GPT的开源替代品
 
@@ -291,44 +329,61 @@ for model_type, model_list in models.items():
 
 | GPT版本 | 开源替代品 | 优势 |
 |---------|-----------|------|
-| GPT-3.5 | LLaMA2-7B, Mistral-7B | 性能接近，开源免费 |
-| GPT-4 | LLaMA2-70B, Qwen-72B | 参数量大，性能优秀 |
-| GPT-4 Code | CodeLLaMA, StarCoder | 专门针对代码优化 |
+| GPT-3.5 | **Qwen3-14B**, LLaMA2-7B, Mistral-7B | 性能接近或超越，开源免费 |
+| GPT-4 | **Qwen3-32B**, LLaMA2-70B, Qwen-72B | 参数量大，性能优秀 |
+| GPT-4 Code | **Qwen3-14B**, CodeLLaMA, StarCoder | 专门针对代码优化 |
 
-<!-- ## 📝 最佳实践
+## 🆕 Qwen3 14B 特别推荐
 
-### 1. 模型选择
-- 根据应用场景和资源限制选择合适的模型
-- 考虑模型的许可证和使用限制
-- 评估模型的性能和稳定性
+### 为什么选择Qwen3 14B？
 
-### 2. 性能优化
-- 使用GPU加速推理
-- 选择合适的批处理大小
-- 启用模型缓存减少加载时间
+1. **性能卓越**: 在多个基准测试中超越GPT-3.5，接近GPT-4水平
+2. **中文优化**: 针对中文进行了深度优化，中文理解能力极强
+3. **代码能力**: 在代码生成和理解方面有显著提升
+4. **长文本支持**: 支持更长的上下文和文档处理
+5. **推理能力**: 在复杂推理任务中表现优异
+6. **资源平衡**: 14B参数在性能和资源消耗之间达到最佳平衡
 
-### 3. 错误处理
-- 添加适当的异常处理
-- 实现重试机制
-- 监控模型性能和使用情况
+### 使用示例
 
-### 4. 安全考虑
-- 注意模型的输出内容
-- 实现内容过滤机制
-- 保护用户隐私数据 -->
+```python
+# 创建Qwen3 14B模型管理器
+llm_manager = create_shared_llm_manager(
+    model_name="Qwen/Qwen3-14B-Instruct",
+    backend="huggingface",
+    temperature=0.7,
+    max_tokens=2048
+)
+
+# 注册不同类型的节点
+llm_manager.register_node("chat_assistant", {
+    "role": "智能对话助手",
+    "temperature": 0.8,
+    "max_length": 1024
+})
+
+llm_manager.register_node("code_generator", {
+    "role": "代码生成专家",
+    "temperature": 0.3,
+    "max_length": 2048
+})
+
+llm_manager.register_node("reasoning_expert", {
+    "role": "推理专家",
+    "temperature": 0.5,
+    "max_length": 1536
+})
+
+# 使用示例
+chat_response = llm_manager.generate_for_node("chat_assistant", "请介绍一下人工智能的发展历程")
+code_response = llm_manager.generate_for_node("code_generator", "请用Python实现一个快速排序算法")
+reasoning_response = llm_manager.generate_for_node("reasoning_expert", "如果所有A都是B，所有B都是C，那么所有A都是C吗？")
+```
 
 ## 🔗 相关资源
 
 - [Hugging Face模型库](https://huggingface.co/models)
+- [Qwen3官方文档](https://qwen.readthedocs.io/)
 - [Transformers文档](https://huggingface.co/docs/transformers)
 - [模型许可证说明](https://huggingface.co/docs/hub/repositories-licenses)
 - [模型性能基准](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)
-
-<!-- ## 📞 技术支持
-
-如果在使用过程中遇到问题，请：
-
-1. 查看模型官方文档
-2. 检查依赖包版本兼容性
-3. 确认硬件资源是否满足要求
-4. 查看错误日志和调试信息  -->

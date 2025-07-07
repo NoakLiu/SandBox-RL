@@ -15,6 +15,7 @@ Welcome to the SandGraphX documentation! This directory contains comprehensive g
 ### 🔧 Feature Guides
 - **[Monitoring Guide](monitoring_guide.md)** - Advanced monitoring and visualization
 - **[LLM Frozen & Adaptive Guide](llm_frozen_adaptive_guide.md)** - LLM parameter management
+- **[Qwen3 Usage Guide](qwen3_usage_guide.md)** - Qwen3 14B model usage guide
 
 ### 📊 Additional Resources
 - **[Usage Report](usage_report.md)** - Usage statistics and examples

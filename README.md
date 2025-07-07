@@ -233,6 +233,7 @@ SandGraph supports various mainstream large language models:
 | Model Type | Recommended Model | Parameter Size | Memory Requirements |
 |------------|------------------|----------------|-------------------|
 | **Default Recommendation** | **Mistral-7B** | 7B | 8-16GB |
+| **🆕 Advanced Recommendation** | **Qwen3-14B** | 14B | 16-32GB |
 | **Chinese Models** | Qwen-7B, Yi-6B, ChatGLM3 | 6-7B | 8-16GB |
 | **Code Models** | CodeLLaMA, StarCoder | 7-15B | 8-16GB |
 | **Lightweight** | Phi-2, Gemma-2B | 2-3B | 2-4GB |
