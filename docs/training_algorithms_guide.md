@@ -261,18 +261,19 @@ sac_trainer = create_sac_trainer(
     learning_rate=3e-4
 )
 
-# 添加经验（连续动作空间）
-sac_trainer.add_experience(
-    state={"position": 0.5, "velocity": 0.2, "energy": 0.8},
-    action="ACCELERATE",
-    reward=2.0,
-    done=False
-)
-
-# 更新策略
-result = sac_trainer.update_policy()
-print(f"SAC update result: {result}")
-print(f"Alpha: {result.get('alpha', 0):.4f}")
+# SAC训练循环
+for episode in range(1000):
+    for step in range(100):
+        state = get_continuous_state()
+        action = select_continuous_action(state)
+        reward = execute_continuous_action(action)
+        done = check_continuous_done()
+        
+        sac_trainer.add_experience(state, action, reward, done)
+    
+    if episode % 10 == 0:
+        result = sac_trainer.update_policy()
+        print(f"Episode {episode}: Alpha = {result.get('alpha', 0):.4f}")
 ```
 
 ### 4. TD3 (Twin Delayed Deep Deterministic Policy Gradient)
@@ -342,18 +343,19 @@ td3_trainer = create_td3_trainer(
     learning_rate=3e-4
 )
 
-# 添加经验（确定性策略）
-td3_trainer.add_experience(
-    state={"position": 0.3, "velocity": 0.1, "stability": 0.9},
-    action="MAINTAIN_BALANCE",
-    reward=1.5,
-    done=False
-)
-
-# 更新策略
-result = td3_trainer.update_policy()
-print(f"TD3 update result: {result}")
-print(f"Policy Updated: {result.get('policy_updated', False)}")
+# TD3训练循环
+for episode in range(1000):
+    for step in range(100):
+        state = get_continuous_state()
+        action = select_deterministic_action(state)
+        reward = execute_deterministic_action(action)
+        done = check_deterministic_done()
+        
+        td3_trainer.add_experience(state, action, reward, done)
+    
+    if episode % 10 == 0:
+        result = td3_trainer.update_policy()
+        print(f"Episode {episode}: Policy Updated = {result.get('policy_updated', False)}")
 ```
 
 ## 🚀 增强版算法
@@ -735,6 +737,58 @@ for group in user_groups:
     print(f"Group {group} update: {result}")
 ```
 
+### 3. SAC连续动作训练
+
+```python
+from sandgraph.core.rl_algorithms import create_sac_trainer
+
+# 创建SAC训练器
+sac_trainer = create_sac_trainer(
+    llm_manager=llm_manager,
+    learning_rate=3e-4
+)
+
+# SAC训练循环
+for episode in range(1000):
+    for step in range(100):
+        state = get_continuous_state()
+        action = select_continuous_action(state)
+        reward = execute_continuous_action(action)
+        done = check_continuous_done()
+        
+        sac_trainer.add_experience(state, action, reward, done)
+    
+    if episode % 10 == 0:
+        result = sac_trainer.update_policy()
+        print(f"Episode {episode}: Alpha = {result.get('alpha', 0):.4f}")
+```
+
+### 4. TD3确定性策略训练
+
+```python
+from sandgraph.core.rl_algorithms import create_td3_trainer
+
+# 创建TD3训练器
+td3_trainer = create_td3_trainer(
+    llm_manager=llm_manager,
+    learning_rate=3e-4
+)
+
+# TD3训练循环
+for episode in range(1000):
+    for step in range(100):
+        state = get_continuous_state()
+        action = select_deterministic_action(state)
+        reward = execute_deterministic_action(action)
+        done = check_deterministic_done()
+        
+        td3_trainer.add_experience(state, action, reward, done)
+    
+    if episode % 10 == 0:
+        result = td3_trainer.update_policy()
+        print(f"Episode {episode}: Policy Updated = {result.get('policy_updated', False)}")
+```
+
 ## 🆘 常见问题
 
 ### Q: 如何选择合适的算法？
@@ -751,6 +805,18 @@ A: 降低学习率，增加批次大小，调整裁剪比率，使用梯度裁�
 
 ### Q: 如何监控训练进度？
 A: 使用`get_enhanced_stats()`获取详细统计，定期检查损失和性能指标。
+
+### Q: 何时使用SAC而不是PPO？
+A: 当需要连续动作空间、更好的探索策略或自动熵调整时，选择SAC。
+
+### Q: 何时使用TD3而不是DDPG？
+A: 当存在Q值过估计问题、需要更稳定的训练或确定性策略时，选择TD3。
+
+### Q: 如何调整SAC的alpha参数？
+A: 启用`auto_alpha_tuning=True`自动调整，或手动设置合适的alpha值（0.1-0.3）。
+
+### Q: TD3的策略更新频率如何设置？
+A: 通常设置为2-4，频率越高训练越稳定但计算开销越大。
 
 ## 🔗 相关资源
 
