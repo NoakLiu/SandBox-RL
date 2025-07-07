@@ -276,7 +276,7 @@ SandGraph supports various mainstream large language models:
 | **High Performance** | LLaMA2-13B | 13B | 16-32GB |
 | **Open Source Alternatives** | GPT-2, Falcon | 1-7B | 2-16GB |
 
-## 🚀 AReaL Integration Levels
+<!-- ## 🚀 AReaL Integration Levels
 
 SandGraphX provides three levels of AReaL integration for different use cases:
 
@@ -284,7 +284,7 @@ SandGraphX provides three levels of AReaL integration for different use cases:
 |------------------|----------|----------|-------------|
 | **BASIC** | Simple applications | Caching, Metrics | Good |
 | **ADVANCED** | Complex applications | + Task Scheduling, Optimization | Better |
-| **FULL** | Enterprise applications | + Distributed Processing | Best |
+| **FULL** | Enterprise applications | + Distributed Processing | Best | -->
 
 ## 📄 License
 
