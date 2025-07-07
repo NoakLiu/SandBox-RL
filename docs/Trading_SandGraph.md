@@ -218,7 +218,7 @@ class CustomSandbox(Sandbox):
         # 实现自定义交易逻辑
 ```
 
-## 9. 最佳实践
+<!-- ## 9. 最佳实践
 
 1. **资源管理**
    - 合理设置节点资源限制
@@ -273,4 +273,4 @@ class CustomSandbox(Sandbox):
 
 ## 13. 许可证
 
-MIT License 
+MIT License  -->
