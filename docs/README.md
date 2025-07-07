@@ -16,6 +16,7 @@ Welcome to the SandGraphX documentation! This directory contains comprehensive g
 - **[Monitoring Guide](monitoring_guide.md)** - Advanced monitoring and visualization
 - **[LLM Frozen & Adaptive Guide](llm_frozen_adaptive_guide.md)** - LLM parameter management
 - **[Qwen3 Usage Guide](qwen3_usage_guide.md)** - Qwen3 14B model usage guide
+- **[AReaL Integration Guide](areal_integration_guide.md)** - Deep integration with AReaL framework
 
 ### 📊 Additional Resources
 - **[Usage Report](usage_report.md)** - Usage statistics and examples
@@ -31,11 +32,13 @@ Welcome to the SandGraphX documentation! This directory contains comprehensive g
 1. Explore **[LLM Frozen & Adaptive Guide](llm_frozen_adaptive_guide.md)** for parameter management
 2. Use **[Monitoring Guide](monitoring_guide.md)** for advanced monitoring
 3. Check **[LLM Models Guide](LLM_MODELS.md)** for model-specific features
+4. Study **[AReaL Integration Guide](areal_integration_guide.md)** for performance optimization
 
 ### For Developers
 1. Review **[API Reference](api_reference.md)** for complete API documentation
 2. Study **[Usage Report](usage_report.md)** for implementation patterns
 3. Explore **[Examples Guide](examples_guide.md)** for integration examples
+4. Master **[AReaL Integration Guide](areal_integration_guide.md)** for advanced optimizations
 
 ## 🔗 Related Resources
 

@@ -48,6 +48,7 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
 - **Extensible Architecture**: Easy to add new node types and functional modules
 - **🔥 Rich LLM Model Support**: Support for various popular large language models, including:
   - **Default Recommendation**: Mistral-7B
+  - **🆕 Advanced Recommendation**: Qwen3-14B
   - **Chinese Models**: Qwen-7B, Yi-6B, ChatGLM3
   - **Code Models**: CodeLLaMA, StarCoder
   - **Lightweight**: Phi-2, Gemma-2B
@@ -67,13 +68,20 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Performance Monitoring**: Real-time performance tracking and trend analysis
   - **Checkpoint & Rollback**: Save checkpoints and rollback to optimal states
   - **Thread-Safe Operations**: Multi-threaded parameter management with locks
-- **🚀 AReaL KV Cache Optimization**: Advanced RL training optimizations based on [AReaL](https://github.com/inclusionAI/AReaL)
+- **🚀 AReaL Deep Integration**: Advanced framework integration based on [AReaL](https://github.com/inclusionAI/AReaL)
+  - **Multi-Level Integration**: BASIC, ADVANCED, and FULL integration levels
+  - **Advanced Caching System**: Multiple backends with adaptive policies (LRU, LFU, Priority-based)
+  - **Distributed Processing**: Task scheduling and node management
+  - **Real-time Metrics Collection**: Performance monitoring and data analysis
+  - **Adaptive Resource Management**: Intelligent resource allocation and optimization
+  - **Fault Tolerance**: Error handling and recovery mechanisms
+  - **High-Performance Data Structures**: Optimized for large-scale operations
   - **Asynchronous RL Training**: Decoupled generation and training for improved efficiency
   - **Streaming Generation**: Real-time generation with reward computation
   - **Interruptible Rollout**: KV cache management with task interruption support
   - **Data Staleness Control**: Rollout controller with configurable staleness thresholds
   - **Decoupled PPO Loss**: Stable training with separated policy and value losses
-  - **Memory-Efficient KV Cache**: Adaptive cache policies (LRU, LFU, Priority-based)
+  - **Memory-Efficient KV Cache**: Adaptive cache policies with compression
   - **Multi-threaded Processing**: Parallel rollout execution with worker pools
 - **🎯 Comprehensive Misinformation Analysis**: Advanced social network analysis with multi-agent competition
   - **Multi-Agent Competition**: SandGraph LLM vs Rule-Based vs Human Simulation
@@ -96,6 +104,7 @@ SandGraphX/
 │   │   ├── llm_frozen_adaptive.py # LLMs frozen & adaptive update
 │   │   ├── enhanced_rl_algorithms.py # Enhanced RL algorithms (Areal integration)
 │   │   ├── areal_kv_cache.py      # AReaL-style KV cache optimization
+│   │   ├── areal_integration.py   # AReaL deep integration framework
 │   │   ├── sandbox.py           # Sandbox base class
 │   │   ├── rl_framework.py      # Reinforcement learning framework
 │   │   ├── rl_algorithms.py     # Reinforcement learning algorithms
@@ -113,15 +122,18 @@ SandGraphX/
 │   ├── enhanced_oasis_social_demo.py   # Enhanced OASIS demo with monitoring
 │   ├── enhanced_rl_cache_demo.py       # Enhanced RL cache demo
 │   ├── areal_kv_cache_demo.py          # AReaL KV cache optimization demo
+│   ├── enhanced_areal_integration_demo.py # Enhanced AReaL integration demo
 │   ├── monitoring_example.py   # Monitoring system example
 │   ├── llm_frozen_adaptive_demo.py # LLMs frozen & adaptive demo (full)
 │   └── llm_frozen_adaptive_simple_demo.py # LLMs frozen & adaptive demo (simple)
 ├── docs/                        # Documentation
 │   ├── monitoring_guide.md     # Comprehensive monitoring guide
 │   ├── llm_frozen_adaptive_guide.md # LLMs frozen & adaptive guide
+│   ├── areal_integration_guide.md # AReaL deep integration guide
 │   ├── examples_guide.md       # Complete examples guide
 │   ├── quick_start_guide.md    # Quick start guide
-│   └── api_reference.md        # API reference
+│   ├── api_reference.md        # API reference
+│   └── LLM_MODELS.md           # LLM models support guide
 ├── logs/                        # Log files and monitoring data
 ├── visualizations/              # Generated visualizations
 └── setup.py                     # Installation configuration
@@ -156,6 +168,7 @@ SandGraphX/
 │  • Monitoring: Execution state tracking and performance analysis     │
 │  • Extension: Support for custom nodes and optimization strategies   │
 │  • LLM Management: Frozen & adaptive parameter management            │
+│  • AReaL Integration: Advanced caching, metrics, and optimization    │
 └─────────────────────────────────────────────────────────┘
                       │
                       ▼
@@ -167,6 +180,7 @@ SandGraphX/
 │  • Visualization: Dashboards, trends, correlation maps │
 │  • Export: JSON, CSV, images, interactive HTML         │
 │  • LLM Monitoring: Parameter importance, update history │
+│  • AReaL Metrics: Advanced performance and resource monitoring │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -216,6 +230,9 @@ python demo/social_network_demo.py --steps 10
 
 # Run with monitoring enabled
 python demo/enhanced_social_network_demo.py --steps 20 --enable-wandb
+
+# Run AReaL integration demo
+python demo/enhanced_areal_integration_demo.py --demo basic
 ```
 
 ## 📚 Documentation
@@ -225,6 +242,7 @@ python demo/enhanced_social_network_demo.py --steps 20 --enable-wandb
 - **[API Reference](docs/api_reference.md)** - Comprehensive API documentation
 - **[Monitoring Guide](docs/monitoring_guide.md)** - Advanced monitoring and visualization
 - **[LLM Frozen & Adaptive Guide](docs/llm_frozen_adaptive_guide.md)** - LLM parameter management
+- **[AReaL Integration Guide](docs/areal_integration_guide.md)** - Deep integration with AReaL framework
 
 ## 🔥 LLM Model Support
 
@@ -239,6 +257,16 @@ SandGraph supports various mainstream large language models:
 | **Lightweight** | Phi-2, Gemma-2B | 2-3B | 2-4GB |
 | **High Performance** | LLaMA2-13B | 13B | 16-32GB |
 | **Open Source Alternatives** | GPT-2, Falcon | 1-7B | 2-16GB |
+
+## 🚀 AReaL Integration Levels
+
+SandGraphX provides three levels of AReaL integration for different use cases:
+
+| Integration Level | Use Case | Features | Performance |
+|------------------|----------|----------|-------------|
+| **BASIC** | Simple applications | Caching, Metrics | Good |
+| **ADVANCED** | Complex applications | + Task Scheduling, Optimization | Better |
+| **FULL** | Enterprise applications | + Distributed Processing | Best |
 
 ## 📄 License
 
