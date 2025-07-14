@@ -15,6 +15,17 @@ from .lora_compression import (
     LORA_CONFIGS
 )
 
+# 自进化Oasis相关导出
+from .self_evolving_oasis import (
+    SelfEvolvingLLM,
+    SelfEvolvingOasisSandbox,
+    SelfEvolvingConfig,
+    EvolutionStrategy,
+    TaskType,
+    create_self_evolving_oasis,
+    run_self_evolving_oasis_demo
+)
+
 # LLM接口相关导出
 from .llm_interface import (
     BaseLLM,
@@ -85,6 +96,15 @@ __all__ = [
     'create_online_lora_manager',
     'get_lora_config',
     'LORA_CONFIGS',
+    
+    # 自进化Oasis相关
+    'SelfEvolvingLLM',
+    'SelfEvolvingOasisSandbox',
+    'SelfEvolvingConfig',
+    'EvolutionStrategy',
+    'TaskType',
+    'create_self_evolving_oasis',
+    'run_self_evolving_oasis_demo',
     
     # LLM相关
     'BaseLLM',

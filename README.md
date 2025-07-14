@@ -99,6 +99,17 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Fair Scheduling**: Balance high-value tasks with system fairness
   - **Real-time Monitoring**: Track slot execution states and performance metrics
   - **Resource Limits**: Configurable resource limits and usage thresholds
+- **🧬 Self-Evolving Oasis System**: Advanced social network simulation with self-evolving LLM capabilities
+  - **LoRA Model Compression**: Reduce model parameters using LoRA technology for efficient multi-model deployment
+  - **KV Cache Compression**: Compress attention mechanism key-value cache to improve inference efficiency
+  - **Online Model Adaptation**: Dynamically adjust model parameters based on social network dynamics
+  - **Self-Evolution Learning**: Models continuously optimize and evolve during runtime
+  - **Multi-Model Collaboration**: Different models handle different types of tasks
+  - **Evolution Strategies**: Support multiple evolution strategies (multi-model collaboration, adaptive compression, gradient-based, meta-learning)
+  - **Task Distribution**: Intelligent task assignment to specialized models
+  - **Performance Monitoring**: Real-time monitoring of evolution effects and performance metrics
+  - **State Persistence**: Save and load evolution states for continuous learning
+  - **Resource Optimization**: Adaptive resource allocation based on model performance
 
 ## 📁 File Structure
 
@@ -115,6 +126,8 @@ SandGraphX/
 │   │   ├── enhanced_rl_algorithms.py # Enhanced RL algorithms (Areal integration)
 │   │   ├── areal_kv_cache.py      # AReaL-style KV cache optimization
 │   │   ├── areal_integration.py   # AReaL deep integration framework
+│   │   ├── lora_compression.py    # LoRA compression for model parameters and KV cache
+│   │   ├── self_evolving_oasis.py # Self-evolving Oasis system with LoRA and multi-model collaboration
 │   │   ├── sandbox.py           # Sandbox base class
 │   │   ├── rl_framework.py      # Reinforcement learning framework
 │   │   ├── rl_algorithms.py     # Reinforcement learning algorithms
@@ -137,18 +150,24 @@ SandGraphX/
 │   ├── llm_frozen_adaptive_demo.py # LLMs frozen & adaptive demo (full)
 │   ├── llm_frozen_adaptive_simple_demo.py # LLMs frozen & adaptive demo (simple)
 │   ├── reward_based_slot_demo.py # Reward-based slot management demo
-│   └── new_rl_algorithms_demo.py # New RL algorithms (SAC, TD3) demo
+│   ├── new_rl_algorithms_demo.py # New RL algorithms (SAC, TD3) demo
+│   ├── lora_example.py         # LoRA compression example
+│   └── self_evolving_oasis_demo.py # Self-evolving Oasis system demo
 ├── docs/                        # Documentation
 │   ├── monitoring_guide.md     # Comprehensive monitoring guide
 │   ├── llm_frozen_adaptive_guide.md # LLMs frozen & adaptive guide
 │   ├── reward_based_slot_guide.md # Reward-based slot management guide
 │   ├── areal_integration_guide.md # AReaL deep integration guide
+│   ├── lora_compression_guide.md # LoRA compression guide
+│   ├── self_evolving_oasis_guide.md # Self-evolving Oasis system guide
 │   ├── examples_guide.md       # Complete examples guide
 │   ├── quick_start_guide.md    # Quick start guide
 │   ├── api_reference.md        # API reference
 │   └── LLM_MODELS.md           # LLM models support guide
 ├── logs/                        # Log files and monitoring data
 ├── visualizations/              # Generated visualizations
+├── test_lora.py                # LoRA compression test script
+├── test_self_evolving_oasis.py # Self-evolving Oasis system test script
 └── setup.py                     # Installation configuration
 ```
 
