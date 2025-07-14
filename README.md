@@ -110,13 +110,14 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Performance Monitoring**: Real-time monitoring of evolution effects and performance metrics
   - **State Persistence**: Save and load evolution states for continuous learning
   - **Resource Optimization**: Adaptive resource allocation based on model performance
-- **🎯 Oasis Task Definitions**: Comprehensive task framework for social network simulation
-  - **Agent Interaction Tasks**: Content generation, behavior analysis, social dynamics, network optimization
-  - **Platform Management Tasks**: Recommendation systems, content moderation, trend analysis, user engagement
-  - **Evolution Tasks**: Model adaptation, performance optimization, resource management, strategy learning
-  - **SandGraphX Integration**: Seamless integration with self-evolving LLM capabilities
-  - **Task Scheduling**: Intelligent task distribution and execution management
-  - **Performance Monitoring**: Real-time task performance tracking and optimization
+- **🎯 Oasis Task Framework**: Comprehensive task framework for social network research
+  - **Information Propagation Tasks**: Content generation, propagation path analysis, influence assessment, spread velocity prediction
+  - **Competition Analysis Tasks**: Group behavior analysis, competition strategy optimization, adversarial behavior detection, equilibrium calculation
+  - **Misinformation Management Tasks**: Real-time misinformation detection, spread blocking strategies, truth propagation promotion, impact scope assessment
+  - **Network Optimization Tasks**: Connection optimization, community detection, stability maintenance, performance monitoring
+  - **Scenario-Driven Design**: Focus on key scenarios like misinformation spread and group competition
+  - **Intelligent Task Scheduling**: Automatic task sequence selection based on scenario type
+  - **Performance Monitoring**: Real-time task performance tracking and evolution triggering
   - **Multi-Model Task Assignment**: Specialized models for different task types
   - **Evolutionary Optimization**: Continuous improvement of task execution strategies
 
@@ -163,7 +164,7 @@ SandGraphX/
 │   ├── lora_example.py         # LoRA compression example
 │   ├── self_evolving_oasis_demo.py # Self-evolving Oasis system demo
 │   ├── integrated_oasis_demo.py # Integrated Oasis with self-evolving LLM demo
-│   └── oasis_task_implementation.py # Oasis task implementation with SandGraphX integration
+│   └── oasis_task_implementation.py # Oasis task implementation with scenario-driven design
 ├── docs/                        # Documentation
 │   ├── monitoring_guide.md     # Comprehensive monitoring guide
 │   ├── llm_frozen_adaptive_guide.md # LLMs frozen & adaptive guide
@@ -171,7 +172,7 @@ SandGraphX/
 │   ├── areal_integration_guide.md # AReaL deep integration guide
 │   ├── lora_compression_guide.md # LoRA compression guide
 │   ├── self_evolving_oasis_guide.md # Self-evolving Oasis system guide
-│   ├── oasis_task_definitions.md # Oasis task definitions with SandGraphX integration
+│   ├── oasis_task_definitions.md # Oasis task definitions with scenario-driven API design
 │   ├── examples_guide.md       # Complete examples guide
 │   ├── quick_start_guide.md    # Quick start guide
 │   ├── api_reference.md        # API reference
@@ -215,6 +216,7 @@ SandGraphX/
 │  • LLM Management: Frozen & adaptive parameter management            │
 │  • AReaL Integration: Advanced caching, metrics, and optimization    │
 │  • Slot Management: Reward-based resource allocation and preemption  │
+│  • Oasis Tasks: Scenario-driven social network analysis              │
 └─────────────────────────────────────────────────────────┘
                       │
                       ▼
@@ -227,6 +229,7 @@ SandGraphX/
 │  • Export: JSON, CSV, images, interactive HTML         │
 │  • LLM Monitoring: Parameter importance, update history │
 │  • AReaL Metrics: Advanced performance and resource monitoring │
+│  • Oasis Metrics: Misinformation detection, competition analysis │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -283,11 +286,46 @@ python demo/enhanced_areal_integration_demo.py --demo basic
 # Run reward-based slot management demo
 python demo/reward_based_slot_demo.py --demo all
 
-# Run Oasis task implementation demo
-python demo/oasis_task_implementation.py --steps 10
+# Run Oasis task implementation demo (scenario-driven)
+python demo/oasis_task_implementation.py --scenarios all
 
 # Run Oasis task implementation tests
 python test_oasis_task_implementation.py
+```
+
+### 4. Oasis Task Framework Examples
+
+```python
+# Error Information Spread Detection
+from demo.oasis_task_implementation import OasisTaskScheduler, OasisScenarioConfig
+
+# Configure misinformation detection scenario
+misinformation_scenario = {
+    "content": "虚假新闻内容...",
+    "source_profile": {"credibility_score": 0.3},
+    "propagation_context": {"spread_velocity": "fast"},
+    "fact_check_data": {"verified_sources": []}
+}
+
+# Execute scenario
+scheduler = OasisTaskScheduler(evolving_llm, config)
+result = await scheduler.execute_scenario(
+    scenario_type="misinformation_spread",
+    scenario_data=misinformation_scenario
+)
+
+# Group Competition Analysis
+competition_scenario = {
+    "group_a": {"size": 5000, "influence": 0.7},
+    "group_b": {"size": 3000, "influence": 0.6},
+    "competition_history": [],
+    "network_state": {"total_users": 100000}
+}
+
+result = await scheduler.execute_scenario(
+    scenario_type="group_competition",
+    scenario_data=competition_scenario
+)
 ```
 
 ## 📚 Documentation
@@ -299,6 +337,7 @@ python test_oasis_task_implementation.py
 - **[LLM Frozen & Adaptive Guide](docs/llm_frozen_adaptive_guide.md)** - LLM parameter management
 - **[Reward-Based Slot Management Guide](docs/reward_based_slot_guide.md)** - Intelligent resource allocation
 - **[AReaL Integration Guide](docs/areal_integration_guide.md)** - Deep integration with AReaL framework
+- **[Oasis Task Definitions](docs/oasis_task_definitions.md)** - Scenario-driven task framework for social network research
 
 ## 🔥 LLM Model Support
 
@@ -314,15 +353,25 @@ SandGraph supports various mainstream large language models:
 | **High Performance** | LLaMA2-13B | 13B | 16-32GB |
 | **Open Source Alternatives** | GPT-2, Falcon | 1-7B | 2-16GB |
 
-<!-- ## 🚀 AReaL Integration Levels
+## 🎯 Key Research Scenarios
 
-SandGraphX provides three levels of AReaL integration for different use cases:
+### 1. Misinformation Spread Analysis
+- **Real-time Detection**: Identify false information as it spreads
+- **Propagation Tracking**: Analyze how misinformation moves through networks
+- **Impact Assessment**: Measure the effects on user beliefs and behaviors
+- **Intervention Strategies**: Design effective countermeasures
 
-| Integration Level | Use Case | Features | Performance |
-|------------------|----------|----------|-------------|
-| **BASIC** | Simple applications | Caching, Metrics | Good |
-| **ADVANCED** | Complex applications | + Task Scheduling, Optimization | Better |
-| **FULL** | Enterprise applications | + Distributed Processing | Best | -->
+### 2. Group Competition Dynamics
+- **Competition Analysis**: Study how different groups compete for influence
+- **Strategy Optimization**: Help groups develop effective strategies
+- **Conflict Resolution**: Identify and mitigate potential conflicts
+- **Network Stability**: Maintain healthy competition without polarization
+
+### 3. Information Propagation Research
+- **Content Generation**: Create content optimized for specific audiences
+- **Spread Prediction**: Forecast how information will propagate
+- **Influence Mapping**: Identify key influencers and nodes
+- **Network Optimization**: Improve information flow efficiency
 
 ## 📄 License
 

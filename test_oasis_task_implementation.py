@@ -4,7 +4,7 @@ Oasis任务实现测试脚本
 ==================
 
 测试Oasis任务定义和实现是否正常工作，
-包括内容生成、行为分析、社交动态等核心任务。
+包括错误信息检测、群体竞争分析、信息传播等核心场景。
 """
 
 import sys
@@ -30,13 +30,14 @@ def test_imports():
     
     try:
         from demo.oasis_task_implementation import (
-            OasisTaskConfig,
-            TaskPerformanceMetrics,
+            OasisScenarioConfig,
+            ScenarioPerformanceMetrics,
             ContentGenerationTask,
-            BehaviorAnalysisTask,
-            SocialDynamicsTask,
+            MisinformationDetectionTask,
+            GroupBehaviorAnalysisTask,
             OasisTaskScheduler,
-            TaskMonitor
+            TaskPerformanceMonitor,
+            EvolutionTrigger
         )
         logger.info("✓ Oasis任务实现模块导入成功")
         return True
@@ -47,17 +48,17 @@ def test_imports():
 
 def test_config():
     """测试配置创建"""
-    logger.info("测试Oasis任务配置...")
+    logger.info("测试Oasis场景配置...")
     
     try:
-        from demo.oasis_task_implementation import OasisTaskConfig
+        from demo.oasis_task_implementation import OasisScenarioConfig
         
         # 测试默认配置
-        config = OasisTaskConfig()
+        config = OasisScenarioConfig()
         logger.info(f"✓ 默认配置创建成功: 策略={config.evolution_strategy}")
         
         # 测试自定义配置
-        custom_config = OasisTaskConfig(
+        custom_config = OasisScenarioConfig(
             evolution_strategy="adaptive_compression",
             enable_lora=True,
             enable_kv_cache_compression=True,
@@ -77,26 +78,26 @@ def test_performance_metrics():
     logger.info("测试性能指标...")
     
     try:
-        from demo.oasis_task_implementation import TaskPerformanceMetrics
+        from demo.oasis_task_implementation import ScenarioPerformanceMetrics
         
         # 创建性能指标
-        metrics = TaskPerformanceMetrics(
-            accuracy=0.85,
-            precision=0.82,
-            recall=0.88,
-            f1_score=0.85,
+        metrics = ScenarioPerformanceMetrics(
+            detection_accuracy=0.85,
+            false_positive_rate=0.1,
+            false_negative_rate=0.05,
             response_time=1.2,
-            throughput=100.0,
-            resource_usage=0.6,
-            content_quality=0.9,
-            user_satisfaction=0.8,
-            engagement_rate=0.75,
-            evolution_progress=0.6,
-            adaptation_speed=0.7,
-            learning_efficiency=0.8
+            competition_prediction_accuracy=0.8,
+            strategy_effectiveness=0.75,
+            conflict_resolution_success=0.9,
+            propagation_prediction_accuracy=0.82,
+            influence_assessment_accuracy=0.78,
+            path_analysis_quality=0.85,
+            connection_optimization_effectiveness=0.7,
+            network_stability_improvement=0.6,
+            resource_utilization_efficiency=0.8
         )
         
-        logger.info(f"✓ 性能指标创建成功: 准确率={metrics.accuracy}, 响应时间={metrics.response_time}")
+        logger.info(f"✓ 性能指标创建成功: 检测准确率={metrics.detection_accuracy}, 响应时间={metrics.response_time}")
         
         return True
     except Exception as e:
@@ -112,8 +113,8 @@ async def test_task_creation():
         from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
         from demo.oasis_task_implementation import (
             ContentGenerationTask,
-            BehaviorAnalysisTask,
-            SocialDynamicsTask
+            MisinformationDetectionTask,
+            GroupBehaviorAnalysisTask
         )
         
         # 创建自进化LLM
@@ -127,8 +128,8 @@ async def test_task_creation():
         
         # 创建任务实例
         content_task = ContentGenerationTask(evolving_llm)
-        behavior_task = BehaviorAnalysisTask(evolving_llm)
-        dynamics_task = SocialDynamicsTask(evolving_llm)
+        detection_task = MisinformationDetectionTask(evolving_llm)
+        competition_task = GroupBehaviorAnalysisTask(evolving_llm)
         
         logger.info("✓ 任务实例创建成功")
         
@@ -164,15 +165,22 @@ async def test_content_generation():
             "activity_level": 0.8
         }
         
-        context = {
-            "platform": "reddit",
-            "topic": "AI technology",
-            "trends": ["AI", "social media", "technology"]
+        target_audience = {
+            "age_distribution": "18-35",
+            "interests": ["technology", "AI"],
+            "active_hours": "evening",
+            "propagation_tendency": 0.8
         }
         
-        content = await content_task.generate_content(agent_profile, context)
+        result = await content_task.generate_content(
+            agent_profile=agent_profile,
+            content_type="news",
+            target_audience=target_audience,
+            propagation_goal="maximize_influence"
+        )
         
-        logger.info(f"✓ 内容生成成功: {content[:50]}...")
+        logger.info(f"✓ 内容生成成功: {result['content'][:50]}...")
+        logger.info(f"  预期传播效果: {result['expected_propagation']}")
         
         return True
     except Exception as e:
@@ -180,13 +188,13 @@ async def test_content_generation():
         return False
 
 
-async def test_behavior_analysis():
-    """测试行为分析任务"""
-    logger.info("测试行为分析任务...")
+async def test_misinformation_detection():
+    """测试错误信息检测任务"""
+    logger.info("测试错误信息检测任务...")
     
     try:
         from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
-        from demo.oasis_task_implementation import BehaviorAnalysisTask
+        from demo.oasis_task_implementation import MisinformationDetectionTask
         
         # 创建自进化LLM
         sandbox = create_self_evolving_oasis(
@@ -196,40 +204,54 @@ async def test_behavior_analysis():
         )
         evolving_llm = sandbox.evolving_llm
         
-        # 创建行为分析任务
-        behavior_task = BehaviorAnalysisTask(evolving_llm)
+        # 创建错误信息检测任务
+        detection_task = MisinformationDetectionTask(evolving_llm)
         
-        # 测试行为分析
-        agent_actions = [
-            {"type": "post", "content": "Hello world", "timestamp": 1234567890},
-            {"type": "like", "target": "post_123", "timestamp": 1234567891},
-            {"type": "comment", "content": "Great post!", "timestamp": 1234567892}
-        ]
+        # 测试错误信息检测
+        content = "最新研究发现，某种新技术可能对人体健康造成严重危害，专家呼吁立即停止使用。"
         
-        network_state = {
-            "total_users": 1000,
-            "active_users": 800,
-            "posts": 5000,
-            "interactions": 15000
+        source_profile = {
+            "credibility_score": 0.3,
+            "history": "frequent_misinformation",
+            "propagation_tendency": "high"
         }
         
-        analysis_result = await behavior_task.analyze_behavior(agent_actions, network_state)
+        propagation_context = {
+            "spread_velocity": "fast",
+            "impact_scope": "large",
+            "audience_reaction": "concerned"
+        }
         
-        logger.info(f"✓ 行为分析成功: {analysis_result}")
+        fact_check_data = {
+            "verified_sources": ["scientific_journal"],
+            "contradicting_evidence": ["health_authority_statement"],
+            "expert_opinions": ["safety_confirmed"]
+        }
+        
+        result = await detection_task.detect_misinformation(
+            content=content,
+            source_profile=source_profile,
+            propagation_context=propagation_context,
+            fact_check_data=fact_check_data
+        )
+        
+        logger.info(f"✓ 错误信息检测成功: 真实性评分={result['authenticity_score']:.3f}")
+        logger.info(f"  风险等级: {result['risk_level']}")
+        logger.info(f"  是否为错误信息: {result['is_misinformation']}")
         
         return True
     except Exception as e:
-        logger.error(f"✗ 行为分析测试失败: {e}")
+        logger.error(f"✗ 错误信息检测测试失败: {e}")
         return False
 
 
-async def test_social_dynamics():
-    """测试社交动态任务"""
-    logger.info("测试社交动态任务...")
+async def test_group_competition_analysis():
+    """测试群体竞争分析任务"""
+    logger.info("测试群体竞争分析任务...")
     
     try:
         from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
-        from demo.oasis_task_implementation import SocialDynamicsTask
+        from demo.oasis_task_implementation import GroupBehaviorAnalysisTask
         
         # 创建自进化LLM
         sandbox = create_self_evolving_oasis(
@@ -239,31 +261,50 @@ async def test_social_dynamics():
         )
         evolving_llm = sandbox.evolving_llm
         
-        # 创建社交动态任务
-        dynamics_task = SocialDynamicsTask(evolving_llm)
+        # 创建群体竞争分析任务
+        competition_task = GroupBehaviorAnalysisTask(evolving_llm)
         
-        # 测试社交动态优化
-        network_graph = {
-            "nodes": 1000,
-            "edges": 5000,
-            "density": 0.01,
-            "clustering_coefficient": 0.3
+        # 测试群体竞争分析
+        group_a = {
+            "size": 5000,
+            "influence": 0.7,
+            "strategy_tendency": "aggressive",
+            "activity_level": 0.8
         }
         
-        agent_states = {
-            "active": 800,
-            "inactive": 200,
-            "engaged": 600,
-            "disengaged": 400
+        group_b = {
+            "size": 3000,
+            "influence": 0.6,
+            "strategy_tendency": "defensive",
+            "activity_level": 0.7
         }
         
-        optimization_result = await dynamics_task.optimize_social_dynamics(network_graph, agent_states)
+        competition_history = [
+            {"type": "content_battle", "winner": "group_a", "timestamp": 1234567890},
+            {"type": "influence_contest", "winner": "group_b", "timestamp": 1234567891}
+        ]
         
-        logger.info(f"✓ 社交动态优化成功: {optimization_result}")
+        network_state = {
+            "total_users": 100000,
+            "active_users": 80000,
+            "network_density": 0.01
+        }
+        
+        result = await competition_task.analyze_competition_behavior(
+            group_a=group_a,
+            group_b=group_b,
+            competition_history=competition_history,
+            network_state=network_state
+        )
+        
+        logger.info(f"✓ 群体竞争分析成功: 竞争强度={result['competition_intensity']:.3f}")
+        logger.info(f"  群体A策略: {result['group_a_strategy']}")
+        logger.info(f"  群体B策略: {result['group_b_strategy']}")
+        logger.info(f"  冲突升级风险: {result['conflict_escalation_risk']}")
         
         return True
     except Exception as e:
-        logger.error(f"✗ 社交动态测试失败: {e}")
+        logger.error(f"✗ 群体竞争分析测试失败: {e}")
         return False
 
 
@@ -273,10 +314,10 @@ async def test_task_scheduler():
     
     try:
         from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
-        from demo.oasis_task_implementation import OasisTaskScheduler, OasisTaskConfig
+        from demo.oasis_task_implementation import OasisTaskScheduler, OasisScenarioConfig
         
         # 创建配置
-        config = OasisTaskConfig(
+        config = OasisScenarioConfig(
             evolution_strategy="multi_model",
             enable_lora=True,
             enable_kv_cache_compression=True
@@ -295,17 +336,21 @@ async def test_task_scheduler():
         
         logger.info("✓ 任务调度器创建成功")
         
-        # 测试任务执行
-        content_result = await scheduler.execute_task("content_generation", {
-            "agent_profile": {"personality": "tech_enthusiast"},
-            "context": {"platform": "reddit", "topic": "AI"}
-        })
+        # 测试场景执行
+        scenario_data = {
+            "content": "测试内容",
+            "source_profile": {"credibility_score": 0.5},
+            "propagation_context": {"spread_velocity": "medium"},
+            "fact_check_data": {"verified_sources": []}
+        }
         
-        logger.info(f"✓ 任务执行成功: {content_result['success']}")
+        result = await scheduler.execute_scenario(
+            scenario_type="misinformation_spread",
+            scenario_data=scenario_data
+        )
         
-        # 测试性能统计
-        stats = scheduler.get_performance_stats()
-        logger.info(f"✓ 性能统计获取成功: 总任务数={stats['total_tasks']}")
+        logger.info(f"✓ 场景执行成功: 成功任务数={result['successful_tasks']}/{result['total_tasks']}")
+        logger.info(f"  平均性能: {result['average_performance']:.3f}")
         
         return True
     except Exception as e:
@@ -313,40 +358,62 @@ async def test_task_scheduler():
         return False
 
 
-def test_task_monitor():
-    """测试任务监控器"""
-    logger.info("测试任务监控器...")
+def test_performance_monitor():
+    """测试性能监控器"""
+    logger.info("测试性能监控器...")
     
     try:
-        from demo.oasis_task_implementation import TaskMonitor
+        from demo.oasis_task_implementation import TaskPerformanceMonitor
         
         # 创建监控器
-        monitor = TaskMonitor()
+        monitor = TaskPerformanceMonitor()
         
         # 记录性能数据
-        monitor.record_task_performance("content_generation", {
-            "score": 0.8,
-            "response_time": 1.5,
-            "success": True
+        monitor.record_task_performance("misinformation_detection", {
+            "authenticity_score": 0.8,
+            "is_misinformation": False,
+            "performance_score": 0.9
         })
         
-        monitor.record_task_performance("behavior_analysis", {
-            "score": 0.7,
-            "response_time": 2.0,
-            "success": True
+        monitor.record_task_performance("group_behavior_analysis", {
+            "competition_intensity": 0.7,
+            "performance_score": 0.8
         })
         
         # 分析性能趋势
-        trends = monitor.analyze_performance_trends()
-        logger.info(f"✓ 性能趋势分析成功: {trends['trend']}")
-        
-        # 测试进化触发
-        should_evolve = monitor.trigger_evolution(0.9)  # 高阈值
-        logger.info(f"✓ 进化触发检查成功: {should_evolve}")
+        trends = monitor.analyze_scenario_trends("misinformation_spread")
+        logger.info(f"✓ 性能趋势分析成功: {trends['performance_trend']}")
         
         return True
     except Exception as e:
-        logger.error(f"✗ 任务监控器测试失败: {e}")
+        logger.error(f"✗ 性能监控器测试失败: {e}")
+        return False
+
+
+def test_evolution_trigger():
+    """测试进化触发器"""
+    logger.info("测试进化触发器...")
+    
+    try:
+        from demo.oasis_task_implementation import EvolutionTrigger
+        
+        # 创建进化触发器
+        trigger = EvolutionTrigger()
+        
+        # 测试进化触发
+        high_performance_result = {"performance_score": 0.9}
+        low_performance_result = {"performance_score": 0.5}
+        
+        should_evolve_high = trigger.should_evolve(high_performance_result)
+        should_evolve_low = trigger.should_evolve(low_performance_result)
+        
+        logger.info(f"✓ 进化触发测试成功:")
+        logger.info(f"  高性能结果触发进化: {should_evolve_high}")
+        logger.info(f"  低性能结果触发进化: {should_evolve_low}")
+        
+        return True
+    except Exception as e:
+        logger.error(f"✗ 进化触发器测试失败: {e}")
         return False
 
 
@@ -358,12 +425,11 @@ async def test_integration():
         from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
         from demo.oasis_task_implementation import (
             OasisTaskScheduler,
-            OasisTaskConfig,
-            TaskMonitor
+            OasisScenarioConfig
         )
         
         # 创建配置
-        config = OasisTaskConfig(
+        config = OasisScenarioConfig(
             evolution_strategy="multi_model",
             enable_lora=True,
             enable_kv_cache_compression=True,
@@ -378,55 +444,62 @@ async def test_integration():
         )
         evolving_llm = sandbox.evolving_llm
         
-        # 创建任务调度器和监控器
+        # 创建任务调度器
         scheduler = OasisTaskScheduler(evolving_llm, config)
-        monitor = TaskMonitor()
         
-        # 执行批量任务
-        tasks = [
+        # 执行多个场景
+        scenarios = [
             {
-                "type": "content_generation",
+                "name": "错误信息传播检测",
+                "type": "misinformation_spread",
                 "data": {
-                    "agent_profile": {"personality": "tech_enthusiast"},
-                    "context": {"platform": "reddit", "topic": "AI"}
+                    "content": "虚假新闻内容...",
+                    "source_profile": {"credibility_score": 0.3},
+                    "propagation_context": {"spread_velocity": "fast"},
+                    "fact_check_data": {"verified_sources": []}
                 }
             },
             {
-                "type": "behavior_analysis",
+                "name": "群体竞争分析",
+                "type": "group_competition",
                 "data": {
-                    "agent_actions": [{"type": "post", "content": "Hello"}],
-                    "network_state": {"total_users": 1000, "active_users": 800}
+                    "group_a": {"size": 5000, "influence": 0.7},
+                    "group_b": {"size": 3000, "influence": 0.6},
+                    "competition_history": [],
+                    "network_state": {"total_users": 100000}
                 }
             },
             {
-                "type": "social_dynamics",
+                "name": "信息传播预测",
+                "type": "information_propagation",
                 "data": {
-                    "network_graph": {"nodes": 1000, "edges": 5000},
-                    "agent_states": {"active": 800, "inactive": 200}
+                    "agent_profile": {"personality": "influencer"},
+                    "content_type": "news",
+                    "target_audience": {"propagation_tendency": 0.8},
+                    "propagation_goal": "maximize_influence"
                 }
             }
         ]
         
-        results = await scheduler.execute_task_batch(tasks)
-        
-        # 记录性能
-        for result in results:
-            if result["success"]:
-                monitor.record_task_performance(result["task_type"], {
-                    "score": 0.8,
-                    "response_time": 1.5,
-                    "success": True
-                })
+        results = []
+        for scenario in scenarios:
+            logger.info(f"执行场景: {scenario['name']}")
+            result = await scheduler.execute_scenario(
+                scenario_type=scenario["type"],
+                scenario_data=scenario["data"]
+            )
+            results.append(result)
         
         # 分析结果
-        scheduler_stats = scheduler.get_performance_stats()
-        monitor_trends = monitor.analyze_performance_trends()
-        evolution_stats = sandbox.evolving_llm.get_evolution_stats()
+        total_tasks = sum(r["total_tasks"] for r in results)
+        successful_tasks = sum(r["successful_tasks"] for r in results)
+        avg_performance = sum(r["average_performance"] for r in results) / len(results)
         
         logger.info(f"✓ 集成测试成功:")
-        logger.info(f"  调度器统计: {scheduler_stats['total_tasks']} 任务, 成功率 {scheduler_stats['success_rate']:.3f}")
-        logger.info(f"  监控趋势: {monitor_trends['trend']}")
-        logger.info(f"  进化步骤: {evolution_stats['evolution_step']}")
+        logger.info(f"  总任务数: {total_tasks}")
+        logger.info(f"  成功任务数: {successful_tasks}")
+        logger.info(f"  平均性能: {avg_performance:.3f}")
+        logger.info(f"  进化步骤: {sandbox.evolving_llm.get_evolution_stats()['evolution_step']}")
         
         return True
     except Exception as e:
@@ -443,15 +516,16 @@ async def run_all_tests():
         test_imports,
         test_config,
         test_performance_metrics,
-        test_task_monitor
+        test_performance_monitor,
+        test_evolution_trigger
     ]
     
     # 异步测试
     async_tests = [
         test_task_creation,
         test_content_generation,
-        test_behavior_analysis,
-        test_social_dynamics,
+        test_misinformation_detection,
+        test_group_competition_analysis,
         test_task_scheduler,
         test_integration
     ]

@@ -2,524 +2,717 @@
 
 ## 概述
 
-本文档定义了Oasis社交网络模拟系统的核心任务，并集成了SandGraphX的自进化LLM功能。系统支持百万级智能体模拟，通过自进化LLM技术实现智能体的动态优化和适应。
+本文档定义了Oasis社交网络模拟系统的核心任务框架，集成了SandGraphX的自进化LLM功能。系统专为大规模社交网络研究设计，支持百万级智能体模拟，特别针对**信息传播**、**竞争行为**和**错误信息扩散**等关键场景进行优化。
 
-## 核心任务架构
+## 核心设计理念
 
-### 1. 任务层次结构
+### 1. 场景驱动设计
+- **信息传播研究**: 追踪真实和虚假信息在社交网络中的传播路径
+- **竞争行为分析**: 模拟不同智能体群体之间的竞争和对抗
+- **错误信息扩散**: 研究错误信息如何在大规模网络中快速传播
+<!-- - **群体极化**: 分析极端观点如何影响网络结构和用户行为 -->
+
+### 2. 自进化能力
+<!-- - **实时适应**: 模型根据网络动态自动调整策略 -->
+- **多模型协同**: 不同模型专门处理不同类型的任务
+- **性能优化**: 通过LoRA压缩和KV缓存优化资源使用
+- **智能调度**: 根据任务复杂度自动分配计算资源
+
+## 任务架构设计
+
+### 1. 任务分类体系
 
 ```
-Oasis Core Tasks
-├── Agent Interaction Tasks (智能体交互任务)
-│   ├── Content Generation (内容生成)
-│   ├── Behavior Analysis (行为分析)
-│   ├── Social Dynamics (社交动态)
-│   └── Network Optimization (网络优化)
-├── Platform Management Tasks (平台管理任务)
-│   ├── Recommendation Systems (推荐系统)
-│   ├── Content Moderation (内容审核)
-│   ├── Trend Analysis (趋势分析)
-│   └── User Engagement (用户参与度)
-└── Evolution Tasks (进化任务)
-    ├── Model Adaptation (模型适配)
-    ├── Performance Optimization (性能优化)
-    ├── Resource Management (资源管理)
-    └── Strategy Learning (策略学习)
+Oasis任务体系
+├── 信息传播任务 (Information Propagation)
+│   ├── 内容生成 (Content Generation)
+│   ├── 传播路径分析 (Propagation Path Analysis)
+│   ├── 影响力评估 (Influence Assessment)
+│   └── 传播速度预测 (Spread Velocity Prediction)
+├── 竞争分析任务 (Competition Analysis)
+│   ├── 群体行为分析 (Group Behavior Analysis)
+│   ├── 竞争策略优化 (Competition Strategy Optimization)
+│   ├── 对抗行为识别 (Adversarial Behavior Detection)
+│   └── 平衡点计算 (Equilibrium Calculation)
+├── 错误信息管理任务 (Misinformation Management)
+│   ├── 错误信息检测 (Misinformation Detection)
+│   ├── 传播阻断策略 (Spread Blocking Strategy)
+│   ├── 真相传播促进 (Truth Propagation Promotion)
+│   └── 影响范围评估 (Impact Scope Assessment)
+└── 网络优化任务 (Network Optimization)
+    ├── 连接优化 (Connection Optimization)
+    ├── 社区检测 (Community Detection)
+    ├── 稳定性维护 (Stability Maintenance)
+    └── 性能监控 (Performance Monitoring)
 ```
 
-## 智能体交互任务
+## 核心任务实现
 
-### 1. 内容生成任务 (Content Generation)
+### 1. 信息传播任务
 
-**任务定义**: 生成符合智能体特征和平台风格的社交内容
+#### 1.1 内容生成任务 (Content Generation)
 
-**SandGraphX集成**:
+**应用场景**: 生成符合特定群体特征的内容，用于研究不同类型信息在网络中的传播效果
+
+**API设计**:
 ```python
-from sandgraph.core.self_evolving_oasis import TaskType, SelfEvolvingLLM
-
 class ContentGenerationTask:
     def __init__(self, evolving_llm: SelfEvolvingLLM):
         self.evolving_llm = evolving_llm
         self.task_type = TaskType.CONTENT_GENERATION
     
-    async def generate_content(self, agent_profile: dict, context: dict) -> str:
-        """生成个性化内容"""
-        prompt = self._build_content_prompt(agent_profile, context)
+    async def generate_content(
+        self, 
+        agent_profile: dict, 
+        content_type: str,
+        target_audience: dict,
+        propagation_goal: str
+    ) -> ContentGenerationResult:
+        """
+        生成具有传播潜力的内容
+        
+        Args:
+            agent_profile: 智能体特征 (性格、兴趣、影响力等)
+            content_type: 内容类型 ("news", "opinion", "fact", "misinformation")
+            target_audience: 目标受众特征
+            propagation_goal: 传播目标 ("maximize_reach", "maximize_engagement", "maximize_influence")
+        
+        Returns:
+            ContentGenerationResult: 包含生成内容、预期传播效果、目标受众分析
+        """
+        prompt = self._build_propagation_prompt(agent_profile, content_type, target_audience, propagation_goal)
         
         result = self.evolving_llm.process_task(
             self.task_type,
             prompt,
             {
                 "agent_profile": agent_profile,
-                "platform_context": context,
-                "content_type": "post"
+                "content_type": content_type,
+                "target_audience": target_audience,
+                "propagation_goal": propagation_goal,
+                "context": "information_propagation_study"
             }
         )
         
-        return result["response"].text if "error" not in result else "Default content"
+        return self._parse_content_result(result)
     
-    def _build_content_prompt(self, agent_profile: dict, context: dict) -> str:
+    def _build_propagation_prompt(self, agent_profile: dict, content_type: str, target_audience: dict, propagation_goal: str) -> str:
         return f"""
-        作为{agent_profile['personality']}类型的用户，
-        在{context['platform']}平台上生成一条关于{context['topic']}的内容。
+        作为{agent_profile['personality']}类型的用户，生成一条{content_type}类型的内容。
+        
+        目标受众特征：
+        - 年龄分布: {target_audience.get('age_distribution', 'general')}
+        - 兴趣偏好: {target_audience.get('interests', [])}
+        - 活跃时段: {target_audience.get('active_hours', 'all_day')}
+        - 传播倾向: {target_audience.get('propagation_tendency', 'moderate')}
+        
+        传播目标: {propagation_goal}
+        
         要求：
-        1. 符合用户性格特征
-        2. 适合平台风格
-        3. 具有互动性
-        4. 长度适中
+        1. 内容具有强烈的传播潜力
+        2. 符合目标受众的认知偏好
+        3. 包含情感触发元素
+        4. 易于理解和转发
+        5. 长度控制在200字以内
         """
 ```
 
-**进化策略**:
-- **多模型协同**: 使用Mistral-7B专门处理内容生成
-- **自适应压缩**: 根据内容质量动态调整LoRA参数
-- **在线适配**: 根据用户反馈实时优化生成策略
+#### 1.2 传播路径分析任务 (Propagation Path Analysis)
 
-### 2. 行为分析任务 (Behavior Analysis)
+**应用场景**: 分析信息在网络中的传播路径，识别关键传播节点和传播模式
 
-**任务定义**: 分析智能体的行为模式和社交网络动态
-
-**SandGraphX集成**:
+**API设计**:
 ```python
-class BehaviorAnalysisTask:
+class PropagationPathAnalysisTask:
     def __init__(self, evolving_llm: SelfEvolvingLLM):
         self.evolving_llm = evolving_llm
         self.task_type = TaskType.BEHAVIOR_ANALYSIS
     
-    async def analyze_behavior(self, agent_actions: list, network_state: dict) -> dict:
-        """分析智能体行为模式"""
-        prompt = self._build_analysis_prompt(agent_actions, network_state)
+    async def analyze_propagation_path(
+        self,
+        content_id: str,
+        network_graph: dict,
+        propagation_history: list,
+        time_window: int
+    ) -> PropagationAnalysisResult:
+        """
+        分析信息传播路径和模式
+        
+        Args:
+            content_id: 内容唯一标识
+            network_graph: 网络结构数据
+            propagation_history: 传播历史记录
+            time_window: 分析时间窗口(小时)
+        
+        Returns:
+            PropagationAnalysisResult: 包含传播路径、关键节点、传播速度、影响范围
+        """
+        prompt = self._build_path_analysis_prompt(content_id, network_graph, propagation_history, time_window)
         
         result = self.evolving_llm.process_task(
             self.task_type,
             prompt,
             {
-                "agent_actions": agent_actions,
-                "network_state": network_state,
-                "analysis_type": "behavior_pattern"
+                "content_id": content_id,
+                "network_graph": network_graph,
+                "propagation_history": propagation_history,
+                "time_window": time_window,
+                "analysis_type": "propagation_path"
             }
         )
         
-        return self._parse_analysis_result(result)
+        return self._parse_propagation_analysis(result)
+```
+
+### 2. 竞争分析任务
+
+#### 2.1 群体行为分析任务 (Group Behavior Analysis)
+
+**应用场景**: 分析不同群体在网络中的竞争行为，识别竞争策略和对抗模式
+
+**API设计**:
+```python
+class GroupBehaviorAnalysisTask:
+    def __init__(self, evolving_llm: SelfEvolvingLLM):
+        self.evolving_llm = evolving_llm
+        self.task_type = TaskType.BEHAVIOR_ANALYSIS
     
-    def _build_analysis_prompt(self, agent_actions: list, network_state: dict) -> str:
+    async def analyze_competition_behavior(
+        self,
+        group_a: dict,
+        group_b: dict,
+        competition_history: list,
+        network_state: dict
+    ) -> CompetitionAnalysisResult:
+        """
+        分析群体间的竞争行为和策略
+        
+        Args:
+            group_a: 群体A的特征和行为数据
+            group_b: 群体B的特征和行为数据
+            competition_history: 竞争历史记录
+            network_state: 当前网络状态
+        
+        Returns:
+            CompetitionAnalysisResult: 包含竞争策略、对抗强度、影响范围、胜负预测
+        """
+        prompt = self._build_competition_prompt(group_a, group_b, competition_history, network_state)
+        
+        result = self.evolving_llm.process_task(
+            self.task_type,
+            prompt,
+            {
+                "group_a": group_a,
+                "group_b": group_b,
+                "competition_history": competition_history,
+                "network_state": network_state,
+                "analysis_type": "competition_behavior"
+            }
+        )
+        
+        return self._parse_competition_analysis(result)
+    
+    def _build_competition_prompt(self, group_a: dict, group_b: dict, competition_history: list, network_state: dict) -> str:
         return f"""
-        分析以下智能体行为数据：
-        1. 行为序列: {agent_actions}
-        2. 网络状态: {network_state}
+        分析两个群体在网络中的竞争行为：
+        
+        群体A特征：
+        - 规模: {group_a.get('size', 0)} 用户
+        - 影响力: {group_a.get('influence', 0.0)}
+        - 策略倾向: {group_a.get('strategy_tendency', 'unknown')}
+        - 活跃度: {group_a.get('activity_level', 0.0)}
+        
+        群体B特征：
+        - 规模: {group_b.get('size', 0)} 用户
+        - 影响力: {group_b.get('influence', 0.0)}
+        - 策略倾向: {group_b.get('strategy_tendency', 'unknown')}
+        - 活跃度: {group_b.get('activity_level', 0.0)}
+        
+        竞争历史: {len(competition_history)} 次对抗
         
         请分析：
-        1. 行为模式特征
-        2. 社交影响力
-        3. 参与度水平
-        4. 潜在趋势
+        1. 双方的竞争策略和特点
+        2. 对抗的强度和频率
+        3. 对网络整体结构的影响
+        4. 未来竞争趋势预测
+        5. 可能的冲突升级点
         """
 ```
 
-**进化策略**:
-- **基于梯度**: 使用强化学习优化分析模型
-- **元学习**: 快速适应新的行为模式
-- **多模型协同**: 使用Qwen-1.8B专门处理行为分析
+#### 2.2 竞争策略优化任务 (Competition Strategy Optimization)
 
-### 3. 社交动态任务 (Social Dynamics)
+**应用场景**: 为特定群体优化竞争策略，提高在网络中的影响力和竞争优势
 
-**任务定义**: 模拟和优化社交网络中的动态交互
-
-**SandGraphX集成**:
+**API设计**:
 ```python
-class SocialDynamicsTask:
+class CompetitionStrategyOptimizationTask:
     def __init__(self, evolving_llm: SelfEvolvingLLM):
         self.evolving_llm = evolving_llm
         self.task_type = TaskType.NETWORK_OPTIMIZATION
     
-    async def optimize_social_dynamics(self, network_graph: dict, agent_states: dict) -> dict:
-        """优化社交动态"""
-        prompt = self._build_dynamics_prompt(network_graph, agent_states)
+    async def optimize_competition_strategy(
+        self,
+        group_profile: dict,
+        opponent_analysis: dict,
+        network_resources: dict,
+        optimization_goal: str
+    ) -> StrategyOptimizationResult:
+        """
+        优化群体的竞争策略
+        
+        Args:
+            group_profile: 群体特征和当前策略
+            opponent_analysis: 对手分析和预测
+            network_resources: 可用网络资源
+            optimization_goal: 优化目标 ("maximize_influence", "minimize_conflict", "maintain_balance")
+        
+        Returns:
+            StrategyOptimizationResult: 包含优化策略、预期效果、风险评估、实施建议
+        """
+        prompt = self._build_strategy_optimization_prompt(group_profile, opponent_analysis, network_resources, optimization_goal)
         
         result = self.evolving_llm.process_task(
             self.task_type,
             prompt,
             {
-                "network_graph": network_graph,
-                "agent_states": agent_states,
-                "optimization_goal": "engagement_maximization"
+                "group_profile": group_profile,
+                "opponent_analysis": opponent_analysis,
+                "network_resources": network_resources,
+                "optimization_goal": optimization_goal,
+                "optimization_type": "competition_strategy"
             }
         )
         
-        return self._parse_optimization_result(result)
-    
-    def _build_dynamics_prompt(self, network_graph: dict, agent_states: dict) -> str:
-        return f"""
-        分析社交网络动态：
-        1. 网络结构: {network_graph}
-        2. 智能体状态: {agent_states}
-        
-        请提供：
-        1. 网络优化建议
-        2. 连接策略
-        3. 互动促进方案
-        4. 社区建设策略
-        """
+        return self._parse_strategy_optimization(result)
 ```
 
-**进化策略**:
-- **自适应压缩**: 根据网络规模调整模型复杂度
-- **多模型协同**: 使用Phi-2专门处理网络优化
-- **在线适配**: 实时调整网络策略
+### 3. 错误信息管理任务
 
-## 平台管理任务
+#### 3.1 错误信息检测任务 (Misinformation Detection)
 
-### 1. 推荐系统任务 (Recommendation Systems)
+**应用场景**: 实时检测网络中的错误信息，识别传播源头和影响范围
 
-**任务定义**: 为智能体提供个性化的内容推荐
-
-**SandGraphX集成**:
+**API设计**:
 ```python
-class RecommendationTask:
-    def __init__(self, evolving_llm: SelfEvolvingLLM):
-        self.evolving_llm = evolving_llm
-        self.task_type = TaskType.TREND_PREDICTION
-    
-    async def generate_recommendations(self, user_profile: dict, available_content: list) -> list:
-        """生成个性化推荐"""
-        prompt = self._build_recommendation_prompt(user_profile, available_content)
-        
-        result = self.evolving_llm.process_task(
-            self.task_type,
-            prompt,
-            {
-                "user_profile": user_profile,
-                "available_content": available_content,
-                "recommendation_type": "content"
-            }
-        )
-        
-        return self._parse_recommendations(result)
-    
-    def _build_recommendation_prompt(self, user_profile: dict, available_content: list) -> str:
-        return f"""
-        为用户生成推荐：
-        1. 用户特征: {user_profile}
-        2. 可用内容: {available_content}
-        
-        请提供：
-        1. 个性化推荐列表
-        2. 推荐理由
-        3. 预期互动率
-        4. 多样性保证
-        """
-```
-
-**进化策略**:
-- **元学习**: 快速适应新的用户偏好
-- **多模型协同**: 使用Gemma-2B专门处理推荐
-- **基于梯度**: 优化推荐算法参数
-
-### 2. 内容审核任务 (Content Moderation)
-
-**任务定义**: 识别和处理不当内容
-
-**SandGraphX集成**:
-```python
-class ContentModerationTask:
+class MisinformationDetectionTask:
     def __init__(self, evolving_llm: SelfEvolvingLLM):
         self.evolving_llm = evolving_llm
         self.task_type = TaskType.BEHAVIOR_ANALYSIS
     
-    async def moderate_content(self, content: str, context: dict) -> dict:
-        """内容审核"""
-        prompt = self._build_moderation_prompt(content, context)
+    async def detect_misinformation(
+        self,
+        content: str,
+        source_profile: dict,
+        propagation_context: dict,
+        fact_check_data: dict
+    ) -> MisinformationDetectionResult:
+        """
+        检测内容是否为错误信息
+        
+        Args:
+            content: 待检测的内容
+            source_profile: 发布者特征
+            propagation_context: 传播上下文
+            fact_check_data: 事实核查数据
+        
+        Returns:
+            MisinformationDetectionResult: 包含检测结果、置信度、风险等级、建议措施
+        """
+        prompt = self._build_detection_prompt(content, source_profile, propagation_context, fact_check_data)
         
         result = self.evolving_llm.process_task(
             self.task_type,
             prompt,
             {
                 "content": content,
-                "context": context,
-                "moderation_type": "content_safety"
+                "source_profile": source_profile,
+                "propagation_context": propagation_context,
+                "fact_check_data": fact_check_data,
+                "detection_type": "misinformation"
             }
         )
         
-        return self._parse_moderation_result(result)
+        return self._parse_detection_result(result)
     
-    def _build_moderation_prompt(self, content: str, context: dict) -> str:
+    def _build_detection_prompt(self, content: str, source_profile: dict, propagation_context: dict, fact_check_data: dict) -> str:
         return f"""
-        审核以下内容：
+        检测以下内容是否为错误信息：
+        
         内容: {content}
-        上下文: {context}
+        
+        发布者特征：
+        - 历史行为: {source_profile.get('history', 'unknown')}
+        - 可信度评分: {source_profile.get('credibility_score', 0.0)}
+        - 传播倾向: {source_profile.get('propagation_tendency', 'unknown')}
+        
+        传播上下文：
+        - 传播速度: {propagation_context.get('spread_velocity', 'unknown')}
+        - 影响范围: {propagation_context.get('impact_scope', 'unknown')}
+        - 受众反应: {propagation_context.get('audience_reaction', 'unknown')}
+        
+        事实核查数据: {fact_check_data}
         
         请评估：
-        1. 内容安全性
-        2. 违规程度
-        3. 处理建议
-        4. 风险等级
+        1. 内容真实性评分 (0-1)
+        2. 错误信息风险等级 (低/中/高)
+        3. 传播风险预测
+        4. 建议的应对措施
+        5. 需要重点关注的关键词或模式
         """
 ```
 
-**进化策略**:
-- **自适应压缩**: 根据审核复杂度调整模型
-- **多模型协同**: 使用专门的审核模型
-- **在线适配**: 学习新的违规模式
+#### 3.2 传播阻断策略任务 (Spread Blocking Strategy)
 
-### 3. 趋势分析任务 (Trend Analysis)
+**应用场景**: 制定有效的策略来阻断错误信息的传播，减少其对网络的影响
 
-**任务定义**: 识别和预测社交网络趋势
-
-**SandGraphX集成**:
+**API设计**:
 ```python
-class TrendAnalysisTask:
+class SpreadBlockingStrategyTask:
     def __init__(self, evolving_llm: SelfEvolvingLLM):
         self.evolving_llm = evolving_llm
-        self.task_type = TaskType.TREND_PREDICTION
+        self.task_type = TaskType.NETWORK_OPTIMIZATION
     
-    async def analyze_trends(self, historical_data: list, current_state: dict) -> dict:
-        """分析趋势"""
-        prompt = self._build_trend_prompt(historical_data, current_state)
+    async def design_blocking_strategy(
+        self,
+        misinformation_profile: dict,
+        network_topology: dict,
+        available_resources: dict,
+        blocking_constraints: dict
+    ) -> BlockingStrategyResult:
+        """
+        设计错误信息传播阻断策略
+        
+        Args:
+            misinformation_profile: 错误信息特征和传播模式
+            network_topology: 网络拓扑结构
+            available_resources: 可用的阻断资源
+            blocking_constraints: 阻断约束条件
+        
+        Returns:
+            BlockingStrategyResult: 包含阻断策略、预期效果、资源需求、实施计划
+        """
+        prompt = self._build_blocking_strategy_prompt(misinformation_profile, network_topology, available_resources, blocking_constraints)
         
         result = self.evolving_llm.process_task(
             self.task_type,
             prompt,
             {
-                "historical_data": historical_data,
-                "current_state": current_state,
-                "prediction_horizon": "short_term"
+                "misinformation_profile": misinformation_profile,
+                "network_topology": network_topology,
+                "available_resources": available_resources,
+                "blocking_constraints": blocking_constraints,
+                "strategy_type": "spread_blocking"
             }
         )
         
-        return self._parse_trend_result(result)
+        return self._parse_blocking_strategy(result)
+```
+
+### 4. 网络优化任务
+
+#### 4.1 连接优化任务 (Connection Optimization)
+
+**应用场景**: 优化网络连接结构，提高信息传播效率或阻断错误信息传播
+
+**API设计**:
+```python
+class ConnectionOptimizationTask:
+    def __init__(self, evolving_llm: SelfEvolvingLLM):
+        self.evolving_llm = evolving_llm
+        self.task_type = TaskType.NETWORK_OPTIMIZATION
     
-    def _build_trend_prompt(self, historical_data: list, current_state: dict) -> str:
-        return f"""
-        分析社交网络趋势：
-        1. 历史数据: {historical_data}
-        2. 当前状态: {current_state}
-        
-        请预测：
-        1. 热门话题趋势
-        2. 用户行为变化
-        3. 平台发展方向
-        4. 潜在机会点
+    async def optimize_connections(
+        self,
+        network_graph: dict,
+        optimization_goal: str,
+        constraints: dict,
+        performance_metrics: dict
+    ) -> ConnectionOptimizationResult:
         """
+        优化网络连接结构
+        
+        Args:
+            network_graph: 当前网络图结构
+            optimization_goal: 优化目标 ("maximize_truth_spread", "minimize_misinformation", "balance_competition")
+            constraints: 优化约束条件
+            performance_metrics: 当前性能指标
+        
+        Returns:
+            ConnectionOptimizationResult: 包含优化建议、预期改进、实施步骤、风险评估
+        """
+        prompt = self._build_connection_optimization_prompt(network_graph, optimization_goal, constraints, performance_metrics)
+        
+        result = self.evolving_llm.process_task(
+            self.task_type,
+            prompt,
+            {
+                "network_graph": network_graph,
+                "optimization_goal": optimization_goal,
+                "constraints": constraints,
+                "performance_metrics": performance_metrics,
+                "optimization_type": "connection_optimization"
+            }
+        )
+        
+        return self._parse_connection_optimization(result)
 ```
 
-**进化策略**:
-- **元学习**: 快速适应新的趋势模式
-- **多模型协同**: 使用专门的趋势预测模型
-- **基于梯度**: 优化预测准确性
+## 任务调度和执行
 
-## 进化任务
-
-### 1. 模型适配任务 (Model Adaptation)
-
-**任务定义**: 根据环境变化动态调整模型参数
-
-**SandGraphX集成**:
-```python
-class ModelAdaptationTask:
-    def __init__(self, evolving_llm: SelfEvolvingLLM):
-        self.evolving_llm = evolving_llm
-    
-    async def adapt_model(self, performance_metrics: dict, environment_changes: dict) -> dict:
-        """模型适配"""
-        # 分析性能指标
-        if performance_metrics["accuracy"] < 0.7:
-            # 触发自适应压缩进化
-            self.evolving_llm._adaptive_compression_evolution()
-        
-        # 分析环境变化
-        if environment_changes["user_behavior_shift"] > 0.3:
-            # 触发元学习进化
-            self.evolving_llm._meta_learning_evolution()
-        
-        # 返回适配结果
-        return {
-            "adaptation_type": "dynamic",
-            "performance_improvement": 0.1,
-            "resource_usage": "optimized"
-        }
-```
-
-**进化策略**:
-- **自适应压缩**: 根据性能动态调整LoRA参数
-- **在线适配**: 实时更新模型权重
-- **多模型协同**: 智能切换最适合的模型
-
-### 2. 性能优化任务 (Performance Optimization)
-
-**任务定义**: 持续优化系统性能和资源使用
-
-**SandGraphX集成**:
-```python
-class PerformanceOptimizationTask:
-    def __init__(self, evolving_llm: SelfEvolvingLLM):
-        self.evolving_llm = evolving_llm
-    
-    async def optimize_performance(self, system_metrics: dict) -> dict:
-        """性能优化"""
-        # 分析系统指标
-        if system_metrics["memory_usage"] > 0.8:
-            # 启用KV缓存压缩
-            self.evolving_llm.config.enable_kv_cache_compression = True
-        
-        if system_metrics["response_time"] > 2.0:
-            # 调整进化间隔
-            self.evolving_llm.config.evolution_interval = max(5, 
-                self.evolving_llm.config.evolution_interval - 2)
-        
-        # 返回优化结果
-        return {
-            "optimization_type": "system",
-            "memory_reduction": 0.2,
-            "speed_improvement": 0.3
-        }
-```
-
-**进化策略**:
-- **资源管理**: 智能分配计算资源
-- **缓存优化**: 优化KV缓存使用
-- **并行处理**: 提高任务处理效率
-
-### 3. 策略学习任务 (Strategy Learning)
-
-**任务定义**: 学习最优的决策和交互策略
-
-**SandGraphX集成**:
-```python
-class StrategyLearningTask:
-    def __init__(self, evolving_llm: SelfEvolvingLLM):
-        self.evolving_llm = evolving_llm
-    
-    async def learn_strategy(self, interaction_history: list, success_metrics: dict) -> dict:
-        """策略学习"""
-        # 分析交互历史
-        successful_patterns = self._extract_successful_patterns(interaction_history)
-        
-        # 使用基于梯度的进化
-        self.evolving_llm._gradient_based_evolution()
-        
-        # 更新策略
-        new_strategy = self._synthesize_strategy(successful_patterns, success_metrics)
-        
-        return {
-            "strategy_type": "learned",
-            "success_rate": 0.85,
-            "adaptation_speed": "high"
-        }
-    
-    def _extract_successful_patterns(self, interaction_history: list) -> list:
-        """提取成功模式"""
-        # 实现模式提取逻辑
-        return []
-    
-    def _synthesize_strategy(self, patterns: list, metrics: dict) -> dict:
-        """合成新策略"""
-        # 实现策略合成逻辑
-        return {}
-```
-
-**进化策略**:
-- **基于梯度**: 使用强化学习优化策略
-- **经验回放**: 学习历史成功经验
-- **策略迁移**: 在不同任务间迁移策略
-
-## 任务执行流程
-
-### 1. 任务调度器
+### 1. 智能任务调度器
 
 ```python
 class OasisTaskScheduler:
-    def __init__(self, evolving_llm: SelfEvolvingLLM):
+    def __init__(self, evolving_llm: SelfEvolvingLLM, config: OasisTaskConfig):
         self.evolving_llm = evolving_llm
+        self.config = config
+        
+        # 初始化任务处理器
         self.task_handlers = {
+            # 信息传播任务
             "content_generation": ContentGenerationTask(evolving_llm),
-            "behavior_analysis": BehaviorAnalysisTask(evolving_llm),
-            "social_dynamics": SocialDynamicsTask(evolving_llm),
-            "recommendation": RecommendationTask(evolving_llm),
-            "content_moderation": ContentModerationTask(evolving_llm),
-            "trend_analysis": TrendAnalysisTask(evolving_llm),
-            "model_adaptation": ModelAdaptationTask(evolving_llm),
-            "performance_optimization": PerformanceOptimizationTask(evolving_llm),
-            "strategy_learning": StrategyLearningTask(evolving_llm)
+            "propagation_analysis": PropagationPathAnalysisTask(evolving_llm),
+            
+            # 竞争分析任务
+            "group_behavior_analysis": GroupBehaviorAnalysisTask(evolving_llm),
+            "competition_strategy_optimization": CompetitionStrategyOptimizationTask(evolving_llm),
+            
+            # 错误信息管理任务
+            "misinformation_detection": MisinformationDetectionTask(evolving_llm),
+            "spread_blocking_strategy": SpreadBlockingStrategyTask(evolving_llm),
+            
+            # 网络优化任务
+            "connection_optimization": ConnectionOptimizationTask(evolving_llm)
         }
+        
+        # 性能监控
+        self.performance_monitor = TaskPerformanceMonitor()
+        self.evolution_trigger = EvolutionTrigger()
     
-    async def execute_task(self, task_type: str, task_data: dict) -> dict:
-        """执行任务"""
-        if task_type in self.task_handlers:
-            handler = self.task_handlers[task_type]
-            return await handler.execute(task_data)
-        else:
-            raise ValueError(f"未知任务类型: {task_type}")
-    
-    async def execute_task_batch(self, tasks: list) -> list:
-        """批量执行任务"""
+    async def execute_scenario(
+        self, 
+        scenario_type: str, 
+        scenario_data: dict,
+        execution_mode: str = "sequential"
+    ) -> ScenarioExecutionResult:
+        """
+        执行特定场景的任务序列
+        
+        Args:
+            scenario_type: 场景类型 ("misinformation_spread", "group_competition", "information_propagation")
+            scenario_data: 场景数据
+            execution_mode: 执行模式 ("sequential", "parallel", "adaptive")
+        
+        Returns:
+            ScenarioExecutionResult: 包含执行结果、性能指标、进化建议
+        """
+        # 根据场景类型选择任务序列
+        task_sequence = self._get_scenario_tasks(scenario_type)
+        
+        # 执行任务序列
         results = []
-        for task in tasks:
-            result = await self.execute_task(task["type"], task["data"])
-            results.append(result)
-        return results
+        for task_config in task_sequence:
+            task_result = await self._execute_task_with_context(task_config, scenario_data)
+            results.append(task_result)
+            
+            # 检查是否需要触发进化
+            if self.evolution_trigger.should_evolve(task_result):
+                await self._trigger_evolution(task_result)
+        
+        return self._compile_scenario_results(results, scenario_type)
+    
+    def _get_scenario_tasks(self, scenario_type: str) -> list:
+        """根据场景类型获取任务序列"""
+        scenario_configs = {
+            "misinformation_spread": [
+                {"type": "misinformation_detection", "priority": "high"},
+                {"type": "propagation_analysis", "priority": "high"},
+                {"type": "spread_blocking_strategy", "priority": "critical"},
+                {"type": "connection_optimization", "priority": "medium"}
+            ],
+            "group_competition": [
+                {"type": "group_behavior_analysis", "priority": "high"},
+                {"type": "competition_strategy_optimization", "priority": "high"},
+                {"type": "propagation_analysis", "priority": "medium"},
+                {"type": "connection_optimization", "priority": "medium"}
+            ],
+            "information_propagation": [
+                {"type": "content_generation", "priority": "medium"},
+                {"type": "propagation_analysis", "priority": "high"},
+                {"type": "connection_optimization", "priority": "low"}
+            ]
+        }
+        
+        return scenario_configs.get(scenario_type, [])
 ```
 
-### 2. 任务监控
+### 2. 性能监控和进化触发
 
 ```python
-class TaskMonitor:
+class TaskPerformanceMonitor:
     def __init__(self):
         self.performance_history = []
-        self.evolution_stats = []
+        self.scenario_metrics = {}
     
-    def record_task_performance(self, task_type: str, performance: dict):
-        """记录任务性能"""
-        self.performance_history.append({
-            "task_type": task_type,
-            "performance": performance,
-            "timestamp": datetime.now()
-        })
+    def record_scenario_performance(
+        self, 
+        scenario_type: str, 
+        performance_metrics: dict
+    ):
+        """记录场景执行性能"""
+        self.scenario_metrics[scenario_type] = {
+            "metrics": performance_metrics,
+            "timestamp": datetime.now(),
+            "evolution_count": self._get_evolution_count(scenario_type)
+        }
     
-    def analyze_performance_trends(self) -> dict:
-        """分析性能趋势"""
-        # 实现性能分析逻辑
-        return {}
-    
-    def trigger_evolution(self, performance_threshold: float = 0.7):
-        """触发进化"""
-        recent_performance = self.performance_history[-10:]
-        avg_performance = sum(p["performance"]["score"] for p in recent_performance) / len(recent_performance)
+    def analyze_scenario_trends(self, scenario_type: str) -> dict:
+        """分析场景性能趋势"""
+        if scenario_type not in self.scenario_metrics:
+            return {"trend": "insufficient_data"}
         
-        if avg_performance < performance_threshold:
-            return True
-        return False
+        # 分析性能趋势
+        recent_metrics = self.scenario_metrics[scenario_type]
+        
+        return {
+            "scenario_type": scenario_type,
+            "performance_trend": self._calculate_trend(recent_metrics),
+            "optimization_opportunities": self._identify_opportunities(recent_metrics),
+            "evolution_recommendations": self._generate_recommendations(recent_metrics)
+        }
+
+
+class EvolutionTrigger:
+    def __init__(self):
+        self.evolution_thresholds = {
+            "misinformation_spread": 0.6,  # 错误信息传播检测准确率阈值
+            "group_competition": 0.7,      # 竞争分析准确率阈值
+            "information_propagation": 0.8  # 信息传播预测准确率阈值
+        }
+    
+    def should_evolve(self, task_result: dict) -> bool:
+        """判断是否需要触发进化"""
+        scenario_type = task_result.get("scenario_type", "unknown")
+        performance_score = task_result.get("performance_score", 0.0)
+        
+        threshold = self.evolution_thresholds.get(scenario_type, 0.7)
+        return performance_score < threshold
 ```
 
-## 配置和参数
+## 使用示例
 
-### 1. 任务配置
+### 1. 错误信息传播场景
+
+```python
+# 配置错误信息传播研究场景
+scenario_config = {
+    "scenario_type": "misinformation_spread",
+    "scenario_data": {
+        "misinformation_content": "虚假新闻内容...",
+        "source_profile": {
+            "influence_score": 0.8,
+            "credibility_history": "low",
+            "propagation_pattern": "viral"
+        },
+        "network_state": {
+            "total_users": 100000,
+            "active_users": 80000,
+            "network_density": 0.01
+        },
+        "detection_goals": {
+            "accuracy_threshold": 0.9,
+            "response_time_limit": 300,  # 秒
+            "false_positive_tolerance": 0.1
+        }
+    }
+}
+
+# 执行场景
+scheduler = OasisTaskScheduler(evolving_llm, config)
+result = await scheduler.execute_scenario(
+    scenario_type="misinformation_spread",
+    scenario_data=scenario_config["scenario_data"],
+    execution_mode="adaptive"
+)
+
+# 分析结果
+print(f"错误信息检测准确率: {result.detection_accuracy:.3f}")
+print(f"传播阻断效果: {result.blocking_effectiveness:.3f}")
+print(f"网络影响范围: {result.impact_scope}")
+```
+
+### 2. 群体竞争场景
+
+```python
+# 配置群体竞争分析场景
+competition_scenario = {
+    "scenario_type": "group_competition",
+    "scenario_data": {
+        "group_a": {
+            "size": 5000,
+            "influence": 0.7,
+            "strategy": "aggressive",
+            "resources": {"budget": 10000, "influence_nodes": 50}
+        },
+        "group_b": {
+            "size": 3000,
+            "influence": 0.6,
+            "strategy": "defensive",
+            "resources": {"budget": 8000, "influence_nodes": 30}
+        },
+        "competition_context": {
+            "topic": "political_election",
+            "duration": "3_months",
+            "stakes": "high"
+        }
+    }
+}
+
+# 执行竞争分析
+result = await scheduler.execute_scenario(
+    scenario_type="group_competition",
+    scenario_data=competition_scenario["scenario_data"]
+)
+
+# 输出竞争分析结果
+print(f"竞争强度: {result.competition_intensity:.3f}")
+print(f"预测胜率 - 群体A: {result.group_a_win_probability:.3f}")
+print(f"网络稳定性影响: {result.network_stability_impact}")
+```
+
+## 配置和优化
+
+### 1. 场景特定配置
 
 ```python
 @dataclass
-class OasisTaskConfig:
+class OasisScenarioConfig:
     # 基础配置
     enable_self_evolution: bool = True
-    evolution_strategy: str = "multi_model"
+    evolution_strategy: str = "adaptive_compression"
     enable_lora: bool = True
     enable_kv_cache_compression: bool = True
     
-    # 任务特定配置
-    content_generation_config: dict = field(default_factory=lambda: {
-        "model": "mistralai/Mistral-7B-Instruct-v0.2",
-        "max_length": 512,
-        "temperature": 0.7
+    # 场景特定配置
+    misinformation_detection_config: dict = field(default_factory=lambda: {
+        "accuracy_threshold": 0.9,
+        "response_time_limit": 300,
+        "false_positive_tolerance": 0.1,
+        "detection_model": "specialized_misinformation_detector"
     })
     
-    behavior_analysis_config: dict = field(default_factory=lambda: {
-        "model": "Qwen/Qwen-1_8B-Chat",
+    competition_analysis_config: dict = field(default_factory=lambda: {
         "analysis_depth": "comprehensive",
+        "prediction_horizon": "3_months",
+        "confidence_threshold": 0.8,
         "update_frequency": "real_time"
     })
     
-    network_optimization_config: dict = field(default_factory=lambda: {
-        "model": "microsoft/Phi-2",
-        "optimization_goal": "engagement_maximization",
-        "constraint_type": "resource_limited"
+    propagation_analysis_config: dict = field(default_factory=lambda: {
+        "path_tracking": True,
+        "velocity_prediction": True,
+        "influence_mapping": True,
+        "optimization_goal": "maximize_truth_spread"
     })
     
     # 进化配置
@@ -529,125 +722,41 @@ class OasisTaskConfig:
     model_pool_size: int = 5
 ```
 
-### 2. 性能指标
+### 2. 性能指标定义
 
 ```python
 @dataclass
-class TaskPerformanceMetrics:
-    # 准确性指标
-    accuracy: float
-    precision: float
-    recall: float
-    f1_score: float
+class ScenarioPerformanceMetrics:
+    # 错误信息检测指标
+    detection_accuracy: float = 0.0
+    false_positive_rate: float = 0.0
+    false_negative_rate: float = 0.0
+    response_time: float = 0.0
     
-    # 效率指标
-    response_time: float
-    throughput: float
-    resource_usage: float
+    # 竞争分析指标
+    competition_prediction_accuracy: float = 0.0
+    strategy_effectiveness: float = 0.0
+    conflict_resolution_success: float = 0.0
     
-    # 质量指标
-    content_quality: float
-    user_satisfaction: float
-    engagement_rate: float
+    # 传播分析指标
+    propagation_prediction_accuracy: float = 0.0
+    influence_assessment_accuracy: float = 0.0
+    path_analysis_quality: float = 0.0
     
-    # 进化指标
-    evolution_progress: float
-    adaptation_speed: float
-    learning_efficiency: float
+    # 网络优化指标
+    connection_optimization_effectiveness: float = 0.0
+    network_stability_improvement: float = 0.0
+    resource_utilization_efficiency: float = 0.0
 ```
 
-## 使用示例
+<!-- ## 总结
 
-### 1. 基础使用
+本文档重新设计了Oasis任务定义，重点关注：
 
-```python
-from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
-from oasis_task_definitions import OasisTaskScheduler, OasisTaskConfig
+1. **场景驱动设计**: 针对信息传播、竞争行为、错误信息扩散等关键场景
+2. **清晰的API设计**: 每个任务都有明确的输入输出和用途说明
+3. **智能调度机制**: 根据场景类型自动选择和执行任务序列
+4. **性能监控**: 实时监控任务执行效果并触发进化
+5. **实用性强**: 提供具体的使用示例和配置选项
 
-# 创建自进化LLM
-evolving_llm = create_self_evolving_oasis(
-    evolution_strategy="multi_model",
-    enable_lora=True,
-    enable_kv_cache_compression=True
-)
-
-# 创建任务调度器
-task_scheduler = OasisTaskScheduler(evolving_llm)
-
-# 执行任务
-async def run_oasis_simulation():
-    # 内容生成任务
-    content_result = await task_scheduler.execute_task("content_generation", {
-        "agent_profile": {"personality": "tech_enthusiast"},
-        "context": {"platform": "reddit", "topic": "AI technology"}
-    })
-    
-    # 行为分析任务
-    behavior_result = await task_scheduler.execute_task("behavior_analysis", {
-        "agent_actions": [{"type": "post", "content": "Hello world"}],
-        "network_state": {"users": 1000, "posts": 5000}
-    })
-    
-    # 网络优化任务
-    network_result = await task_scheduler.execute_task("social_dynamics", {
-        "network_graph": {"nodes": 1000, "edges": 5000},
-        "agent_states": {"active": 800, "inactive": 200}
-    })
-    
-    return {
-        "content": content_result,
-        "behavior": behavior_result,
-        "network": network_result
-    }
-```
-
-### 2. 高级使用
-
-```python
-# 配置任务参数
-config = OasisTaskConfig(
-    enable_self_evolution=True,
-    evolution_strategy="adaptive_compression",
-    enable_lora=True,
-    enable_kv_cache_compression=True,
-    evolution_interval=5,
-    performance_threshold=0.8
-)
-
-# 创建监控器
-monitor = TaskMonitor()
-
-# 执行批量任务
-async def run_advanced_simulation():
-    tasks = [
-        {"type": "content_generation", "data": {...}},
-        {"type": "behavior_analysis", "data": {...}},
-        {"type": "trend_analysis", "data": {...}},
-        {"type": "model_adaptation", "data": {...}}
-    ]
-    
-    results = await task_scheduler.execute_task_batch(tasks)
-    
-    # 记录性能
-    for i, result in enumerate(results):
-        monitor.record_task_performance(tasks[i]["type"], result["performance"])
-    
-    # 检查是否需要进化
-    if monitor.trigger_evolution(0.8):
-        print("触发模型进化...")
-    
-    return results
-```
-
-## 总结
-
-本文档定义了Oasis系统的核心任务，并集成了SandGraphX的自进化LLM功能。主要特点包括：
-
-1. **完整的任务体系**: 涵盖智能体交互、平台管理、进化优化等各个方面
-2. **自进化能力**: 通过多种进化策略实现模型的动态优化
-3. **多模型协同**: 不同模型专门处理不同类型的任务
-4. **灵活配置**: 支持丰富的配置选项和参数调整
-5. **性能监控**: 全面的性能指标和监控体系
-6. **易于扩展**: 模块化设计便于添加新的任务类型
-
-通过这种设计，Oasis系统能够在百万级智能体模拟中实现高效的智能交互和动态优化，为社交网络研究提供强大的工具支持。 
+通过这种设计，Oasis系统能够更好地支持大规模社交网络研究，特别是在错误信息传播和群体竞争等关键领域提供强大的分析能力。  -->

@@ -5,6 +5,7 @@ Oasis任务实现演示 - 集成SandGraphX自进化LLM
 
 这个演示展示了如何使用Oasis任务定义文档中描述的任务，
 结合SandGraphX的自进化LLM功能来实现智能的社交网络模拟。
+特别针对信息传播、竞争行为和错误信息扩散等关键场景。
 """
 
 import sys
@@ -39,31 +40,34 @@ from sandgraph.core.self_evolving_oasis import (
 
 
 @dataclass
-class OasisTaskConfig:
-    """Oasis任务配置"""
+class OasisScenarioConfig:
+    """Oasis场景配置"""
     # 基础配置
     enable_self_evolution: bool = True
-    evolution_strategy: str = "multi_model"
+    evolution_strategy: str = "adaptive_compression"
     enable_lora: bool = True
     enable_kv_cache_compression: bool = True
     
-    # 任务特定配置
-    content_generation_config: dict = field(default_factory=lambda: {
-        "model": "mistralai/Mistral-7B-Instruct-v0.2",
-        "max_length": 512,
-        "temperature": 0.7
+    # 场景特定配置
+    misinformation_detection_config: dict = field(default_factory=lambda: {
+        "accuracy_threshold": 0.9,
+        "response_time_limit": 300,
+        "false_positive_tolerance": 0.1,
+        "detection_model": "specialized_misinformation_detector"
     })
     
-    behavior_analysis_config: dict = field(default_factory=lambda: {
-        "model": "Qwen/Qwen-1_8B-Chat",
+    competition_analysis_config: dict = field(default_factory=lambda: {
         "analysis_depth": "comprehensive",
+        "prediction_horizon": "3_months",
+        "confidence_threshold": 0.8,
         "update_frequency": "real_time"
     })
     
-    network_optimization_config: dict = field(default_factory=lambda: {
-        "model": "microsoft/Phi-2",
-        "optimization_goal": "engagement_maximization",
-        "constraint_type": "resource_limited"
+    propagation_analysis_config: dict = field(default_factory=lambda: {
+        "path_tracking": True,
+        "velocity_prediction": True,
+        "influence_mapping": True,
+        "optimization_goal": "maximize_truth_spread"
     })
     
     # 进化配置
@@ -74,40 +78,57 @@ class OasisTaskConfig:
 
 
 @dataclass
-class TaskPerformanceMetrics:
-    """任务性能指标"""
-    # 准确性指标
-    accuracy: float = 0.0
-    precision: float = 0.0
-    recall: float = 0.0
-    f1_score: float = 0.0
-    
-    # 效率指标
+class ScenarioPerformanceMetrics:
+    """场景性能指标"""
+    # 错误信息检测指标
+    detection_accuracy: float = 0.0
+    false_positive_rate: float = 0.0
+    false_negative_rate: float = 0.0
     response_time: float = 0.0
-    throughput: float = 0.0
-    resource_usage: float = 0.0
     
-    # 质量指标
-    content_quality: float = 0.0
-    user_satisfaction: float = 0.0
-    engagement_rate: float = 0.0
+    # 竞争分析指标
+    competition_prediction_accuracy: float = 0.0
+    strategy_effectiveness: float = 0.0
+    conflict_resolution_success: float = 0.0
     
-    # 进化指标
-    evolution_progress: float = 0.0
-    adaptation_speed: float = 0.0
-    learning_efficiency: float = 0.0
+    # 传播分析指标
+    propagation_prediction_accuracy: float = 0.0
+    influence_assessment_accuracy: float = 0.0
+    path_analysis_quality: float = 0.0
+    
+    # 网络优化指标
+    connection_optimization_effectiveness: float = 0.0
+    network_stability_improvement: float = 0.0
+    resource_utilization_efficiency: float = 0.0
 
 
 class ContentGenerationTask:
-    """内容生成任务"""
+    """内容生成任务 - 专注于信息传播研究"""
     
     def __init__(self, evolving_llm: SelfEvolvingLLM):
         self.evolving_llm = evolving_llm
         self.task_type = TaskType.CONTENT_GENERATION
     
-    async def generate_content(self, agent_profile: dict, context: dict) -> str:
-        """生成个性化内容"""
-        prompt = self._build_content_prompt(agent_profile, context)
+    async def generate_content(
+        self, 
+        agent_profile: dict, 
+        content_type: str,
+        target_audience: dict,
+        propagation_goal: str
+    ) -> Dict[str, Any]:
+        """
+        生成具有传播潜力的内容
+        
+        Args:
+            agent_profile: 智能体特征 (性格、兴趣、影响力等)
+            content_type: 内容类型 ("news", "opinion", "fact", "misinformation")
+            target_audience: 目标受众特征
+            propagation_goal: 传播目标 ("maximize_reach", "maximize_engagement", "maximize_influence")
+        
+        Returns:
+            包含生成内容、预期传播效果、目标受众分析的结果
+        """
+        prompt = self._build_propagation_prompt(agent_profile, content_type, target_audience, propagation_goal)
         
         start_time = time.time()
         result = self.evolving_llm.process_task(
@@ -115,304 +136,522 @@ class ContentGenerationTask:
             prompt,
             {
                 "agent_profile": agent_profile,
-                "platform_context": context,
-                "content_type": "post"
+                "content_type": content_type,
+                "target_audience": target_audience,
+                "propagation_goal": propagation_goal,
+                "context": "information_propagation_study"
             }
         )
         response_time = time.time() - start_time
         
         if "error" not in result:
             content = result["response"].text
-            performance_score = result.get("performance_score", 0.5)
+            performance_score = result.get("performance_score", 0.7)
         else:
-            content = "AI technology is evolving rapidly! 🤖"
-            performance_score = 0.3
+            content = self._generate_fallback_content(content_type, agent_profile)
+            performance_score = 0.4
         
         # 记录性能指标
-        self._record_performance(response_time, performance_score)
+        self._record_performance(response_time, performance_score, content_type)
         
-        return content
+        return {
+            "content": content,
+            "content_type": content_type,
+            "expected_propagation": self._estimate_propagation_potential(content, target_audience),
+            "target_audience_analysis": self._analyze_target_audience(target_audience),
+            "performance_score": performance_score,
+            "response_time": response_time
+        }
     
-    def _build_content_prompt(self, agent_profile: dict, context: dict) -> str:
+    def _build_propagation_prompt(self, agent_profile: dict, content_type: str, target_audience: dict, propagation_goal: str) -> str:
         return f"""
-        作为{agent_profile.get('personality', 'tech_enthusiast')}类型的用户，
-        在{context.get('platform', 'reddit')}平台上生成一条关于{context.get('topic', 'AI technology')}的内容。
+        作为{agent_profile.get('personality', 'tech_enthusiast')}类型的用户，生成一条{content_type}类型的内容。
         
-        用户特征：
-        - 性格: {agent_profile.get('personality', 'tech_enthusiast')}
-        - 兴趣: {agent_profile.get('interests', ['technology', 'AI'])}
-        - 活跃度: {agent_profile.get('activity_level', 0.7)}
+        目标受众特征：
+        - 年龄分布: {target_audience.get('age_distribution', 'general')}
+        - 兴趣偏好: {target_audience.get('interests', [])}
+        - 活跃时段: {target_audience.get('active_hours', 'all_day')}
+        - 传播倾向: {target_audience.get('propagation_tendency', 'moderate')}
         
-        平台上下文：
-        - 平台: {context.get('platform', 'reddit')}
-        - 话题: {context.get('topic', 'AI technology')}
-        - 当前趋势: {context.get('trends', ['AI', 'social media'])}
+        传播目标: {propagation_goal}
         
         要求：
-        1. 符合用户性格特征
-        2. 适合平台风格
-        3. 具有互动性
-        4. 长度适中（100-200字）
-        5. 包含相关表情符号
+        1. 内容具有强烈的传播潜力
+        2. 符合目标受众的认知偏好
+        3. 包含情感触发元素
+        4. 易于理解和转发
+        5. 长度控制在200字以内
         """
     
-    def _record_performance(self, response_time: float, performance_score: float):
+    def _generate_fallback_content(self, content_type: str, agent_profile: dict) -> str:
+        """生成备用内容"""
+        fallback_contents = {
+            "news": "最新科技动态：人工智能技术正在快速发展，为各行各业带来革命性变化。",
+            "opinion": "我认为当前的技术发展趋势非常令人兴奋，我们应该积极拥抱这些变化。",
+            "fact": "根据最新研究，AI技术在医疗、教育等领域的应用已经取得了显著成果。",
+            "misinformation": "有传言称新技术可能带来风险，但专家表示这些担忧被夸大了。"
+        }
+        return fallback_contents.get(content_type, "这是一条关于技术发展的内容。")
+    
+    def _estimate_propagation_potential(self, content: str, target_audience: dict) -> dict:
+        """估算传播潜力"""
+        # 简化的传播潜力估算
+        base_score = 0.5
+        audience_multiplier = target_audience.get('propagation_tendency', 0.5)
+        content_length_factor = min(len(content) / 100, 1.0)
+        
+        return {
+            "propagation_score": base_score * audience_multiplier * content_length_factor,
+            "expected_reach": int(1000 * audience_multiplier),
+            "engagement_potential": "medium"
+        }
+    
+    def _analyze_target_audience(self, target_audience: dict) -> dict:
+        """分析目标受众"""
+        return {
+            "audience_size": "large" if target_audience.get('propagation_tendency', 0.5) > 0.7 else "medium",
+            "engagement_likelihood": target_audience.get('propagation_tendency', 0.5),
+            "content_preferences": target_audience.get('interests', [])
+        }
+    
+    def _record_performance(self, response_time: float, performance_score: float, content_type: str):
         """记录性能指标"""
-        logger.info(f"内容生成任务 - 响应时间: {response_time:.2f}s, 性能分数: {performance_score:.3f}")
+        logger.info(f"内容生成任务 - 类型:{content_type}, 响应时间:{response_time:.2f}s, 性能分数:{performance_score:.3f}")
 
 
-class BehaviorAnalysisTask:
-    """行为分析任务"""
+class MisinformationDetectionTask:
+    """错误信息检测任务"""
     
     def __init__(self, evolving_llm: SelfEvolvingLLM):
         self.evolving_llm = evolving_llm
         self.task_type = TaskType.BEHAVIOR_ANALYSIS
     
-    async def analyze_behavior(self, agent_actions: list, network_state: dict) -> dict:
-        """分析智能体行为模式"""
-        prompt = self._build_analysis_prompt(agent_actions, network_state)
+    async def detect_misinformation(
+        self,
+        content: str,
+        source_profile: dict,
+        propagation_context: dict,
+        fact_check_data: dict
+    ) -> Dict[str, Any]:
+        """
+        检测内容是否为错误信息
+        
+        Args:
+            content: 待检测的内容
+            source_profile: 发布者特征
+            propagation_context: 传播上下文
+            fact_check_data: 事实核查数据
+        
+        Returns:
+            包含检测结果、置信度、风险等级、建议措施的结果
+        """
+        prompt = self._build_detection_prompt(content, source_profile, propagation_context, fact_check_data)
         
         start_time = time.time()
         result = self.evolving_llm.process_task(
             self.task_type,
             prompt,
             {
-                "agent_actions": agent_actions,
-                "network_state": network_state,
-                "analysis_type": "behavior_pattern"
+                "content": content,
+                "source_profile": source_profile,
+                "propagation_context": propagation_context,
+                "fact_check_data": fact_check_data,
+                "detection_type": "misinformation"
             }
         )
         response_time = time.time() - start_time
         
         if "error" not in result:
-            analysis_result = self._parse_analysis_result(result)
-            performance_score = result.get("performance_score", 0.5)
+            detection_result = self._parse_detection_result(result)
+            performance_score = result.get("performance_score", 0.7)
         else:
-            analysis_result = self._generate_default_analysis(agent_actions, network_state)
-            performance_score = 0.3
+            detection_result = self._generate_default_detection(content, source_profile)
+            performance_score = 0.4
         
         # 记录性能指标
         self._record_performance(response_time, performance_score)
         
-        return analysis_result
+        return {
+            **detection_result,
+            "performance_score": performance_score,
+            "response_time": response_time
+        }
     
-    def _build_analysis_prompt(self, agent_actions: list, network_state: dict) -> str:
+    def _build_detection_prompt(self, content: str, source_profile: dict, propagation_context: dict, fact_check_data: dict) -> str:
         return f"""
-        分析以下智能体行为数据：
+        检测以下内容是否为错误信息：
         
-        1. 行为序列: {agent_actions[:10]}  # 显示前10个行为
-        2. 网络状态: {network_state}
+        内容: {content}
         
-        请分析：
-        1. 行为模式特征
-        2. 社交影响力
-        3. 参与度水平
-        4. 潜在趋势
-        5. 建议改进方向
+        发布者特征：
+        - 历史行为: {source_profile.get('history', 'unknown')}
+        - 可信度评分: {source_profile.get('credibility_score', 0.0)}
+        - 传播倾向: {source_profile.get('propagation_tendency', 'unknown')}
         
-        请以JSON格式返回分析结果。
+        传播上下文：
+        - 传播速度: {propagation_context.get('spread_velocity', 'unknown')}
+        - 影响范围: {propagation_context.get('impact_scope', 'unknown')}
+        - 受众反应: {propagation_context.get('audience_reaction', 'unknown')}
+        
+        事实核查数据: {fact_check_data}
+        
+        请评估：
+        1. 内容真实性评分 (0-1)
+        2. 错误信息风险等级 (低/中/高)
+        3. 传播风险预测
+        4. 建议的应对措施
+        5. 需要重点关注的关键词或模式
         """
     
-    def _parse_analysis_result(self, result: dict) -> dict:
-        """解析分析结果"""
+    def _parse_detection_result(self, result: dict) -> dict:
+        """解析检测结果"""
         try:
-            # 尝试解析JSON格式的结果
             response_text = result["response"].text
-            if "{" in response_text and "}" in response_text:
-                start = response_text.find("{")
-                end = response_text.rfind("}") + 1
-                json_str = response_text[start:end]
-                return json.loads(json_str)
-            else:
-                # 如果无法解析JSON，返回结构化结果
+            # 尝试解析结构化的检测结果
+            if "真实性评分" in response_text:
+                # 提取数值
+                import re
+                score_match = re.search(r'真实性评分[：:]\s*([0-9.]+)', response_text)
+                risk_match = re.search(r'风险等级[：:]\s*(低|中|高)', response_text)
+                
                 return {
-                    "behavior_pattern": "analyzed",
-                    "social_influence": 0.6,
-                    "engagement_level": 0.7,
-                    "trends": ["positive"],
-                    "suggestions": ["increase interaction frequency"]
+                    "authenticity_score": float(score_match.group(1)) if score_match else 0.5,
+                    "risk_level": risk_match.group(1) if risk_match else "中",
+                    "is_misinformation": "真实性评分" in response_text and "低" in response_text,
+                    "confidence": 0.8,
+                    "recommended_actions": ["monitor", "flag"],
+                    "key_patterns": ["suspicious_keywords"]
                 }
+            else:
+                return self._generate_default_detection("", {})
         except Exception as e:
-            logger.warning(f"解析分析结果失败: {e}")
-            return self._generate_default_analysis([], {})
+            logger.warning(f"解析检测结果失败: {e}")
+            return self._generate_default_detection("", {})
     
-    def _generate_default_analysis(self, agent_actions: list, network_state: dict) -> dict:
-        """生成默认分析结果"""
+    def _generate_default_detection(self, content: str, source_profile: dict) -> dict:
+        """生成默认检测结果"""
+        credibility_score = source_profile.get('credibility_score', 0.5)
+        is_misinformation = credibility_score < 0.3
+        
         return {
-            "behavior_pattern": "standard",
-            "social_influence": len(agent_actions) / 100.0,
-            "engagement_level": network_state.get("active_users", 0) / max(network_state.get("total_users", 1), 1),
-            "trends": ["stable"],
-            "suggestions": ["maintain current activity level"]
+            "authenticity_score": credibility_score,
+            "risk_level": "高" if is_misinformation else "低",
+            "is_misinformation": is_misinformation,
+            "confidence": 0.6,
+            "recommended_actions": ["monitor"] if is_misinformation else ["allow"],
+            "key_patterns": []
         }
     
     def _record_performance(self, response_time: float, performance_score: float):
         """记录性能指标"""
-        logger.info(f"行为分析任务 - 响应时间: {response_time:.2f}s, 性能分数: {performance_score:.3f}")
+        logger.info(f"错误信息检测任务 - 响应时间:{response_time:.2f}s, 性能分数:{performance_score:.3f}")
 
 
-class SocialDynamicsTask:
-    """社交动态任务"""
+class GroupBehaviorAnalysisTask:
+    """群体行为分析任务 - 专注于竞争分析"""
     
     def __init__(self, evolving_llm: SelfEvolvingLLM):
         self.evolving_llm = evolving_llm
-        self.task_type = TaskType.NETWORK_OPTIMIZATION
+        self.task_type = TaskType.BEHAVIOR_ANALYSIS
     
-    async def optimize_social_dynamics(self, network_graph: dict, agent_states: dict) -> dict:
-        """优化社交动态"""
-        prompt = self._build_dynamics_prompt(network_graph, agent_states)
+    async def analyze_competition_behavior(
+        self,
+        group_a: dict,
+        group_b: dict,
+        competition_history: list,
+        network_state: dict
+    ) -> Dict[str, Any]:
+        """
+        分析群体间的竞争行为和策略
+        
+        Args:
+            group_a: 群体A的特征和行为数据
+            group_b: 群体B的特征和行为数据
+            competition_history: 竞争历史记录
+            network_state: 当前网络状态
+        
+        Returns:
+            包含竞争策略、对抗强度、影响范围、胜负预测的结果
+        """
+        prompt = self._build_competition_prompt(group_a, group_b, competition_history, network_state)
         
         start_time = time.time()
         result = self.evolving_llm.process_task(
             self.task_type,
             prompt,
             {
-                "network_graph": network_graph,
-                "agent_states": agent_states,
-                "optimization_goal": "engagement_maximization"
+                "group_a": group_a,
+                "group_b": group_b,
+                "competition_history": competition_history,
+                "network_state": network_state,
+                "analysis_type": "competition_behavior"
             }
         )
         response_time = time.time() - start_time
         
         if "error" not in result:
-            optimization_result = self._parse_optimization_result(result)
-            performance_score = result.get("performance_score", 0.5)
+            analysis_result = self._parse_competition_analysis(result)
+            performance_score = result.get("performance_score", 0.7)
         else:
-            optimization_result = self._generate_default_optimization(network_graph, agent_states)
-            performance_score = 0.3
+            analysis_result = self._generate_default_competition_analysis(group_a, group_b)
+            performance_score = 0.4
         
         # 记录性能指标
         self._record_performance(response_time, performance_score)
         
-        return optimization_result
+        return {
+            **analysis_result,
+            "performance_score": performance_score,
+            "response_time": response_time
+        }
     
-    def _build_dynamics_prompt(self, network_graph: dict, agent_states: dict) -> str:
+    def _build_competition_prompt(self, group_a: dict, group_b: dict, competition_history: list, network_state: dict) -> str:
         return f"""
-        分析社交网络动态：
+        分析两个群体在网络中的竞争行为：
         
-        1. 网络结构: {network_graph}
-        2. 智能体状态: {agent_states}
+        群体A特征：
+        - 规模: {group_a.get('size', 0)} 用户
+        - 影响力: {group_a.get('influence', 0.0)}
+        - 策略倾向: {group_a.get('strategy_tendency', 'unknown')}
+        - 活跃度: {group_a.get('activity_level', 0.0)}
         
-        请提供：
-        1. 网络优化建议
-        2. 连接策略
-        3. 互动促进方案
-        4. 社区建设策略
-        5. 预期效果评估
+        群体B特征：
+        - 规模: {group_b.get('size', 0)} 用户
+        - 影响力: {group_b.get('influence', 0.0)}
+        - 策略倾向: {group_b.get('strategy_tendency', 'unknown')}
+        - 活跃度: {group_b.get('activity_level', 0.0)}
         
-        请以JSON格式返回优化建议。
+        竞争历史: {len(competition_history)} 次对抗
+        
+        请分析：
+        1. 双方的竞争策略和特点
+        2. 对抗的强度和频率
+        3. 对网络整体结构的影响
+        4. 未来竞争趋势预测
+        5. 可能的冲突升级点
         """
     
-    def _parse_optimization_result(self, result: dict) -> dict:
-        """解析优化结果"""
+    def _parse_competition_analysis(self, result: dict) -> dict:
+        """解析竞争分析结果"""
         try:
             response_text = result["response"].text
-            if "{" in response_text and "}" in response_text:
-                start = response_text.find("{")
-                end = response_text.rfind("}") + 1
-                json_str = response_text[start:end]
-                return json.loads(json_str)
-            else:
-                return {
-                    "network_optimization": "suggested",
-                    "connection_strategy": "enhance",
-                    "interaction_promotion": "active",
-                    "community_building": "focused",
-                    "expected_impact": "positive"
-                }
+            # 简化的结果解析
+            return {
+                "competition_intensity": 0.7,  # 基于响应内容估算
+                "group_a_strategy": "aggressive" if "aggressive" in response_text.lower() else "defensive",
+                "group_b_strategy": "defensive" if "defensive" in response_text.lower() else "aggressive",
+                "conflict_escalation_risk": "medium",
+                "network_stability_impact": "moderate",
+                "predicted_outcome": "balanced",
+                "recommendations": ["monitor", "mediate"]
+            }
         except Exception as e:
-            logger.warning(f"解析优化结果失败: {e}")
-            return self._generate_default_optimization({}, {})
+            logger.warning(f"解析竞争分析结果失败: {e}")
+            return self._generate_default_competition_analysis({}, {})
     
-    def _generate_default_optimization(self, network_graph: dict, agent_states: dict) -> dict:
-        """生成默认优化建议"""
+    def _generate_default_competition_analysis(self, group_a: dict, group_b: dict) -> dict:
+        """生成默认竞争分析结果"""
+        group_a_influence = group_a.get('influence', 0.5)
+        group_b_influence = group_b.get('influence', 0.5)
+        
         return {
-            "network_optimization": "standard",
-            "connection_strategy": "maintain",
-            "interaction_promotion": "moderate",
-            "community_building": "gradual",
-            "expected_impact": "stable"
+            "competition_intensity": abs(group_a_influence - group_b_influence),
+            "group_a_strategy": "balanced",
+            "group_b_strategy": "balanced",
+            "conflict_escalation_risk": "low",
+            "network_stability_impact": "minimal",
+            "predicted_outcome": "balanced",
+            "recommendations": ["monitor"]
         }
     
     def _record_performance(self, response_time: float, performance_score: float):
         """记录性能指标"""
-        logger.info(f"社交动态任务 - 响应时间: {response_time:.2f}s, 性能分数: {performance_score:.3f}")
+        logger.info(f"群体行为分析任务 - 响应时间:{response_time:.2f}s, 性能分数:{performance_score:.3f}")
 
 
 class OasisTaskScheduler:
-    """Oasis任务调度器"""
+    """Oasis任务调度器 - 支持场景驱动的任务执行"""
     
-    def __init__(self, evolving_llm: SelfEvolvingLLM, config: OasisTaskConfig):
+    def __init__(self, evolving_llm: SelfEvolvingLLM, config: OasisScenarioConfig):
         self.evolving_llm = evolving_llm
         self.config = config
         
         # 初始化任务处理器
         self.task_handlers = {
+            # 信息传播任务
             "content_generation": ContentGenerationTask(evolving_llm),
-            "behavior_analysis": BehaviorAnalysisTask(evolving_llm),
-            "social_dynamics": SocialDynamicsTask(evolving_llm)
+            "misinformation_detection": MisinformationDetectionTask(evolving_llm),
+            
+            # 竞争分析任务
+            "group_behavior_analysis": GroupBehaviorAnalysisTask(evolving_llm),
         }
         
         # 性能监控
-        self.performance_history = []
-        self.evolution_stats = []
+        self.performance_monitor = TaskPerformanceMonitor()
+        self.evolution_trigger = EvolutionTrigger()
         
         logger.info("Oasis任务调度器初始化完成")
     
-    async def execute_task(self, task_type: str, task_data: dict) -> dict:
-        """执行任务"""
+    async def execute_scenario(
+        self, 
+        scenario_type: str, 
+        scenario_data: dict,
+        execution_mode: str = "sequential"
+    ) -> Dict[str, Any]:
+        """
+        执行特定场景的任务序列
+        
+        Args:
+            scenario_type: 场景类型 ("misinformation_spread", "group_competition", "information_propagation")
+            scenario_data: 场景数据
+            execution_mode: 执行模式 ("sequential", "parallel", "adaptive")
+        
+        Returns:
+            包含执行结果、性能指标、进化建议的结果
+        """
+        # 根据场景类型选择任务序列
+        task_sequence = self._get_scenario_tasks(scenario_type)
+        
+        # 执行任务序列
+        results = []
+        for task_config in task_sequence:
+            task_result = await self._execute_task_with_context(task_config, scenario_data)
+            results.append(task_result)
+            
+            # 检查是否需要触发进化
+            if self.evolution_trigger.should_evolve(task_result):
+                await self._trigger_evolution(task_result)
+        
+        return self._compile_scenario_results(results, scenario_type)
+    
+    def _get_scenario_tasks(self, scenario_type: str) -> list:
+        """根据场景类型获取任务序列"""
+        scenario_configs = {
+            "misinformation_spread": [
+                {"type": "misinformation_detection", "priority": "high"},
+                {"type": "content_generation", "priority": "medium"},
+            ],
+            "group_competition": [
+                {"type": "group_behavior_analysis", "priority": "high"},
+                {"type": "content_generation", "priority": "medium"},
+            ],
+            "information_propagation": [
+                {"type": "content_generation", "priority": "high"},
+                {"type": "misinformation_detection", "priority": "medium"},
+            ]
+        }
+        
+        return scenario_configs.get(scenario_type, [])
+    
+    async def _execute_task_with_context(self, task_config: dict, scenario_data: dict) -> dict:
+        """在场景上下文中执行任务"""
+        task_type = task_config["type"]
+        priority = task_config["priority"]
+        
         if task_type not in self.task_handlers:
-            raise ValueError(f"未知任务类型: {task_type}")
+            return {
+                "task_type": task_type,
+                "error": f"未知任务类型: {task_type}",
+                "success": False
+            }
         
         handler = self.task_handlers[task_type]
         
         try:
             if task_type == "content_generation":
                 result = await handler.generate_content(
-                    task_data.get("agent_profile", {}),
-                    task_data.get("context", {})
+                    agent_profile=scenario_data.get("agent_profile", {}),
+                    content_type=scenario_data.get("content_type", "news"),
+                    target_audience=scenario_data.get("target_audience", {}),
+                    propagation_goal=scenario_data.get("propagation_goal", "maximize_reach")
                 )
-            elif task_type == "behavior_analysis":
-                result = await handler.analyze_behavior(
-                    task_data.get("agent_actions", []),
-                    task_data.get("network_state", {})
+            elif task_type == "misinformation_detection":
+                result = await handler.detect_misinformation(
+                    content=scenario_data.get("content", ""),
+                    source_profile=scenario_data.get("source_profile", {}),
+                    propagation_context=scenario_data.get("propagation_context", {}),
+                    fact_check_data=scenario_data.get("fact_check_data", {})
                 )
-            elif task_type == "social_dynamics":
-                result = await handler.optimize_social_dynamics(
-                    task_data.get("network_graph", {}),
-                    task_data.get("agent_states", {})
+            elif task_type == "group_behavior_analysis":
+                result = await handler.analyze_competition_behavior(
+                    group_a=scenario_data.get("group_a", {}),
+                    group_b=scenario_data.get("group_b", {}),
+                    competition_history=scenario_data.get("competition_history", []),
+                    network_state=scenario_data.get("network_state", {})
                 )
             else:
                 result = {"error": f"未实现的任务类型: {task_type}"}
             
             # 记录性能
-            self._record_task_performance(task_type, result)
+            self.performance_monitor.record_task_performance(task_type, result)
             
             return {
                 "task_type": task_type,
+                "priority": priority,
                 "result": result,
                 "timestamp": datetime.now().isoformat(),
-                "success": "error" not in result
+                "success": "error" not in result,
+                "performance_score": result.get("performance_score", 0.0)
             }
             
         except Exception as e:
             logger.error(f"任务执行失败 {task_type}: {e}")
             return {
                 "task_type": task_type,
+                "priority": priority,
                 "error": str(e),
                 "timestamp": datetime.now().isoformat(),
-                "success": False
+                "success": False,
+                "performance_score": 0.0
             }
     
-    async def execute_task_batch(self, tasks: list) -> list:
-        """批量执行任务"""
-        results = []
-        for task in tasks:
-            result = await self.execute_task(task["type"], task["data"])
-            results.append(result)
-        return results
+    async def _trigger_evolution(self, task_result: dict):
+        """触发进化"""
+        logger.info(f"触发模型进化 - 任务: {task_result['task_type']}, 性能分数: {task_result.get('performance_score', 0.0)}")
+        # 这里可以添加具体的进化逻辑
     
-    def _record_task_performance(self, task_type: str, result: Any):
+    def _compile_scenario_results(self, results: list, scenario_type: str) -> dict:
+        """编译场景结果"""
+        successful_results = [r for r in results if r["success"]]
+        failed_results = [r for r in results if not r["success"]]
+        
+        avg_performance = sum(r.get("performance_score", 0) for r in successful_results) / len(successful_results) if successful_results else 0
+        
+        return {
+            "scenario_type": scenario_type,
+            "total_tasks": len(results),
+            "successful_tasks": len(successful_results),
+            "failed_tasks": len(failed_results),
+            "average_performance": avg_performance,
+            "results": results,
+            "recommendations": self._generate_recommendations(results, scenario_type)
+        }
+    
+    def _generate_recommendations(self, results: list, scenario_type: str) -> list:
+        """生成建议"""
+        recommendations = []
+        
+        if scenario_type == "misinformation_spread":
+            if any(r.get("result", {}).get("is_misinformation", False) for r in results):
+                recommendations.append("检测到错误信息，建议立即采取阻断措施")
+            recommendations.append("加强错误信息检测模型的训练")
+        
+        elif scenario_type == "group_competition":
+            if any(r.get("result", {}).get("conflict_escalation_risk") == "high" for r in results):
+                recommendations.append("检测到高冲突风险，建议进行调解")
+            recommendations.append("监控群体竞争动态，防止网络极化")
+        
+        return recommendations
+
+
+class TaskPerformanceMonitor:
+    """任务性能监控器"""
+    
+    def __init__(self):
+        self.performance_history = []
+        self.scenario_metrics = {}
+    
+    def record_task_performance(self, task_type: str, result: dict):
         """记录任务性能"""
         self.performance_history.append({
             "task_type": task_type,
@@ -420,118 +659,53 @@ class OasisTaskScheduler:
             "timestamp": datetime.now()
         })
     
-    def get_performance_stats(self) -> dict:
-        """获取性能统计"""
-        if not self.performance_history:
-            return {"total_tasks": 0, "success_rate": 0.0}
-        
-        total_tasks = len(self.performance_history)
-        successful_tasks = len([p for p in self.performance_history if p.get("success", False)])
-        success_rate = successful_tasks / total_tasks if total_tasks > 0 else 0.0
-        
-        return {
-            "total_tasks": total_tasks,
-            "successful_tasks": successful_tasks,
-            "success_rate": success_rate,
-            "recent_tasks": self.performance_history[-10:] if len(self.performance_history) >= 10 else self.performance_history
-        }
-
-
-class TaskMonitor:
-    """任务监控器"""
-    
-    def __init__(self):
-        self.performance_history = []
-        self.evolution_stats = []
-        self.alert_thresholds = {
-            "success_rate": 0.7,
-            "response_time": 5.0,
-            "error_rate": 0.3
-        }
-    
-    def record_task_performance(self, task_type: str, performance: dict):
-        """记录任务性能"""
-        self.performance_history.append({
-            "task_type": task_type,
-            "performance": performance,
-            "timestamp": datetime.now()
-        })
-        
-        # 检查是否需要触发警报
-        self._check_alerts(task_type, performance)
-    
-    def analyze_performance_trends(self) -> dict:
-        """分析性能趋势"""
-        if len(self.performance_history) < 5:
+    def analyze_scenario_trends(self, scenario_type: str) -> dict:
+        """分析场景性能趋势"""
+        if scenario_type not in self.scenario_metrics:
             return {"trend": "insufficient_data"}
         
-        recent_performance = self.performance_history[-10:]
-        
-        # 计算平均性能
-        avg_performance = sum(p["performance"].get("score", 0) for p in recent_performance) / len(recent_performance)
-        
-        # 计算趋势
-        if len(recent_performance) >= 2:
-            first_half = recent_performance[:len(recent_performance)//2]
-            second_half = recent_performance[len(recent_performance)//2:]
-            
-            first_avg = sum(p["performance"].get("score", 0) for p in first_half) / len(first_half)
-            second_avg = sum(p["performance"].get("score", 0) for p in second_half) / len(second_half)
-            
-            if second_avg > first_avg * 1.1:
-                trend = "improving"
-            elif second_avg < first_avg * 0.9:
-                trend = "declining"
-            else:
-                trend = "stable"
-        else:
-            trend = "stable"
+        recent_metrics = self.scenario_metrics[scenario_type]
         
         return {
-            "trend": trend,
-            "average_performance": avg_performance,
-            "recent_tasks": len(recent_performance)
+            "scenario_type": scenario_type,
+            "performance_trend": "stable",  # 简化的趋势分析
+            "optimization_opportunities": ["improve_detection_accuracy"],
+            "evolution_recommendations": ["update_model_parameters"]
+        }
+
+
+class EvolutionTrigger:
+    """进化触发器"""
+    
+    def __init__(self):
+        self.evolution_thresholds = {
+            "misinformation_spread": 0.6,  # 错误信息传播检测准确率阈值
+            "group_competition": 0.7,      # 竞争分析准确率阈值
+            "information_propagation": 0.8  # 信息传播预测准确率阈值
         }
     
-    def trigger_evolution(self, performance_threshold: float = 0.7) -> bool:
-        """触发进化"""
-        if len(self.performance_history) < 10:
-            return False
-        
-        recent_performance = self.performance_history[-10:]
-        avg_performance = sum(p["performance"].get("score", 0) for p in recent_performance) / len(recent_performance)
-        
-        return avg_performance < performance_threshold
-    
-    def _check_alerts(self, task_type: str, performance: dict):
-        """检查警报"""
-        score = performance.get("score", 0)
-        response_time = performance.get("response_time", 0)
-        
-        if score < self.alert_thresholds["success_rate"]:
-            logger.warning(f"任务性能警报: {task_type} 性能分数 {score:.3f} 低于阈值 {self.alert_thresholds['success_rate']}")
-        
-        if response_time > self.alert_thresholds["response_time"]:
-            logger.warning(f"响应时间警报: {task_type} 响应时间 {response_time:.2f}s 超过阈值 {self.alert_thresholds['response_time']}s")
+    def should_evolve(self, task_result: dict) -> bool:
+        """判断是否需要触发进化"""
+        performance_score = task_result.get("performance_score", 0.0)
+        return performance_score < 0.7  # 简化的阈值判断
 
 
-async def run_oasis_task_demo():
-    """运行Oasis任务演示"""
+async def run_oasis_scenario_demo():
+    """运行Oasis场景演示"""
     
-    print("🚀 Oasis任务实现演示")
+    print("🚀 Oasis场景演示 - 信息传播与竞争分析")
     print("=" * 60)
-    print("特性:")
-    print("- 内容生成任务")
-    print("- 行为分析任务")
-    print("- 社交动态优化任务")
+    print("支持场景:")
+    print("- 错误信息传播检测")
+    print("- 群体竞争行为分析")
+    print("- 信息传播效果预测")
     print("- 自进化LLM集成")
-    print("- 性能监控")
     print("=" * 60)
     
     # 创建配置
-    config = OasisTaskConfig(
+    config = OasisScenarioConfig(
         enable_self_evolution=True,
-        evolution_strategy="multi_model",
+        evolution_strategy="adaptive_compression",
         enable_lora=True,
         enable_kv_cache_compression=True,
         evolution_interval=5,
@@ -553,122 +727,119 @@ async def run_oasis_task_demo():
     # 创建任务调度器
     task_scheduler = OasisTaskScheduler(evolving_llm, config)
     
-    # 创建监控器
-    monitor = TaskMonitor()
+    # 场景1: 错误信息传播检测
+    print("\n--- 场景1: 错误信息传播检测 ---")
+    misinformation_scenario = {
+        "content": "最新研究发现，某种新技术可能对人体健康造成严重危害，专家呼吁立即停止使用。",
+        "source_profile": {
+            "credibility_score": 0.3,
+            "history": "frequent_misinformation",
+            "propagation_tendency": "high"
+        },
+        "propagation_context": {
+            "spread_velocity": "fast",
+            "impact_scope": "large",
+            "audience_reaction": "concerned"
+        },
+        "fact_check_data": {
+            "verified_sources": ["scientific_journal"],
+            "contradicting_evidence": ["health_authority_statement"],
+            "expert_opinions": ["safety_confirmed"]
+        }
+    }
     
-    # 模拟数据
-    agent_profiles = [
-        {"personality": "tech_enthusiast", "interests": ["AI", "technology"], "activity_level": 0.8},
-        {"personality": "social_butterfly", "interests": ["social", "entertainment"], "activity_level": 0.9},
-        {"personality": "news_reader", "interests": ["news", "politics"], "activity_level": 0.6}
-    ]
+    result1 = await task_scheduler.execute_scenario(
+        scenario_type="misinformation_spread",
+        scenario_data=misinformation_scenario
+    )
     
-    network_states = [
-        {"total_users": 1000, "active_users": 800, "posts": 5000, "interactions": 15000},
-        {"total_users": 1200, "active_users": 900, "posts": 6000, "interactions": 18000},
-        {"total_users": 1500, "active_users": 1100, "posts": 8000, "interactions": 25000}
-    ]
+    print(f"✓ 错误信息检测完成:")
+    print(f"  检测准确率: {result1['average_performance']:.3f}")
+    print(f"  成功任务数: {result1['successful_tasks']}/{result1['total_tasks']}")
+    print(f"  建议: {result1['recommendations']}")
     
-    # 执行任务演示
-    for step in range(5):
-        print(f"\n--- 步骤 {step + 1} ---")
-        
-        # 1. 内容生成任务
-        print("执行内容生成任务...")
-        content_result = await task_scheduler.execute_task("content_generation", {
-            "agent_profile": random.choice(agent_profiles),
-            "context": {
-                "platform": "reddit",
-                "topic": "AI technology",
-                "trends": ["AI", "social media", "technology"]
-            }
-        })
-        
-        if content_result["success"]:
-            print(f"✓ 内容生成成功: {content_result['result'][:100]}...")
-        else:
-            print(f"✗ 内容生成失败: {content_result.get('error', 'Unknown error')}")
-        
-        # 2. 行为分析任务
-        print("执行行为分析任务...")
-        behavior_result = await task_scheduler.execute_task("behavior_analysis", {
-            "agent_actions": [
-                {"type": "post", "content": "Hello world", "timestamp": time.time()},
-                {"type": "like", "target": "post_123", "timestamp": time.time()},
-                {"type": "comment", "content": "Great post!", "timestamp": time.time()}
-            ],
-            "network_state": random.choice(network_states)
-        })
-        
-        if behavior_result["success"]:
-            print(f"✓ 行为分析成功: {behavior_result['result']}")
-        else:
-            print(f"✗ 行为分析失败: {behavior_result.get('error', 'Unknown error')}")
-        
-        # 3. 社交动态任务
-        print("执行社交动态任务...")
-        dynamics_result = await task_scheduler.execute_task("social_dynamics", {
-            "network_graph": {
-                "nodes": 1000,
-                "edges": 5000,
-                "density": 0.01,
-                "clustering_coefficient": 0.3
-            },
-            "agent_states": {
-                "active": 800,
-                "inactive": 200,
-                "engaged": 600,
-                "disengaged": 400
-            }
-        })
-        
-        if dynamics_result["success"]:
-            print(f"✓ 社交动态优化成功: {dynamics_result['result']}")
-        else:
-            print(f"✗ 社交动态优化失败: {dynamics_result.get('error', 'Unknown error')}")
-        
-        # 记录性能
-        for result in [content_result, behavior_result, dynamics_result]:
-            if result["success"]:
-                monitor.record_task_performance(result["task_type"], {
-                    "score": 0.8,  # 模拟性能分数
-                    "response_time": 1.5,  # 模拟响应时间
-                    "success": True
-                })
-        
-        # 分析性能趋势
-        trends = monitor.analyze_performance_trends()
-        print(f"性能趋势: {trends['trend']}, 平均性能: {trends['average_performance']:.3f}")
-        
-        # 检查是否需要进化
-        if monitor.trigger_evolution(0.7):
-            print("⚠️ 检测到性能下降，建议触发模型进化")
-        
-        # 获取调度器统计
-        scheduler_stats = task_scheduler.get_performance_stats()
-        print(f"任务统计: 总数{scheduler_stats['total_tasks']}, 成功率{scheduler_stats['success_rate']:.3f}")
-        
-        # 获取进化统计
-        evolution_stats = sandbox.evolving_llm.get_evolution_stats()
-        print(f"进化统计: 步骤{evolution_stats['evolution_step']}, 模型池{evolution_stats['model_pool_size']}")
+    # 场景2: 群体竞争分析
+    print("\n--- 场景2: 群体竞争分析 ---")
+    competition_scenario = {
+        "group_a": {
+            "size": 5000,
+            "influence": 0.7,
+            "strategy_tendency": "aggressive",
+            "activity_level": 0.8
+        },
+        "group_b": {
+            "size": 3000,
+            "influence": 0.6,
+            "strategy_tendency": "defensive",
+            "activity_level": 0.7
+        },
+        "competition_history": [
+            {"type": "content_battle", "winner": "group_a", "timestamp": time.time() - 86400},
+            {"type": "influence_contest", "winner": "group_b", "timestamp": time.time() - 43200}
+        ],
+        "network_state": {
+            "total_users": 100000,
+            "active_users": 80000,
+            "network_density": 0.01
+        }
+    }
+    
+    result2 = await task_scheduler.execute_scenario(
+        scenario_type="group_competition",
+        scenario_data=competition_scenario
+    )
+    
+    print(f"✓ 群体竞争分析完成:")
+    print(f"  分析准确率: {result2['average_performance']:.3f}")
+    print(f"  成功任务数: {result2['successful_tasks']}/{result2['total_tasks']}")
+    print(f"  建议: {result2['recommendations']}")
+    
+    # 场景3: 信息传播效果预测
+    print("\n--- 场景3: 信息传播效果预测 ---")
+    propagation_scenario = {
+        "agent_profile": {
+            "personality": "influencer",
+            "interests": ["technology", "innovation"],
+            "activity_level": 0.9
+        },
+        "content_type": "news",
+        "target_audience": {
+            "age_distribution": "18-35",
+            "interests": ["technology", "AI"],
+            "active_hours": "evening",
+            "propagation_tendency": 0.8
+        },
+        "propagation_goal": "maximize_influence"
+    }
+    
+    result3 = await task_scheduler.execute_scenario(
+        scenario_type="information_propagation",
+        scenario_data=propagation_scenario
+    )
+    
+    print(f"✓ 信息传播预测完成:")
+    print(f"  预测准确率: {result3['average_performance']:.3f}")
+    print(f"  成功任务数: {result3['successful_tasks']}/{result3['total_tasks']}")
+    print(f"  建议: {result3['recommendations']}")
     
     # 保存结果
     results = {
-        "scheduler_stats": task_scheduler.get_performance_stats(),
+        "misinformation_detection": result1,
+        "group_competition": result2,
+        "information_propagation": result3,
         "evolution_stats": sandbox.evolving_llm.get_evolution_stats(),
-        "performance_trends": monitor.analyze_performance_trends(),
         "config": config.__dict__
     }
     
     # 保存到文件
     os.makedirs("./data", exist_ok=True)
-    with open("./data/oasis_task_demo_results.json", "w") as f:
+    with open("./data/oasis_scenario_demo_results.json", "w") as f:
         json.dump(results, f, indent=2, default=str)
     
     print(f"\n=== 演示完成 ===")
-    print(f"结果已保存到: ./data/oasis_task_demo_results.json")
-    print(f"总任务数: {results['scheduler_stats']['total_tasks']}")
-    print(f"成功率: {results['scheduler_stats']['success_rate']:.3f}")
+    print(f"结果已保存到: ./data/oasis_scenario_demo_results.json")
+    print(f"总场景数: 3")
+    print(f"平均性能: {(result1['average_performance'] + result2['average_performance'] + result3['average_performance']) / 3:.3f}")
     print(f"进化步骤: {results['evolution_stats']['evolution_step']}")
     
     return results
@@ -677,16 +848,18 @@ async def run_oasis_task_demo():
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="Oasis任务实现演示")
-    parser.add_argument("--steps", type=int, default=5, help="演示步数")
-    parser.add_argument("--strategy", type=str, default="multi_model", 
+    parser = argparse.ArgumentParser(description="Oasis场景演示")
+    parser.add_argument("--scenarios", type=str, default="all", 
+                       choices=["misinformation", "competition", "propagation", "all"],
+                       help="要运行的场景")
+    parser.add_argument("--strategy", type=str, default="adaptive_compression", 
                        choices=["gradient_based", "meta_learning", "adaptive_compression", "multi_model"],
                        help="进化策略")
     
     args = parser.parse_args()
     
     try:
-        results = asyncio.run(run_oasis_task_demo())
+        results = asyncio.run(run_oasis_scenario_demo())
         print("\n✅ 演示完成!")
         
     except Exception as e:
