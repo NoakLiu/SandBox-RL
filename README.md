@@ -110,6 +110,15 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Performance Monitoring**: Real-time monitoring of evolution effects and performance metrics
   - **State Persistence**: Save and load evolution states for continuous learning
   - **Resource Optimization**: Adaptive resource allocation based on model performance
+- **🎯 Oasis Task Definitions**: Comprehensive task framework for social network simulation
+  - **Agent Interaction Tasks**: Content generation, behavior analysis, social dynamics, network optimization
+  - **Platform Management Tasks**: Recommendation systems, content moderation, trend analysis, user engagement
+  - **Evolution Tasks**: Model adaptation, performance optimization, resource management, strategy learning
+  - **SandGraphX Integration**: Seamless integration with self-evolving LLM capabilities
+  - **Task Scheduling**: Intelligent task distribution and execution management
+  - **Performance Monitoring**: Real-time task performance tracking and optimization
+  - **Multi-Model Task Assignment**: Specialized models for different task types
+  - **Evolutionary Optimization**: Continuous improvement of task execution strategies
 
 ## 📁 File Structure
 
@@ -152,7 +161,9 @@ SandGraphX/
 │   ├── reward_based_slot_demo.py # Reward-based slot management demo
 │   ├── new_rl_algorithms_demo.py # New RL algorithms (SAC, TD3) demo
 │   ├── lora_example.py         # LoRA compression example
-│   └── self_evolving_oasis_demo.py # Self-evolving Oasis system demo
+│   ├── self_evolving_oasis_demo.py # Self-evolving Oasis system demo
+│   ├── integrated_oasis_demo.py # Integrated Oasis with self-evolving LLM demo
+│   └── oasis_task_implementation.py # Oasis task implementation with SandGraphX integration
 ├── docs/                        # Documentation
 │   ├── monitoring_guide.md     # Comprehensive monitoring guide
 │   ├── llm_frozen_adaptive_guide.md # LLMs frozen & adaptive guide
@@ -160,6 +171,7 @@ SandGraphX/
 │   ├── areal_integration_guide.md # AReaL deep integration guide
 │   ├── lora_compression_guide.md # LoRA compression guide
 │   ├── self_evolving_oasis_guide.md # Self-evolving Oasis system guide
+│   ├── oasis_task_definitions.md # Oasis task definitions with SandGraphX integration
 │   ├── examples_guide.md       # Complete examples guide
 │   ├── quick_start_guide.md    # Quick start guide
 │   ├── api_reference.md        # API reference
@@ -168,6 +180,7 @@ SandGraphX/
 ├── visualizations/              # Generated visualizations
 ├── test_lora.py                # LoRA compression test script
 ├── test_self_evolving_oasis.py # Self-evolving Oasis system test script
+├── test_oasis_task_implementation.py # Oasis task implementation test script
 └── setup.py                     # Installation configuration
 ```
 
@@ -269,6 +282,12 @@ python demo/enhanced_areal_integration_demo.py --demo basic
 
 # Run reward-based slot management demo
 python demo/reward_based_slot_demo.py --demo all
+
+# Run Oasis task implementation demo
+python demo/oasis_task_implementation.py --steps 10
+
+# Run Oasis task implementation tests
+python test_oasis_task_implementation.py
 ```
 
 ## 📚 Documentation
