@@ -75,6 +75,15 @@ class LLMConfig:
     batch_size: int = 1
     use_cache: bool = True
     torch_dtype: str = "auto"  # "float16", "float32", "auto"
+    
+    # LoRA配置
+    enable_lora: bool = False  # 是否启用LoRA
+    lora_rank: int = 8  # LoRA秩
+    lora_alpha: float = 16.0  # LoRA缩放因子
+    lora_dropout: float = 0.1  # LoRA dropout率
+    lora_target_modules: Optional[List[str]] = None  # LoRA目标模块
+    lora_adapter_path: Optional[str] = None  # LoRA适配器路径
+    enable_kv_cache_compression: bool = False  # 是否启用KV缓存压缩
 
 
 class BaseLLM(ABC):
@@ -84,6 +93,32 @@ class BaseLLM(ABC):
         self.config = config
         self.model_name = config.model_name
         self.backend = config.backend
+        
+        # LoRA相关
+        self.lora_compressor = None
+        self.lora_adapter_id = None
+        if config.enable_lora:
+            self._setup_lora()
+        
+    def _setup_lora(self):
+        """设置LoRA压缩器"""
+        try:
+            from .lora_compression import create_lora_compressor, CompressionType
+            
+            self.lora_compressor = create_lora_compressor(
+                compression_type=CompressionType.HYBRID,
+                rank=self.config.lora_rank,
+                alpha=self.config.lora_alpha,
+                dropout=self.config.lora_dropout,
+                target_modules=self.config.lora_target_modules or [
+                    "q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj", "lm_head"
+                ]
+            )
+            logger.info(f"LoRA compressor initialized for {self.model_name}")
+        except ImportError as e:
+            logger.warning(f"LoRA not available: {e}")
+            self.config.enable_lora = False
         
     @abstractmethod
     def generate(self, prompt: str, **kwargs) -> LLMResponse:
@@ -109,6 +144,80 @@ class BaseLLM(ABC):
     def unload_model(self) -> None:
         """卸载模型"""
         pass
+    
+    def load_lora_adapter(self, adapter_path: Optional[str] = None) -> bool:
+        """加载LoRA适配器"""
+        if not self.config.enable_lora or self.lora_compressor is None:
+            return False
+        
+        try:
+            adapter_path = adapter_path or self.config.lora_adapter_path
+            if adapter_path:
+                self.lora_adapter_id = self.lora_compressor.load_adapter_from_path(adapter_path)
+                if self.lora_adapter_id:
+                    logger.info(f"Loaded LoRA adapter from {adapter_path}")
+                    return True
+            
+            # 如果没有指定路径，创建新的适配器
+            if self.lora_adapter_id is None:
+                self.lora_adapter_id = self.lora_compressor.create_adapter(self.model_name)
+                logger.info(f"Created new LoRA adapter: {self.lora_adapter_id}")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Error loading LoRA adapter: {e}")
+        
+        return False
+    
+    def unload_lora_adapter(self) -> bool:
+        """卸载LoRA适配器"""
+        if not self.config.enable_lora or self.lora_compressor is None:
+            return False
+        
+        try:
+            if self.lora_adapter_id:
+                success = self.lora_compressor.unload_adapter(self.lora_adapter_id)
+                if success:
+                    logger.info(f"Unloaded LoRA adapter: {self.lora_adapter_id}")
+                    self.lora_adapter_id = None
+                return success
+        except Exception as e:
+            logger.error(f"Error unloading LoRA adapter: {e}")
+        
+        return False
+    
+    def get_lora_stats(self) -> Optional[Dict[str, Any]]:
+        """获取LoRA统计信息"""
+        if not self.config.enable_lora or self.lora_compressor is None:
+            return None
+        
+        try:
+            return self.lora_compressor.get_compression_stats()
+        except Exception as e:
+            logger.error(f"Error getting LoRA stats: {e}")
+            return None
+    
+    def compress_kv_cache(self, kv_cache: Dict[str, Any], cache_id: str) -> Dict[str, Any]:
+        """压缩KV缓存"""
+        if not self.config.enable_kv_cache_compression or self.lora_compressor is None:
+            return kv_cache
+        
+        try:
+            return self.lora_compressor.compress_kv_cache(kv_cache, cache_id)
+        except Exception as e:
+            logger.error(f"Error compressing KV cache: {e}")
+            return kv_cache
+    
+    def decompress_kv_cache(self, cache_id: str) -> Optional[Dict[str, Any]]:
+        """解压KV缓存"""
+        if not self.config.enable_kv_cache_compression or self.lora_compressor is None:
+            return None
+        
+        try:
+            return self.lora_compressor.decompress_kv_cache(cache_id)
+        except Exception as e:
+            logger.error(f"Error decompressing KV cache: {e}")
+            return None
 
 
 class MockLLM(BaseLLM):
@@ -311,6 +420,20 @@ class HuggingFaceLLM(BaseLLM):
             # Move model to device
             self.model = self.model.to(device)
             
+            # 应用LoRA（如果启用）
+            if self.config.enable_lora and self.lora_compressor is not None:
+                logger.info("Applying LoRA to model...")
+                if self.lora_adapter_id is None:
+                    # 创建新的适配器
+                    self.lora_adapter_id = self.lora_compressor.create_adapter(self.model_name)
+                
+                # 加载LoRA适配器到模型
+                success = self.lora_compressor.load_adapter(self.lora_adapter_id, self.model)
+                if success:
+                    logger.info(f"LoRA adapter {self.lora_adapter_id} applied successfully")
+                else:
+                    logger.warning("Failed to apply LoRA adapter")
+            
             self.device = device
             self.model_loaded = True
             logger.info(f"Model loaded successfully: {self.model_name}")
@@ -458,12 +581,41 @@ class HuggingFaceLLM(BaseLLM):
                     max_len = min(kwargs["max_length"], inputs.shape[1] + 256)  # 限制最大长度
                     generation_kwargs["max_length"] = max_len
                 
+                # KV缓存压缩支持
+                cache_id = None
+                if self.config.enable_kv_cache_compression:
+                    # 生成唯一的缓存ID
+                    cache_id = f"kv_cache_{self.model_name}_{int(time.time())}_{self.generation_count}"
+                    
+                    # 尝试从缓存中恢复KV状态
+                    cached_kv = self.decompress_kv_cache(cache_id)
+                    if cached_kv is not None:
+                        logger.info(f"Using cached KV state: {cache_id}")
+                        # 这里需要将缓存的KV状态应用到模型中
+                        # 具体实现取决于模型架构
+                
                 # 生成响应
                 start_time = time.time()
                 with self.torch.no_grad():
                     outputs = self.model.generate(inputs, **generation_kwargs)
                 
                 generation_time = time.time() - start_time
+                
+                # 如果启用了KV缓存压缩，保存当前的KV状态
+                if self.config.enable_kv_cache_compression and cache_id:
+                    try:
+                        # 获取模型的KV缓存状态
+                        if hasattr(self.model, 'past_key_values') and self.model.past_key_values is not None:
+                            kv_cache = {
+                                'past_key_values': self.model.past_key_values,
+                                'attention_mask': getattr(self.model, 'attention_mask', None),
+                                'position_ids': getattr(self.model, 'position_ids', None)
+                            }
+                            # 压缩并保存KV缓存
+                            compressed_kv = self.compress_kv_cache(kv_cache, cache_id)
+                            logger.info(f"Compressed and saved KV cache: {cache_id}")
+                    except Exception as kv_error:
+                        logger.warning(f"Failed to compress KV cache: {kv_error}")
                 
                 # 检查输出是否为空
                 if outputs.shape[0] == 0 or outputs.shape[1] == 0:
@@ -825,6 +977,41 @@ class SharedLLMManager:
     def unload_model(self) -> None:
         """卸载共享模型"""
         self.llm.unload_model()
+    
+    def load_lora_adapter(self, adapter_path: Optional[str] = None) -> bool:
+        """加载LoRA适配器"""
+        return self.llm.load_lora_adapter(adapter_path)
+    
+    def unload_lora_adapter(self) -> bool:
+        """卸载LoRA适配器"""
+        return self.llm.unload_lora_adapter()
+    
+    def get_lora_stats(self) -> Optional[Dict[str, Any]]:
+        """获取LoRA统计信息"""
+        return self.llm.get_lora_stats()
+    
+    def compress_kv_cache(self, kv_cache: Dict[str, Any], cache_id: str) -> Dict[str, Any]:
+        """压缩KV缓存"""
+        return self.llm.compress_kv_cache(kv_cache, cache_id)
+    
+    def decompress_kv_cache(self, cache_id: str) -> Optional[Dict[str, Any]]:
+        """解压KV缓存"""
+        return self.llm.decompress_kv_cache(cache_id)
+    
+    def get_enhanced_stats(self) -> Dict[str, Any]:
+        """获取增强统计信息（包括LoRA信息）"""
+        with self.lock:
+            base_stats = self.get_global_stats()
+            lora_stats = self.get_lora_stats()
+            
+            enhanced_stats = base_stats.copy()
+            if lora_stats:
+                enhanced_stats["lora_stats"] = lora_stats
+                enhanced_stats["lora_enabled"] = True
+            else:
+                enhanced_stats["lora_enabled"] = False
+            
+            return enhanced_stats
 
 
 # 便利函数
