@@ -39,6 +39,15 @@ async def main():
         available_actions=available_actions,
     )
 
+    # 生成 agent graph 后，给每个 agent 分配 group
+    import random
+
+    trump_ratio = 0.5  # 50% Trump, 50% Biden
+    agent_ids = [id for id, _ in agent_graph.get_agents()]
+    trump_agents = set(random.sample(agent_ids, int(len(agent_ids) * trump_ratio)))
+    for id, agent in agent_graph.get_agents():
+        agent.group = "TRUMP" if id in trump_agents else "BIDEN"
+
     # Define the path to the database
     db_path = "twitter_simulation.db"
 
@@ -84,6 +93,46 @@ async def main():
         for _, agent in env.agent_graph.get_agents()
     }
     await env.step(actions_4)
+
+    # 假设 agent_graph 已生成
+    import random
+
+    trump_ratio = 0.5
+    agent_ids = [id for id, _ in agent_graph.get_agents()]
+    trump_agents = set(random.sample(agent_ids, int(len(agent_ids) * trump_ratio)))
+    for id, agent in agent_graph.get_agents():
+        agent.group = "TRUMP" if id in trump_agents else "BIDEN"
+
+    for step in range(30):
+        actions = {}
+        for id, agent in agent_graph.get_agents():
+            neighbors = agent.get_neighbors()
+            neighbor_groups = [n.group for n in neighbors]
+            prompt = (
+                f"You are a {agent.group} supporter. "
+                f"Your neighbors' groups: {neighbor_groups}. "
+                "Will you post/forward TRUMP or BIDEN message this round?"
+            )
+            resp = llm.generate(prompt)
+            print(f"[LLM][Agent {id}] Output: {resp}")
+            if "TRUMP" in str(resp).upper():
+                actions[id] = "TRUMP"
+            else:
+                actions[id] = "BIDEN"
+        # 传播规则
+        for id, agent in agent_graph.get_agents():
+            action = actions[id]
+            neighbors = agent.get_neighbors()
+            neighbor_groups = [n.group for n in neighbors]
+            trump_ratio = neighbor_groups.count("TRUMP") / len(neighbor_groups) if neighbors else 0
+            biden_ratio = 1 - trump_ratio
+            if action != agent.group:
+                if (action == "TRUMP" and trump_ratio > 0.6) or (action == "BIDEN" and biden_ratio > 0.6):
+                    agent.group = action
+        trump_count = sum(1 for _, agent in agent_graph.get_agents() if agent.group == "TRUMP")
+        biden_count = sum(1 for _, agent in agent_graph.get_agents() if agent.group == "BIDEN")
+        print(f"Step {step+1}: TRUMP={trump_count} BIDEN={biden_count}")
+        # 可视化等
 
     # Close the environment
     await env.close()
