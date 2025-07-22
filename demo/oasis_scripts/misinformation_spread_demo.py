@@ -3,7 +3,7 @@ from sandgraph.sandbox_implementations import MisinformationSpreadSandbox
 from sandgraph.core.workflow import WorkflowGraph, WorkflowNode, NodeType
 
 # === 1. 初始化 vLLM (OASIS) ===
-from oasis import ModelFactory
+from camel.models import ModelFactory
 from camel.types import ModelPlatformType
 
 llm = ModelFactory.create(
