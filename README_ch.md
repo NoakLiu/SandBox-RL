@@ -314,3 +314,22 @@ MIT License
 ## 🤝 联系方式
 
 - 邮件联系 - dong.liu.dl2367@yale.edu 
+
+## 🧪 典型案例：虚假信息传播对抗仿真
+
+我们提供了一个基于 SandGraph + OASIS 的 misinformation 传播对抗实例，模拟了两组用户（如“特朗普总统支持者” vs “拜登总统支持者”）在社交网络中的错误信息传播竞争。你可以通过如下方式运行：
+
+1. 进入 scripts 目录，运行仿真脚本：
+
+```bash
+cd demo/scripts
+python misinformation_spread_demo.py
+```
+
+2. 该脚本会自动模拟两组用户的观点传播，并可视化每轮“特朗普/拜登”观点的占比变化。
+
+3. 详细用法、参数配置和高级功能（如 RL 策略、LLM frozen/adaptive、干预机制等）请参考 OASIS 文档：
+
+👉 [OASIS Misinformation Spread Demo 使用说明](demo/oasis/docs/misinformation_spread_demo.md)
+
+--- 
