@@ -9,6 +9,7 @@ import re
 from typing import Any, Dict, List, Optional
 from .core.sandbox import Sandbox
 from datetime import datetime, timedelta
+from enum import Enum
 
 
 class Game24Sandbox(Sandbox):
@@ -1998,6 +1999,92 @@ class SocialNetworkSandbox(Sandbox):
         return min(1.0, base_score * random_factor)
 
 
+class BeliefType(Enum):
+    ROUND = "Earth is round"
+    FLAT = "Earth is flat"
+
+class MisinformationSpreadSandbox(Sandbox):
+    """虚假信息对抗传播沙盒"""
+    def __init__(self, num_agents=50, edge_prob=0.1, seed=42):
+        super().__init__("misinfo_spread", "虚假信息对抗传播沙盒")
+        self.num_agents = num_agents
+        self.edge_prob = edge_prob
+        self.random = random.Random(seed)
+        self.network = self._generate_network()
+        self.beliefs = self._init_beliefs()
+        self.step = 0
+        self.history = []
+
+    def _generate_network(self):
+        # 简单无向图邻接表
+        network = {i: set() for i in range(self.num_agents)}
+        for i in range(self.num_agents):
+            for j in range(i+1, self.num_agents):
+                if self.random.random() < self.edge_prob:
+                    network[i].add(j)
+                    network[j].add(i)
+        return network
+
+    def _init_beliefs(self):
+        # 随机分配信仰
+        beliefs = {}
+        for i in range(self.num_agents):
+            beliefs[i] = self.random.choice([BeliefType.ROUND, BeliefType.FLAT])
+        return beliefs
+
+    def case_generator(self):
+        # 返回当前状态
+        return {
+            "network": self.network,
+            "beliefs": self.beliefs.copy(),
+            "step": self.step
+        }
+
+    def prompt_func(self, case):
+        # 生成每个agent的timeline（邻居观点）
+        prompts = {}
+        for agent, neighbors in case["network"].items():
+            neighbor_beliefs = [case["beliefs"][n].value for n in neighbors]
+            prompts[agent] = f"Your neighbors believe: {neighbor_beliefs}. Your current belief: {case['beliefs'][agent].value}. Should you post/forward ROUND or FLAT?"
+        return prompts
+
+    def verify_score(self, response, case, format_score=0.0):
+        # 统计本轮"圆/平"占比
+        round_count = sum(1 for b in self.beliefs.values() if b == BeliefType.ROUND)
+        flat_count = self.num_agents - round_count
+        return {"round": round_count, "flat": flat_count}
+
+    def execute(self, actions):
+        # actions: {agent_id: "ROUND"/"FLAT"}
+        new_beliefs = self.beliefs.copy()
+        for agent, action in actions.items():
+            # 传播规则：如果大多数邻居信仰与自己不同，有概率被说服
+            neighbors = self.network[agent]
+            if not neighbors:
+                continue
+            neighbor_beliefs = [self.beliefs[n] for n in neighbors]
+            round_ratio = neighbor_beliefs.count(BeliefType.ROUND) / len(neighbor_beliefs)
+            flat_ratio = 1 - round_ratio
+            if action == "ROUND" and round_ratio > 0.6:
+                new_beliefs[agent] = BeliefType.ROUND
+            elif action == "FLAT" and flat_ratio > 0.6:
+                new_beliefs[agent] = BeliefType.FLAT
+            # 否则保持原信仰
+        self.beliefs = new_beliefs
+        self.step += 1
+        # 记录历史
+        round_count = sum(1 for b in self.beliefs.values() if b == BeliefType.ROUND)
+        flat_count = self.num_agents - round_count
+        self.history.append((self.step, round_count, flat_count))
+        done = (round_count == 0 or flat_count == 0 or self.step >= 30)
+        # 修正：verify_score传入当前状态
+        current_case = self.case_generator()
+        return current_case, self.verify_score("", current_case), done
+
+    def get_state(self):
+        return self.case_generator()
+
+
 # 沙盒注册表，方便动态创建
 SANDBOX_REGISTRY = {
     "game24": Game24Sandbox,
@@ -2007,7 +2094,8 @@ SANDBOX_REGISTRY = {
     "trading_gym": TradingGymSandbox,
     "backtrader": BacktraderSandbox,
     "trading": TradingSandbox,
-    "social_network": SocialNetworkSandbox
+    "social_network": SocialNetworkSandbox,
+    "misinfo_spread": MisinformationSpreadSandbox
 }
 
 
@@ -2021,7 +2109,8 @@ def create_sandbox(sandbox_type: str, **kwargs) -> Sandbox:
         "trading_gym": TradingGymSandbox,
         "backtrader": BacktraderSandbox,
         "trading": TradingSandbox,
-        "social_network": SocialNetworkSandbox
+        "social_network": SocialNetworkSandbox,
+        "misinfo_spread": MisinformationSpreadSandbox
     }
     
     if sandbox_type not in sandbox_map:
