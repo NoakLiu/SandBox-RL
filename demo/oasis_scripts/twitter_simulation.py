@@ -34,13 +34,13 @@ async def main():
     ]
 
     agent_graph = await generate_reddit_agent_graph(
-        profile_path="./data/reddit/user_data_36.json",
+        profile_path="user_data_36.json",
         model=models,
         available_actions=available_actions,
     )
 
     # Define the path to the database
-    db_path = "./data/twitter_simulation.db"
+    db_path = "twitter_simulation.db"
 
     # Delete the old database
     if os.path.exists(db_path):
