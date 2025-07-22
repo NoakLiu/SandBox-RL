@@ -14,11 +14,11 @@ llm = ModelFactory.create(
 
 def vllm_llm_decision(prompts):
     prompt_list = [prompt for _, prompt in sorted(prompts.items())]
-    responses = llm.run_batch(prompt_list)
+    responses = [llm.generate(prompt) for prompt in prompt_list]
     actions = {}
-    for idx, ((agent, _), resp) in enumerate(zip(sorted(prompts.items()), responses)):
+    for (agent, _), resp in zip(sorted(prompts.items()), responses):
         print(f"[LLM][Agent {agent}] Output: {resp}")
-        if "TRUMP" in resp.upper():
+        if "TRUMP" in str(resp).upper():
             actions[agent] = "TRUMP"
         else:
             actions[agent] = "BIDEN"
