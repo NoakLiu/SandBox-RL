@@ -389,6 +389,15 @@ SandGraph supports various mainstream large language models:
 - **Influence Mapping**: Identify key influencers and nodes
 - **Network Optimization**: Improve information flow efficiency
 
+### 4. Twitter Misinformation Simulation
+- **OASIS Integration**: Direct integration with OASIS agent graph and social agents
+- **Enhanced Belief Propagation**: Complex belief spread mechanisms with dynamic strength and influence scores
+- **Multi-Mode LLM Decision**: Support for frozen/adaptive/lora modes with asynchronous processing
+- **Real-time Monitoring**: Comprehensive metrics tracking and visualization
+- **Intervention Analysis**: Study intervention strategies and their effectiveness
+- **Network Dynamics**: Realistic social network behavior modeling with polarization analysis
+- **SandGraph Core Integration**: Full utilization of SandGraph Core components (LLM, LoRA, RL, Slot Management)
+
 ## 📄 License
 
 MIT License

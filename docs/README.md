@@ -19,6 +19,7 @@ Welcome to the SandGraphX documentation! This directory contains comprehensive g
 - **[Training Algorithms Guide](training_algorithms_guide.md)** - RL algorithms and training strategies
 - **[Qwen3 Usage Guide](qwen3_usage_guide.md)** - Qwen3 14B model usage guide
 - **[AReaL Integration Guide](areal_integration_guide.md)** - Deep integration with AReaL framework
+- **[Twitter Misinformation Simulation Guide](twitter_misinformation_simulation_guide.md)** - Advanced social network misinformation spread simulation with OASIS integration
 
 ### 📊 Additional Resources
 - **[Usage Report](usage_report.md)** - Usage statistics and examples
@@ -37,6 +38,7 @@ Welcome to the SandGraphX documentation! This directory contains comprehensive g
 4. Use **[Monitoring Guide](monitoring_guide.md)** for advanced monitoring
 5. Check **[LLM Models Guide](LLM_MODELS.md)** for model-specific features
 6. Study **[AReaL Integration Guide](areal_integration_guide.md)** for performance optimization
+7. Explore **[Twitter Misinformation Simulation Guide](twitter_misinformation_simulation_guide.md)** for social network analysis
 
 ### For Developers
 1. Review **[API Reference](api_reference.md)** for complete API documentation
