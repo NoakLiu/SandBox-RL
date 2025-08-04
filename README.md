@@ -120,6 +120,14 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Performance Monitoring**: Real-time task performance tracking and evolution triggering
   - **Multi-Model Task Assignment**: Specialized models for different task types
   - **Evolutionary Optimization**: Continuous improvement of task execution strategies
+- **🐦 Twitter Misinformation Simulation**: Advanced social network misinformation spread simulation with OASIS integration
+  - **OASIS Core Integration**: Direct integration with OASIS agent graph and social agents
+  - **SandGraph Core Integration**: Full utilization of SandGraph Core components (LLM, LoRA, RL, Slot Management)
+  - **Enhanced Belief Propagation**: Complex belief spread mechanisms with dynamic strength and influence scores
+  - **Multi-Mode LLM Decision**: Support for frozen/adaptive/lora modes with asynchronous processing
+  - **Real-time Monitoring**: Comprehensive metrics tracking and visualization
+  - **Intervention Analysis**: Study intervention strategies and their effectiveness
+  - **Network Dynamics**: Realistic social network behavior modeling with polarization analysis
 
 ## 📁 File Structure
 
@@ -338,6 +346,7 @@ result = await scheduler.execute_scenario(
 - **[Reward-Based Slot Management Guide](docs/reward_based_slot_guide.md)** - Intelligent resource allocation
 - **[AReaL Integration Guide](docs/areal_integration_guide.md)** - Deep integration with AReaL framework
 - **[Oasis Task Definitions](docs/oasis_task_definitions.md)** - Scenario-driven task framework for social network research
+- **[Twitter Misinformation Simulation Guide](demo/twitter_misinfo/README.md)** - Advanced social network misinformation spread simulation with OASIS integration
 
 ## 🔥 LLM Model Support
 
