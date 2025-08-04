@@ -299,6 +299,13 @@ python demo/oasis_task_implementation.py --scenarios all
 
 # Run Oasis task implementation tests
 python test_oasis_task_implementation.py
+
+# Run Twitter Misinformation simulation demo
+cd demo/twitter_misinfo
+python run_simulation.py
+
+# Run Twitter Misinformation integration tests
+python test_integration.py
 ```
 
 ### 4. Oasis Task Framework Examples
@@ -346,7 +353,7 @@ result = await scheduler.execute_scenario(
 - **[Reward-Based Slot Management Guide](docs/reward_based_slot_guide.md)** - Intelligent resource allocation
 - **[AReaL Integration Guide](docs/areal_integration_guide.md)** - Deep integration with AReaL framework
 - **[Oasis Task Definitions](docs/oasis_task_definitions.md)** - Scenario-driven task framework for social network research
-- **[Twitter Misinformation Simulation Guide](demo/twitter_misinfo/README.md)** - Advanced social network misinformation spread simulation with OASIS integration
+- **[Twitter Misinformation Simulation Guide](docs/twitter_misinformation_simulation_guide.md)** - Advanced social network misinformation spread simulation with OASIS integration
 
 ## 🔥 LLM Model Support
 
