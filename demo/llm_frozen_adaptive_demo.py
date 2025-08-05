@@ -9,6 +9,8 @@ LLMs Frozen & Adaptive Update Demo
 - 自适应学习率调整
 - 性能监控和回滚
 - 参数重要性分析
+
+支持使用MockLLM或真实HuggingFace模型
 """
 
 import sys
@@ -44,6 +46,24 @@ def setup_logging(level: str = "INFO") -> None:
             logging.FileHandler('llm_frozen_adaptive_demo.log', encoding='utf-8')
         ]
     )
+
+
+def create_real_llm_config(model_name: str = "Qwen/Qwen-1_8B-Chat", 
+                          device: str = "auto") -> LLMConfig:
+    """创建真实LLM配置"""
+    return create_llm_config(
+        backend="huggingface",
+        model_name=model_name,
+        device=device,
+        max_length=512,
+        temperature=0.7,
+        use_cache=True
+    )
+
+
+def create_mock_llm_config() -> LLMConfig:
+    """创建MockLLM配置"""
+    return create_llm_config(backend="mock", model_name="demo_model")
 
 
 def generate_mock_gradients(parameters: Dict[str, Any], 
@@ -84,14 +104,20 @@ def evaluate_performance(model: FrozenAdaptiveLLM,
     return total_confidence / count if count > 0 else 0.0
 
 
-def demo_basic_functionality():
+def demo_basic_functionality(use_real_llm: bool = False, model_name: str = "Qwen/Qwen-1_8B-Chat"):
     """基础功能演示"""
     print("\n" + "="*60)
     print("🔧 基础功能演示")
     print("="*60)
     
     # 创建基础LLM
-    config = create_llm_config(backend="mock", model_name="demo_model")
+    if use_real_llm:
+        print(f"使用真实LLM: {model_name}")
+        config = create_real_llm_config(model_name)
+    else:
+        print("使用MockLLM")
+        config = create_mock_llm_config()
+    
     base_llm = create_llm(config)
     
     # 创建冻结自适应LLM
@@ -123,7 +149,7 @@ def demo_basic_functionality():
         print(f"   {name}: 重要性={info.importance.value}, 冻结={info.frozen}")
 
 
-def demo_update_strategies():
+def demo_update_strategies(use_real_llm: bool = False, model_name: str = "Qwen/Qwen-1_8B-Chat"):
     """更新策略演示"""
     print("\n" + "="*60)
     print("🔄 更新策略演示")
@@ -143,7 +169,10 @@ def demo_update_strategies():
         print(f"   学习率范围: {config.min_learning_rate:.2e} - {config.max_learning_rate:.2e}")
         
         # 创建基础LLM
-        base_config = create_llm_config(backend="mock", model_name=f"model_{strategy_name}")
+        if use_real_llm:
+            base_config = create_real_llm_config(model_name)
+        else:
+            base_config = create_llm_config(backend="mock", model_name=f"model_{strategy_name}")
         base_llm = create_llm(base_config)
         
         # 注册模型
@@ -168,14 +197,17 @@ def demo_update_strategies():
             print(f"   学习率: {stats.get('current_learning_rate', 0):.2e}")
 
 
-def demo_parameter_management():
+def demo_parameter_management(use_real_llm: bool = False, model_name: str = "Qwen/Qwen-1_8B-Chat"):
     """参数管理演示"""
     print("\n" + "="*60)
     print("🔒 参数管理演示")
     print("="*60)
     
     # 创建模型
-    base_config = create_llm_config(backend="mock", model_name="param_demo")
+    if use_real_llm:
+        base_config = create_real_llm_config(model_name)
+    else:
+        base_config = create_llm_config(backend="mock", model_name="param_demo")
     base_llm = create_llm(base_config)
     
     frozen_config = create_frozen_config(
@@ -225,14 +257,17 @@ def demo_parameter_management():
         print(f"\n🔓 解冻参数: {unfreeze_params}")
 
 
-def demo_adaptive_learning_rate():
+def demo_adaptive_learning_rate(use_real_llm: bool = False, model_name: str = "Qwen/Qwen-1_8B-Chat"):
     """自适应学习率演示"""
     print("\n" + "="*60)
     print("📈 自适应学习率演示")
     print("="*60)
     
     # 创建模型
-    base_config = create_llm_config(backend="mock", model_name="adaptive_demo")
+    if use_real_llm:
+        base_config = create_real_llm_config(model_name)
+    else:
+        base_config = create_llm_config(backend="mock", model_name="adaptive_demo")
     base_llm = create_llm(base_config)
     
     frozen_config = create_frozen_config(
@@ -244,96 +279,83 @@ def demo_adaptive_learning_rate():
     
     frozen_llm = FrozenAdaptiveLLM(base_llm, frozen_config)
     
-    # 模拟训练过程
-    parameters = base_llm.get_parameters()
-    learning_rates = []
-    performances = []
-    
     print("🔄 模拟训练过程:")
-    for epoch in range(10):
+    parameters = base_llm.get_parameters()
+    
+    for epoch in range(1, 11):
         # 生成梯度
         gradients = generate_mock_gradients(parameters)
         
         # 模拟性能变化
-        if epoch < 5:
-            performance = 0.6 + epoch * 0.05 + np.random.normal(0, 0.02)  # 性能提升
-        else:
-            performance = 0.8 - (epoch - 5) * 0.03 + np.random.normal(0, 0.02)  # 性能下降
+        performance = 0.6 + 0.02 * epoch + np.random.normal(0, 0.05)
         
         # 更新参数
         updated_params = frozen_llm.update_parameters(gradients, performance)
         
-        # 获取统计信息
+        # 获取当前学习率
         stats = frozen_llm.get_performance_stats()
         current_lr = stats.get('current_learning_rate', 0)
         
-        learning_rates.append(current_lr)
-        performances.append(performance)
-        
-        print(f"   Epoch {epoch+1:2d}: 性能={performance:.3f}, 学习率={current_lr:.2e}")
+        print(f"   Epoch {epoch:2d}: 性能={performance:.3f}, 学习率={current_lr:.2e}")
     
     # 分析学习率变化
+    initial_lr = frozen_config.min_learning_rate
+    final_lr = stats.get('current_learning_rate', initial_lr)
+    lr_change = (final_lr - initial_lr) / initial_lr * 100
+    
     print(f"\n📊 学习率变化分析:")
-    print(f"   初始学习率: {learning_rates[0]:.2e}")
-    print(f"   最终学习率: {learning_rates[-1]:.2e}")
-    print(f"   学习率变化: {((learning_rates[-1] - learning_rates[0]) / learning_rates[0] * 100):+.1f}%")
+    print(f"   初始学习率: {initial_lr:.2e}")
+    print(f"   最终学习率: {final_lr:.2e}")
+    print(f"   学习率变化: {lr_change:+.1f}%")
 
 
-def demo_performance_monitoring():
+def demo_performance_monitoring(use_real_llm: bool = False, model_name: str = "Qwen/Qwen-1_8B-Chat"):
     """性能监控演示"""
     print("\n" + "="*60)
     print("📊 性能监控演示")
     print("="*60)
     
     # 创建模型
-    base_config = create_llm_config(backend="mock", model_name="monitor_demo")
+    if use_real_llm:
+        base_config = create_real_llm_config(model_name)
+    else:
+        base_config = create_llm_config(backend="mock", model_name="monitor_demo")
     base_llm = create_llm(base_config)
     
     frozen_config = create_frozen_config(
-        strategy="gradual",
-        performance_window=20,
-        rollback_threshold=0.05
+        strategy="adaptive",
+        performance_window=10,
+        adaptive_learning_rate=True
     )
     
     frozen_llm = FrozenAdaptiveLLM(base_llm, frozen_config)
     
-    # 测试提示
-    test_prompts = [
-        "什么是人工智能？",
-        "解释机器学习的基本概念",
-        "深度学习与传统机器学习的区别",
-        "神经网络的工作原理",
-        "强化学习的应用场景"
-    ]
-    
     print("🔄 性能监控训练:")
-    for step in range(15):
+    parameters = base_llm.get_parameters()
+    
+    for step in range(1, 16):
         # 生成梯度
-        parameters = base_llm.get_parameters()
         gradients = generate_mock_gradients(parameters)
         
-        # 评估性能
-        performance = evaluate_performance(frozen_llm, test_prompts)
+        # 模拟性能提升
+        performance = 0.75 + 0.012 * step + np.random.normal(0, 0.01)
         
         # 更新参数
         updated_params = frozen_llm.update_parameters(gradients, performance)
         
-        # 获取统计信息
+        # 获取性能统计
         stats = frozen_llm.get_performance_stats()
+        avg_performance = stats.get('average_performance', 0)
+        performance_trend = stats.get('performance_trend', 0)
         
-        print(f"   Step {step+1:2d}: 性能={performance:.3f}, "
-              f"平均性能={stats.get('average_performance', 0):.3f}, "
-              f"趋势={stats.get('performance_trend', 0):+.3f}")
+        print(f"   Step {step:2d}: 性能={performance:.3f}, 平均性能={avg_performance:.3f}, 趋势={performance_trend:+.3f}")
     
-    # 保存检查点
-    checkpoint_path = "demo_checkpoint.pkl"
-    if frozen_llm.save_checkpoint(checkpoint_path):
-        print(f"\n💾 检查点已保存: {checkpoint_path}")
+    # 保存检查点和配置
+    frozen_llm.save_checkpoint("demo_checkpoint.pkl")
+    frozen_llm.export_config("demo_config.json")
     
-    # 导出配置
-    config_path = "demo_config.json"
-    if frozen_llm.export_config(config_path):
-        print(f"📄 配置已导出: {config_path}")
+    print(f"\n💾 检查点已保存: demo_checkpoint.pkl")
+    print(f"📄 配置已导出: demo_config.json")
     
     # 显示最终统计
     final_stats = frozen_llm.get_performance_stats()
@@ -345,71 +367,74 @@ def demo_performance_monitoring():
             print(f"   {key}: {value}")
 
 
-def demo_checkpoint_and_rollback():
+def demo_checkpoint_and_rollback(use_real_llm: bool = False, model_name: str = "Qwen/Qwen-1_8B-Chat"):
     """检查点和回滚演示"""
     print("\n" + "="*60)
     print("💾 检查点和回滚演示")
     print("="*60)
     
     # 创建模型
-    base_config = create_llm_config(backend="mock", model_name="checkpoint_demo")
+    if use_real_llm:
+        base_config = create_real_llm_config(model_name)
+    else:
+        base_config = create_llm_config(backend="mock", model_name="rollback_demo")
     base_llm = create_llm(base_config)
     
     frozen_config = create_frozen_config(strategy="adaptive")
     frozen_llm = FrozenAdaptiveLLM(base_llm, frozen_config)
     
-    # 初始状态
-    initial_params = frozen_llm.get_parameters()
-    print(f"📊 初始参数数量: {len(initial_params)}")
-    
-    # 训练几个步骤
     parameters = base_llm.get_parameters()
-    for step in range(5):
+    print(f"📊 初始参数数量: {len(parameters)}")
+    
+    # 进行一些更新
+    for i in range(5):
         gradients = generate_mock_gradients(parameters)
-        performance = 0.7 + step * 0.02
+        performance = 0.7 + np.random.normal(0, 0.1)
         frozen_llm.update_parameters(gradients, performance)
     
     # 保存检查点
-    checkpoint_path = "rollback_checkpoint.pkl"
-    frozen_llm.save_checkpoint(checkpoint_path)
-    print(f"💾 保存检查点: {checkpoint_path}")
+    frozen_llm.save_checkpoint("rollback_checkpoint.pkl")
+    print(f"💾 保存检查点: rollback_checkpoint.pkl")
     
-    # 继续训练（模拟性能下降）
-    for step in range(3):
+    # 继续更新（模拟性能下降）
+    for i in range(3):
         gradients = generate_mock_gradients(parameters)
-        performance = 0.6 - step * 0.05  # 性能下降
+        performance = 0.5 + np.random.normal(0, 0.1)  # 性能下降
         frozen_llm.update_parameters(gradients, performance)
     
-    stats_before_rollback = frozen_llm.get_performance_stats()
-    print(f"📊 回滚前性能: {stats_before_rollback.get('current_performance', 0):.3f}")
+    # 获取回滚前性能
+    stats_before = frozen_llm.get_performance_stats()
+    performance_before = stats_before.get('current_performance', 0)
+    print(f"📊 回滚前性能: {performance_before:.3f}")
     
     # 回滚到检查点
-    success = frozen_llm.rollback_to_checkpoint(checkpoint_path)
+    success = frozen_llm.rollback_to_checkpoint("rollback_checkpoint.pkl")
     if success:
-        print(f"🔄 成功回滚到检查点")
+        print("🔄 成功回滚到检查点")
         
-        stats_after_rollback = frozen_llm.get_performance_stats()
-        print(f"📊 回滚后性能: {stats_after_rollback.get('current_performance', 0):.3f}")
-    
-    # 清理文件
-    if os.path.exists(checkpoint_path):
-        os.remove(checkpoint_path)
+        # 获取回滚后性能
+        stats_after = frozen_llm.get_performance_stats()
+        performance_after = stats_after.get('current_performance', 0)
+        print(f"📊 回滚后性能: {performance_after:.3f}")
 
 
-def demo_importance_analysis():
-    """重要性分析演示"""
+def demo_importance_analysis(use_real_llm: bool = False, model_name: str = "Qwen/Qwen-1_8B-Chat"):
+    """参数重要性分析演示"""
     print("\n" + "="*60)
     print("🎯 参数重要性分析演示")
     print("="*60)
     
     # 创建模型
-    base_config = create_llm_config(backend="mock", model_name="importance_demo")
+    if use_real_llm:
+        base_config = create_real_llm_config(model_name)
+    else:
+        base_config = create_llm_config(backend="mock", model_name="importance_demo")
     base_llm = create_llm(base_config)
     
     frozen_config = create_frozen_config(strategy="selective")
     frozen_llm = FrozenAdaptiveLLM(base_llm, frozen_config)
     
-    # 生成不同重要性的梯度
+    # 获取参数
     parameters = base_llm.get_parameters()
     param_names = list(parameters.keys())
     
@@ -459,6 +484,10 @@ def main():
     parser.add_argument("--log-level", default="INFO", 
                        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                        help="日志级别")
+    parser.add_argument("--use-real-llm", action="store_true", 
+                       help="是否使用真实HuggingFace LLM进行演示")
+    parser.add_argument("--model-name", type=str, default="Qwen/Qwen-1_8B-Chat", 
+                       help="当使用真实LLM时，指定模型名称")
     
     args = parser.parse_args()
     
@@ -470,25 +499,25 @@ def main():
     
     try:
         if args.demo == "all" or args.demo == "basic":
-            demo_basic_functionality()
+            demo_basic_functionality(args.use_real_llm, args.model_name)
         
         if args.demo == "all" or args.demo == "strategies":
-            demo_update_strategies()
+            demo_update_strategies(args.use_real_llm, args.model_name)
         
         if args.demo == "all" or args.demo == "parameters":
-            demo_parameter_management()
+            demo_parameter_management(args.use_real_llm, args.model_name)
         
         if args.demo == "all" or args.demo == "adaptive":
-            demo_adaptive_learning_rate()
+            demo_adaptive_learning_rate(args.use_real_llm, args.model_name)
         
         if args.demo == "all" or args.demo == "monitoring":
-            demo_performance_monitoring()
+            demo_performance_monitoring(args.use_real_llm, args.model_name)
         
         if args.demo == "all" or args.demo == "checkpoint":
-            demo_checkpoint_and_rollback()
+            demo_checkpoint_and_rollback(args.use_real_llm, args.model_name)
         
         if args.demo == "all" or args.demo == "importance":
-            demo_importance_analysis()
+            demo_importance_analysis(args.use_real_llm, args.model_name)
         
         print("\n" + "="*60)
         print("✅ 演示完成！")
