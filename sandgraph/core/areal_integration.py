@@ -62,6 +62,31 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+class TaskPriority(Enum):
+    """任务优先级"""
+    LOW = "low"
+    NORMAL = "normal"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+class NodeConfig:
+    """节点配置"""
+    def __init__(self, cpu_cores: int = 4, memory_gb: float = 8.0, gpu_count: int = 0):
+        self.cpu_cores = cpu_cores
+        self.memory_gb = memory_gb
+        self.gpu_count = gpu_count
+
+
+class CachePolicy(Enum):
+    """缓存策略"""
+    LRU = "lru"
+    LFU = "lfu"
+    FIFO = "fifo"
+    RANDOM = "random"
+    ADAPTIVE = "adaptive"
+
+
 class IntegrationLevel(Enum):
     """AReaL集成级别"""
     BASIC = "basic"  # 基础集成：缓存和指标
@@ -111,11 +136,11 @@ class ArealCacheBackend(Protocol):
 class ArealMetricsBackend(Protocol):
     """AReaL指标后端协议"""
     
-    def record_metric(self, name: str, value: float, tags: Dict[str, str] = None) -> None:
+    def record_metric(self, name: str, value: float, tags: Optional[Dict[str, str]] = None) -> None:
         """记录指标"""
         ...
     
-    def get_metrics(self, name: str = None, tags: Dict[str, str] = None) -> List[Dict[str, Any]]:
+    def get_metrics(self, name: Optional[str] = None, tags: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
         """获取指标"""
         ...
     
@@ -155,7 +180,7 @@ class ArealDistributedManager(Protocol):
         """注销节点"""
         ...
     
-    def distribute_task(self, task_id: str, task_data: Any, target_nodes: List[str] = None) -> List[str]:
+    def distribute_task(self, task_id: str, task_data: Any, target_nodes: Optional[List[str]] = None) -> List[str]:
         """分发任务"""
         ...
     
@@ -599,7 +624,7 @@ class FallbackMetricsBackend:
             "timestamp": datetime.now().isoformat()
         })
     
-    def get_metrics(self, name: str = None, tags: Dict[str, str] = None) -> List[Dict[str, Any]]:
+    def get_metrics(self, name: Optional[str] = None, tags: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
         filtered_metrics = self.metrics
         
         if name:
@@ -704,7 +729,7 @@ class FallbackDistributedManager:
             return True
         return False
     
-    def distribute_task(self, task_id: str, task_data: Any, target_nodes: List[str] = None) -> List[str]:
+    def distribute_task(self, task_id: str, task_data: Any, target_nodes: Optional[List[str]] = None) -> List[str]:
         self.tasks[task_id] = {"data": task_data, "nodes": target_nodes or []}
         return [task_id]
     
