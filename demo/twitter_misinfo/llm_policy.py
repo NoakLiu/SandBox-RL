@@ -10,7 +10,7 @@ from typing import Dict, List, Any, Optional
 
 # Import SandGraph Core components
 try:
-    from sandgraph.core.llm_interface import create_shared_llm_manager, create_lora_llm_manager
+    from sandgraph.core.llm_interface import create_shared_llm_manager
     from sandgraph.core.llm_frozen_adaptive import create_frozen_adaptive_llm, UpdateStrategy
     from sandgraph.core.lora_compression import create_online_lora_manager
     from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
@@ -28,7 +28,7 @@ class LLMPolicy:
     智能决策系统：支持frozen（只用LLM）、adaptive（RL微调）、lora（LoRA权重可插拔微调）三种模式，全部调用SandGraph core。
     集成 SandGraph Core 组件，支持更复杂的决策机制。
     """
-    def __init__(self, mode='frozen', reward_fn=None, model_name="qwen-2", backend="vllm", 
+    def __init__(self, mode='frozen', reward_fn=None, model_name="qwen-2", backend="huggingface", 
                  url="http://localhost:8001/v1", lora_path=None, enable_monitoring=True):
         self.mode = mode
         self.reward_fn = reward_fn
@@ -71,9 +71,9 @@ class LLMPolicy:
                 rl_config = RLConfig(algorithm=RLAlgorithm.PPO)
                 self.rl_trainer = RLTrainer(rl_config, self.llm_manager)
             elif self.mode == 'lora':
-                self.llm_manager = create_lora_llm_manager(
+                # 使用基础的 shared_llm_manager 作为 fallback
+                self.llm_manager = create_shared_llm_manager(
                     model_name=model_name,
-                    lora_path=self.lora_path,
                     backend=backend,
                     url=url,
                     temperature=0.7
@@ -91,23 +91,31 @@ class LLMPolicy:
                 )
             
             # 初始化 LoRA Manager
-            self.lora_manager = create_online_lora_manager(
-                compression_type='hybrid',
-                lora_config='medium',
-                enable_online_adaptation=True
-            )
+            try:
+                self.lora_manager = create_online_lora_manager(
+                    compression_type='hybrid',
+                    lora_config='medium',
+                    enable_online_adaptation=True
+                )
+            except Exception as e:
+                print(f"LoRA manager initialization failed: {e}")
+                self.lora_manager = None
             
             # 初始化 Slot Manager
-            slot_config = SlotConfig(max_slots=10)
-            self.slot_manager = RewardBasedSlotManager(slot_config)
+            try:
+                slot_config = SlotConfig(max_slots=10)
+                self.slot_manager = RewardBasedSlotManager(slot_config)
+            except Exception as e:
+                print(f"Slot manager initialization failed: {e}")
+                self.slot_manager = None
             
             # 初始化监控配置
             if self.enable_monitoring:
-                self.monitoring_config = MonitoringConfig(
-                    enable_social_network_metrics=True,
-                    enable_belief_tracking=True,
-                    enable_influence_analysis=True
-                )
+                try:
+                    self.monitoring_config = MonitoringConfig()
+                except Exception as e:
+                    print(f"Monitoring config initialization failed: {e}")
+                    self.monitoring_config = None
                 
         except Exception as e:
             print(f"Error initializing SandGraph Core components: {e}")
@@ -220,16 +228,24 @@ If your influence score is high, you can have more impact on your neighbors.
         """
         # 同步版本的决策，内部调用异步版本
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # 如果已经在事件循环中，直接运行
+            # 检查当前事件循环状态
+            try:
+                loop = asyncio.get_running_loop()
+                # 如果已经在事件循环中，使用 create_task
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, self.decide_async(prompts, state))
+                    return future.result()
+            except RuntimeError:
+                # 没有运行的事件循环，直接运行
                 return asyncio.run(self.decide_async(prompts, state))
-            else:
-                # 否则使用当前事件循环
-                return loop.run_until_complete(self.decide_async(prompts, state))
-        except RuntimeError:
-            # 如果没有事件循环，创建新的
-            return asyncio.run(self.decide_async(prompts, state))
+        except Exception as e:
+            print(f"Error in decide method: {e}")
+            # 使用 fallback 响应
+            actions = {}
+            for agent_id, prompt in prompts.items():
+                actions[agent_id] = self._generate_fallback_response(prompt)
+            return actions
     
     def _generate_fallback_response(self, prompt: str) -> str:
         """生成 fallback 响应"""

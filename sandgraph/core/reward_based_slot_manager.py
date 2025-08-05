@@ -377,6 +377,38 @@ class RewardBasedSlotManager:
             self.completed_slots.clear()
             logger.info("Cleared completed slots")
 
+    def update_slot_reward(self, slot_id: str, new_reward: float) -> bool:
+        """更新slot的reward值"""
+        if slot_id not in self.slots:
+            logger.warning(f"Slot {slot_id} not found")
+            return False
+        
+        slot = self.slots[slot_id]
+        old_reward = slot.reward
+        slot.reward = new_reward
+        
+        logger.info(f"Updated slot {slot_id} reward: {old_reward} -> {new_reward}")
+        
+        # 如果reward变化显著，可能需要重新调度
+        if abs(new_reward - old_reward) > self.config.reward_threshold:
+            self._schedule_waiting_slots()
+        
+        return True
+    
+    def update_slots(self, reward_update: float) -> bool:
+        """批量更新所有运行中slot的reward值"""
+        updated_count = 0
+        for slot_id, slot in self.slots.items():
+            if slot.state == SlotState.RUNNING:
+                old_reward = slot.reward
+                new_reward = old_reward + reward_update
+                slot.reward = max(0.0, new_reward)  # 确保reward不为负
+                updated_count += 1
+                logger.debug(f"Updated slot {slot_id} reward: {old_reward} -> {slot.reward}")
+        
+        logger.info(f"Updated {updated_count} running slots with reward update: {reward_update}")
+        return updated_count > 0
+
 
 class AdaptiveFrozenSlotManager(RewardBasedSlotManager):
     """与adaptive frozen集成的slot管理器"""

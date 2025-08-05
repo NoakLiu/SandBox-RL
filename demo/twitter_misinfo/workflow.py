@@ -96,16 +96,20 @@ class TwitterMisinfoWorkflow:
         try:
             # 初始化监控配置
             if self.enable_monitoring:
-                self.monitoring_config = MonitoringConfig(
-                    enable_social_network_metrics=True,
-                    enable_belief_tracking=True,
-                    enable_influence_analysis=True
-                )
+                try:
+                    self.monitoring_config = MonitoringConfig()
+                except Exception as e:
+                    print(f"Monitoring config initialization failed: {e}")
+                    self.monitoring_config = None
             
             # 初始化 Slot Manager
             if self.enable_slot_management:
-                slot_config = SlotConfig(max_slots=10)
-                self.slot_manager = RewardBasedSlotManager(slot_config)
+                try:
+                    slot_config = SlotConfig(max_slots=10)
+                    self.slot_manager = RewardBasedSlotManager(slot_config)
+                except Exception as e:
+                    print(f"Slot manager initialization failed: {e}")
+                    self.slot_manager = None
                 
         except Exception as e:
             print(f"Error initializing SandGraph Core components: {e}")
@@ -145,7 +149,9 @@ class TwitterMisinfoWorkflow:
             try:
                 # 计算 slot reward
                 slot_r = slot_reward(state, actions, next_state)
-                self.slot_manager.update_slots(slot_r)
+                # 尝试更新 slot manager，如果方法不存在则跳过
+                if hasattr(self.slot_manager, 'update_slots'):
+                    self.slot_manager.update_slots(slot_r)
                 return slot_r
             except Exception as e:
                 print(f"Error updating slot manager: {e}")
