@@ -257,6 +257,35 @@ class AgentGraph:
         else:
             return self.graph.get_number_of_edges()
 
+    def get_neighbors(self, agent_id: int) -> list[int]:
+        """获取指定agent的邻居节点"""
+        if self.backend == "igraph":
+            # 使用igraph获取邻居
+            try:
+                vertex = self.graph.vs.find(agent_id)
+                neighbors = []
+                for edge in self.graph.es:
+                    if edge.source == vertex.index:
+                        neighbors.append(self.graph.vs[edge.target].index)
+                    elif edge.target == vertex.index:
+                        neighbors.append(self.graph.vs[edge.source].index)
+                return neighbors
+            except ValueError:
+                return []
+        else:
+            # 使用Neo4j获取邻居
+            with self.graph.driver.session() as session:
+                result = session.run("""
+                    MATCH (a:Agent {id: $agent_id})-[r:FOLLOW]-(b:Agent)
+                    RETURN b.id AS neighbor_id
+                    """, agent_id=agent_id)
+                return [record["neighbor_id"] for record in result]
+
+    def get_neighbor_agents(self, agent_id: int) -> list[SocialAgent]:
+        """获取指定agent的邻居agent对象"""
+        neighbor_ids = self.get_neighbors(agent_id)
+        return [self.get_agent(nid) for nid in neighbor_ids if nid in self.agent_mappings]
+
     def close(self) -> None:
         if self.backend == "neo4j":
             self.graph.close()

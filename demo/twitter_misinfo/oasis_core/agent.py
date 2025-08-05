@@ -316,6 +316,26 @@ class SocialAgent(ChatAgent):
             agent_log.info(
                 f"Agent {self.social_agent_id} followed Agent {followee_id}")
 
+    def get_neighbors(self) -> list["SocialAgent"]:
+        """获取当前agent的邻居节点"""
+        if self.agent_graph is None:
+            return []
+        
+        try:
+            neighbor_ids = self.agent_graph.get_neighbors(self.social_agent_id)
+            neighbors = []
+            for neighbor_id in neighbor_ids:
+                try:
+                    neighbor = self.agent_graph.get_agent(neighbor_id)
+                    neighbors.append(neighbor)
+                except KeyError:
+                    # 如果邻居agent不存在，跳过
+                    continue
+            return neighbors
+        except Exception as e:
+            agent_log.error(f"Error getting neighbors for agent {self.social_agent_id}: {e}")
+            return []
+
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}(agent_id={self.social_agent_id}, "
                 f"model_type={self.model_type.value})")
