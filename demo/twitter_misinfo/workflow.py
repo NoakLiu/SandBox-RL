@@ -188,7 +188,17 @@ class TwitterMisinfoWorkflow:
     def run(self, max_steps=30):
         """运行仿真"""
         print(f"开始运行 {max_steps} 步仿真...")
-        print(f"Agent Graph 信息: {len(self.agent_graph)} 个 agents")
+        
+        # 处理不同类型的agent_graph
+        if hasattr(self.agent_graph, 'get_agents'):
+            # OASIS AgentGraph
+            agents = list(self.agent_graph.get_agents())
+            print(f"Agent Graph 信息: {len(agents)} 个 agents (OASIS格式)")
+        elif isinstance(self.agent_graph, dict):
+            # 字典格式的agent_graph
+            print(f"Agent Graph 信息: {len(self.agent_graph)} 个 agents (字典格式)")
+        else:
+            print(f"Agent Graph 信息: {len(self.agent_graph)} 个 agents")
         
         history = []
         start_time = time.time()
@@ -262,7 +272,7 @@ class TwitterMisinfoWorkflow:
             "final_influence_spread": final_metrics.influence_spread,
             "total_reward": sum(self.rewards),
             "total_slot_reward": sum(self.slot_rewards),
-            "agent_graph_size": len(self.agent_graph)
+            "agent_graph_size": len(self.agent_graph) if hasattr(self.agent_graph, '__len__') else 0
         }
     
     def export_metrics(self, filename: str = "simulation_metrics.json"):
