@@ -82,8 +82,9 @@ class VLLMClient:
         if not self.session:
             raise RuntimeError("Client not initialized. Use async context manager.")
         
+        # 修复模型名称和API调用
         payload = {
-            "model": "qwen-2-7b-chat",
+            "model": "qwen2.5-7b-instruct",  # 使用正确的模型名称
             "messages": [
                 {"role": "user", "content": prompt}
             ],
@@ -93,17 +94,37 @@ class VLLMClient:
         }
         
         try:
-            async with self.session.post(
+            # 尝试不同的API端点
+            endpoints = [
                 f"{self.base_url}/chat/completions",
-                json=payload,
-                timeout=30
-            ) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result["choices"][0]["message"]["content"]
-                else:
-                    logger.error(f"vLLM API error: {response.status}")
-                    return "ERROR: API call failed"
+                f"{self.base_url}/v1/chat/completions",
+                f"{self.base_url}/completions"
+            ]
+            
+            for endpoint in endpoints:
+                try:
+                    async with self.session.post(
+                        endpoint,
+                        json=payload,
+                        timeout=30
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            return result["choices"][0]["message"]["content"]
+                        elif response.status == 404:
+                            logger.warning(f"Endpoint {endpoint} not found, trying next...")
+                            continue
+                        else:
+                            logger.error(f"vLLM API error: {response.status} at {endpoint}")
+                            continue
+                except Exception as e:
+                    logger.warning(f"Failed to call {endpoint}: {e}")
+                    continue
+            
+            # 如果所有端点都失败，返回错误信息
+            logger.error("All vLLM endpoints failed")
+            return "ERROR: All API endpoints failed"
+            
         except Exception as e:
             logger.error(f"vLLM API exception: {e}")
             return "ERROR: API exception"
