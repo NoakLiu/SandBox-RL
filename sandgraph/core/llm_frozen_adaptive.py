@@ -115,7 +115,7 @@ class AdaptiveLearningRate:
         recent_performance = list(self.performance_history)[-10:]
         if len(recent_performance) >= 2:
             try:
-                if NUMPY_AVAILABLE and hasattr(np, 'diff') and hasattr(np, 'mean'):
+                if NUMPY_AVAILABLE and np is not None and hasattr(np, 'diff') and hasattr(np, 'mean'):
                     performance_trend = np.mean(np.diff(recent_performance))
                 else:
                     # 手动计算趋势
@@ -162,7 +162,7 @@ class ParameterImportanceAnalyzer:
                 
                 # 计算梯度范数
                 try:
-                    if NUMPY_AVAILABLE and isinstance(grad, np.ndarray):
+                    if NUMPY_AVAILABLE and np is not None and isinstance(grad, np.ndarray):
                         grad_norm = np.linalg.norm(grad)
                     elif isinstance(grad, list):
                         grad_norm = sum(g * g for g in grad) ** 0.5
@@ -175,7 +175,7 @@ class ParameterImportanceAnalyzer:
                 
                 # 计算参数敏感性
                 try:
-                    if NUMPY_AVAILABLE and isinstance(param, np.ndarray):
+                    if NUMPY_AVAILABLE and np is not None and isinstance(param, np.ndarray):
                         param_norm = np.linalg.norm(param)
                     elif isinstance(param, list):
                         param_norm = sum(p * p for p in param) ** 0.5
@@ -308,7 +308,7 @@ class FrozenAdaptiveLLM:
                     if name in gradients:
                         grad = gradients[name]
                         try:
-                            if NUMPY_AVAILABLE and isinstance(grad, np.ndarray):
+                            if NUMPY_AVAILABLE and np is not None and isinstance(grad, np.ndarray):
                                 grad_norm = np.linalg.norm(grad)
                             elif isinstance(grad, list):
                                 grad_norm = sum(g * g for g in grad) ** 0.5
@@ -410,7 +410,13 @@ class FrozenAdaptiveLLM:
     def _apply_gradient(self, parameter: Any, gradient: Any, learning_rate: float) -> Any:
         """应用梯度更新"""
         try:
-            if NUMPY_AVAILABLE and isinstance(parameter, np.ndarray) and isinstance(gradient, np.ndarray):
+            # 检查参数类型，只对数值类型进行更新
+            if isinstance(parameter, (dict, str, bool)):
+                # 对于非数值类型，直接返回原值
+                logger.debug(f"跳过非数值类型参数更新: {type(parameter)}")
+                return parameter
+            
+            if NUMPY_AVAILABLE and np is not None and isinstance(parameter, np.ndarray) and isinstance(gradient, np.ndarray):
                 return parameter - learning_rate * gradient
             elif isinstance(parameter, list) and isinstance(gradient, list):
                 return [p - learning_rate * g for p, g in zip(parameter, gradient)]
@@ -464,7 +470,7 @@ class FrozenAdaptiveLLM:
             
             # 计算标准差
             try:
-                if NUMPY_AVAILABLE and hasattr(np, 'std'):
+                if NUMPY_AVAILABLE and np is not None and hasattr(np, 'std'):
                     performance_std = np.std(performance_list)
                 else:
                     # 手动计算标准差
