@@ -63,16 +63,18 @@ class MisinfoContent:
 class VLLMClient:
     """vLLM客户端"""
     
-    def __init__(self, base_url: str = "http://localhost:8001/v1"):
+    def __init__(self, base_url: str = "http://localhost:8001/v1", session: aiohttp.ClientSession = None):
         self.base_url = base_url
-        self.session = None
+        self.session = session
+        self._own_session = session is None
     
     async def __aenter__(self):
-        self.session = aiohttp.ClientSession()
+        if self._own_session:
+            self.session = aiohttp.ClientSession()
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self.session:
+        if self._own_session and self.session:
             await self.session.close()
     
     async def generate(self, prompt: str, max_tokens: int = 100, temperature: float = 0.7) -> str:
@@ -108,7 +110,7 @@ class VLLMClient:
 
 class Agent:
     """Agent类"""
-    def __init__(self, agent_id: int, name: str, profile: Dict, vllm_client: VLLMClient):
+    def __init__(self, agent_id: int, name: str, profile: Dict, vllm_url: str, session: aiohttp.ClientSession):
         self.agent_id = agent_id
         self.name = name
         self.profile = profile
@@ -121,7 +123,8 @@ class Agent:
         self.groups = []
         self.exposure_history = []
         self.verification_history = []
-        self.vllm_client = vllm_client
+        self.vllm_url = vllm_url  # 存储URL而不是客户端实例
+        self.session = session # 存储共享的aiohttp会话
     
     def _initialize_belief(self) -> AgentBelief:
         """初始化信念类型"""
@@ -159,27 +162,29 @@ class Agent:
 """
         
         try:
-            response = await self.vllm_client.generate(prompt, max_tokens=200, temperature=0.3)
-            try:
-                json_match = re.search(r'\{.*\}', response, re.DOTALL)
-                if json_match:
-                    result = json.loads(json_match.group())
-                else:
+            # 为每次调用创建新的VLLM客户端并使用异步上下文管理器
+            async with VLLMClient(self.vllm_url, self.session) as vllm_client:
+                response = await vllm_client.generate(prompt, max_tokens=200, temperature=0.3)
+                try:
+                    json_match = re.search(r'\{.*\}', response, re.DOTALL)
+                    if json_match:
+                        result = json.loads(json_match.group())
+                    else:
+                        result = {
+                            "credibility_score": 0.5,
+                            "will_propagate": random.random() < 0.5,
+                            "reason": "无法解析LLM响应",
+                            "belief_change": "none"
+                        }
+                except json.JSONDecodeError:
                     result = {
                         "credibility_score": 0.5,
                         "will_propagate": random.random() < 0.5,
-                        "reason": "无法解析LLM响应",
+                        "reason": "JSON解析失败",
                         "belief_change": "none"
                     }
-            except json.JSONDecodeError:
-                result = {
-                    "credibility_score": 0.5,
-                    "will_propagate": random.random() < 0.5,
-                    "reason": "JSON解析失败",
-                    "belief_change": "none"
-                }
-            
-            return result
+                
+                return result
         except Exception as e:
             logger.error(f"LLM evaluation failed for agent {self.agent_id}: {e}")
             return {
@@ -211,27 +216,29 @@ class Agent:
 """
         
         try:
-            response = await self.vllm_client.generate(prompt, max_tokens=300, temperature=0.2)
-            try:
-                json_match = re.search(r'\{.*\}', response, re.DOTALL)
-                if json_match:
-                    result = json.loads(json_match.group())
-                else:
+            # 为每次调用创建新的VLLM客户端并使用异步上下文管理器
+            async with VLLMClient(self.vllm_url, self.session) as vllm_client:
+                response = await vllm_client.generate(prompt, max_tokens=300, temperature=0.2)
+                try:
+                    json_match = re.search(r'\{.*\}', response, re.DOTALL)
+                    if json_match:
+                        result = json.loads(json_match.group())
+                    else:
+                        result = {
+                            "verified": random.random() < 0.5,
+                            "confidence": 0.5,
+                            "evidence": ["无法解析LLM响应"],
+                            "verdict": "不确定"
+                        }
+                except json.JSONDecodeError:
                     result = {
                         "verified": random.random() < 0.5,
                         "confidence": 0.5,
-                        "evidence": ["无法解析LLM响应"],
+                        "evidence": ["JSON解析失败"],
                         "verdict": "不确定"
                     }
-            except json.JSONDecodeError:
-                result = {
-                    "verified": random.random() < 0.5,
-                    "confidence": 0.5,
-                    "evidence": ["JSON解析失败"],
-                    "verdict": "不确定"
-                }
-            
-            return result
+                
+                return result
         except Exception as e:
             logger.error(f"LLM verification failed for agent {self.agent_id}: {e}")
             return {
@@ -270,9 +277,20 @@ class VLLMMisinfoSimulation:
         self.agent_graph = AgentGraph()
         self.misinfo_contents = self._initialize_misinfo_content()
         self.simulation_history = []
+        self.session = None  # 共享的aiohttp会话
         
         self._load_agents_from_profile()
         self._initialize_network()
+    
+    async def __aenter__(self):
+        """异步上下文管理器入口"""
+        self.session = aiohttp.ClientSession()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """异步上下文管理器出口"""
+        if self.session:
+            await self.session.close()
     
     def _load_agents_from_profile(self):
         """从profile文件加载agents"""
@@ -289,9 +307,8 @@ class VLLMMisinfoSimulation:
                     "previous_tweets": []
                 }
                 
-                # 创建vLLM客户端
-                vllm_client = VLLMClient(self.vllm_url)
-                agent = Agent(i, f"Agent_{i}", profile, vllm_client)
+                # 创建Agent，传递共享会话
+                agent = Agent(i, f"Agent_{i}", profile, self.vllm_url, self.session)
                 self.agent_graph.add_agent(agent)
             
             logger.info(f"成功加载 {len(self.agent_graph.agents)} 个agents")
@@ -306,8 +323,7 @@ class VLLMMisinfoSimulation:
                     "following_agentid_list": [],
                     "previous_tweets": []
                 }
-                vllm_client = VLLMClient(self.vllm_url)
-                agent = Agent(i, f"Default_Agent_{i}", profile, vllm_client)
+                agent = Agent(i, f"Default_Agent_{i}", profile, self.vllm_url, self.session)
                 self.agent_graph.add_agent(agent)
     
     def _initialize_network(self):
@@ -573,11 +589,6 @@ async def main():
     """主函数"""
     logger.info("🚀 启动基于vLLM的Misinformation传播模拟")
     
-    simulation = VLLMMisinfoSimulation(
-        profile_path="user_data_36.json",
-        vllm_url="http://localhost:8001/v1"
-    )
-    
     strategies = [
         PropagationStrategy.VIRAL,
         PropagationStrategy.TARGETED,
@@ -588,15 +599,18 @@ async def main():
     for strategy in strategies:
         logger.info(f"\n=== 运行 {strategy.value} 策略 ===")
         
-        simulation._load_agents_from_profile()
-        simulation._initialize_network()
-        
-        results = await simulation.run_simulation(
-            steps=5,  # 减少步数以避免API调用过多
-            propagation_strategy=strategy
-        )
-        
-        simulation.save_results(f"vllm_misinfo_simulation_{strategy.value}.json")
+        # 使用异步上下文管理器来正确初始化仿真
+        async with VLLMMisinfoSimulation(
+            profile_path="user_data_36.json",
+            vllm_url="http://localhost:8001/v1"
+        ) as simulation:
+            
+            results = await simulation.run_simulation(
+                steps=5,  # 减少步数以避免API调用过多
+                propagation_strategy=strategy
+            )
+            
+            simulation.save_results(f"vllm_misinfo_simulation_{strategy.value}.json")
     
     logger.info("✅ 所有策略模拟完成")
 
