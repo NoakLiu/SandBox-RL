@@ -17,9 +17,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'oasis_core'))
 # Try to import OASIS components
 OASIS_AVAILABLE = False
 try:
-    from agents_generator import generate_twitter_agent_graph
-    from agent import SocialAgent
-    from agent_graph import AgentGraph
+    from oasis_core.agents_generator import generate_twitter_agent_graph
+    from oasis_core.agent import SocialAgent
+    from oasis_core.agent_graph import AgentGraph
     OASIS_AVAILABLE = True
     print("Successfully imported OASIS core components")
 except ImportError as e:
