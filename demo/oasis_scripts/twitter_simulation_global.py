@@ -265,23 +265,41 @@ class GlobalRecommendationSystem:
         # 获取用户索引
         user_index = user_id  # 假设user_id就是索引
         
-        # 获取该用户对所有帖子的相似度
-        user_similarities = self.global_similarity_matrix[user_index]
+        # 检查用户索引是否有效
+        if user_index >= len(self.global_similarity_matrix):
+            logger.warning(f"用户索引 {user_index} 超出范围，返回空推荐列表")
+            return []
         
-        # 创建帖子索引列表
-        post_indices = list(range(len(posts)))
+        # 获取该用户对所有帖子的相似度
+        user_similarities = self.global_similarity_matrix[user_index].copy()  # 创建副本避免修改原数组
         
         # 排除用户自己的帖子
         if exclude_own_posts:
-            own_post_indices = [i for i, post in enumerate(posts) if post.user_id == user_id]
-            for idx in own_post_indices:
-                user_similarities[idx] = -1  # 设置为负值，确保不会被推荐
+            for i, post in enumerate(posts):
+                if i < len(user_similarities) and post.user_id == user_id:
+                    user_similarities[i] = -1  # 设置为负值，确保不会被推荐
         
         # 获取相似度最高的帖子索引
-        top_indices = np.argsort(user_similarities)[::-1][:self.max_rec_posts]
+        try:
+            # 确保user_similarities是列表而不是numpy数组
+            if hasattr(user_similarities, 'tolist'):
+                user_similarities = user_similarities.tolist()
+            
+            # 创建(相似度, 索引)对并排序
+            similarity_pairs = [(sim, i) for i, sim in enumerate(user_similarities)]
+            similarity_pairs.sort(key=lambda x: x[0], reverse=True)
+            
+            # 获取前max_rec_posts个索引
+            top_indices = [pair[1] for pair in similarity_pairs[:self.max_rec_posts]]
+        except Exception as e:
+            logger.error(f"排序失败: {e}")
+            return []
         
         # 返回帖子ID
-        recommended_post_ids = [posts[idx].post_id for idx in top_indices if user_similarities[idx] > 0]
+        recommended_post_ids = []
+        for idx in top_indices:
+            if idx < len(posts) and idx < len(user_similarities) and user_similarities[idx] > 0:
+                recommended_post_ids.append(posts[idx].post_id)
         
         return recommended_post_ids
 
