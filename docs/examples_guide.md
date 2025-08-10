@@ -279,7 +279,42 @@ python demo/monitoring_example.py
 
 ## 🔗 Integration Examples
 
-### 12. Complete Integration Example
+### 12. Async Architecture Demo
+
+**Purpose**: Demonstrates the asynchronous architecture components described in SandGraph_Archi.md.
+
+**Input**: Agent configurations, LLM policies, slot management settings  
+**Process**: Async LLM calls → Parallel agent processing → Reward-based resource allocation → Distributed workflow execution  
+**Output**: Parallel processing results, resource utilization metrics, async workflow performance
+
+```bash
+# Run all async architecture demos
+python demo/async_architecture_demo.py --demo all
+
+# Run specific components
+python demo/async_architecture_demo.py --demo vllm
+python demo/async_architecture_demo.py --demo slot
+python demo/async_architecture_demo.py --demo sandbox
+python demo/async_architecture_demo.py --demo workflow
+python demo/async_architecture_demo.py --demo simulation
+python demo/async_architecture_demo.py --demo parallel
+```
+
+**Key Features**:
+- **Async LLM Client**: Non-blocking VLLM calls with retry mechanisms
+- **Reward-Based Slot Management**: Dynamic resource allocation based on agent rewards
+- **OASIS Sandbox**: Belief-based agent grouping and management
+- **Async Agent Workflow**: Parallel inference and weight updates
+- **Distributed Architecture**: Multi-agent parallel processing
+- **Intelligent Scheduling**: Priority-based task dispatching
+
+**Expected Results**:
+- Parallel processing of multiple agents
+- Efficient resource utilization
+- Real-time performance monitoring
+- Scalable architecture for large-scale simulations
+
+### 13. Complete Integration Example
 
 This example shows how to integrate all SandGraphX features:
 

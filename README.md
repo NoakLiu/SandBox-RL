@@ -128,6 +128,15 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Real-time Monitoring**: Comprehensive metrics tracking and visualization
   - **Intervention Analysis**: Study intervention strategies and their effectiveness
   - **Network Dynamics**: Realistic social network behavior modeling with polarization analysis
+- **⚡ Async Architecture**: Advanced asynchronous architecture for high-performance multi-agent systems
+  - **Async LLM Client**: Non-blocking VLLM calls with retry mechanisms and connection pooling
+  - **Reward-Based Slot Management**: Dynamic resource allocation based on agent rewards and priorities
+  - **OASIS Sandbox**: Belief-based agent grouping and isolated environment management
+  - **Async Agent Workflow**: Parallel inference and weight updates with intelligent task dispatching
+  - **Distributed Architecture**: Multi-agent parallel processing with load balancing
+  - **Intelligent Scheduling**: Priority-based task dispatching and resource optimization
+  - **Thread-Safe Operations**: Multi-threaded parameter management with locks and queues
+  - **Scalable Design**: Support for large-scale simulations with adaptive worker pools
 
 ## 📁 File Structure
 
@@ -146,6 +155,7 @@ SandGraphX/
 │   │   ├── areal_integration.py   # AReaL deep integration framework
 │   │   ├── lora_compression.py    # LoRA compression for model parameters and KV cache
 │   │   ├── self_evolving_oasis.py # Self-evolving Oasis system with LoRA and multi-model collaboration
+│   │   ├── async_architecture.py  # Asynchronous architecture components
 │   │   ├── sandbox.py           # Sandbox base class
 │   │   ├── rl_framework.py      # Reinforcement learning framework
 │   │   ├── rl_algorithms.py     # Reinforcement learning algorithms
@@ -172,7 +182,8 @@ SandGraphX/
 │   ├── lora_example.py         # LoRA compression example
 │   ├── self_evolving_oasis_demo.py # Self-evolving Oasis system demo
 │   ├── integrated_oasis_demo.py # Integrated Oasis with self-evolving LLM demo
-│   └── oasis_task_implementation.py # Oasis task implementation with scenario-driven design
+│   ├── oasis_task_implementation.py # Oasis task implementation with scenario-driven design
+│   └── async_architecture_demo.py  # Async architecture demo
 ├── docs/                        # Documentation
 │   ├── monitoring_guide.md     # Comprehensive monitoring guide
 │   ├── llm_frozen_adaptive_guide.md # LLMs frozen & adaptive guide
@@ -194,6 +205,8 @@ SandGraphX/
 ```
 
 ## 🏗️ System Architecture
+
+For detailed technical architecture documentation, see **[SandGraph Architecture Guide](docs/SandGraph_Archi.md)**.
 
 ```
 ┌───────────────────────────────────────────────────────┐
@@ -299,6 +312,9 @@ python demo/oasis_task_implementation.py --scenarios all
 
 # Run Oasis task implementation tests
 python test_oasis_task_implementation.py
+
+# Run Async Architecture demo
+python demo/async_architecture_demo.py --demo all
 
 # Run Twitter Misinformation simulation demo
 cd demo/twitter_misinfo

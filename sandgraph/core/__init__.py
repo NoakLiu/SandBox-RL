@@ -72,6 +72,19 @@ from .areal_kv_cache import (
     create_areal_style_trainer
 )
 
+# 异步架构相关导出
+from .async_architecture import (
+    VLLMClient,
+    RewardBasedSlotManager,
+    OASISSandbox,
+    AsyncAgentWorkflow,
+    LLMPolicy,
+    AgentGraph,
+    OASISCorrectSimulation,
+    AgentState,
+    BeliefType
+)
+
 # 其他核心功能导出
 from .rl_algorithms import *
 from .enhanced_rl_algorithms import *
@@ -146,5 +159,16 @@ __all__ = [
     'RolloutTask',
     'RolloutStatus',
     'CachePolicy',
-    'create_areal_style_trainer'
+    'create_areal_style_trainer',
+    
+    # 异步架构相关
+    'VLLMClient',
+    'RewardBasedSlotManager',
+    'OASISSandbox',
+    'AsyncAgentWorkflow',
+    'LLMPolicy',
+    'AgentGraph',
+    'OASISCorrectSimulation',
+    'AgentState',
+    'BeliefType'
 ] 
