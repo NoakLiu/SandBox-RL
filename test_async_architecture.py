@@ -70,12 +70,14 @@ async def test_sandbox():
     # Test adding agent
     sandbox.add_agent(agents[2])  # Add neutral agent (should still work)
     assert len(sandbox.get_agents()) == 2
-    assert sandbox.total_influence == 1.2
+    expected_influence = 0.8 + 0.4  # agents[0].influence_score + agents[2].influence_score
+    assert sandbox.total_influence == expected_influence, f"Expected {expected_influence}, got {sandbox.total_influence}"
     
     # Test removing agent
     sandbox.remove_agent(1)
     assert len(sandbox.get_agents()) == 1
-    assert sandbox.total_influence == 0.4
+    expected_influence = 0.4  # Only agents[2] remains
+    assert sandbox.total_influence == expected_influence, f"Expected {expected_influence}, got {sandbox.total_influence}"
     
     logger.info("✅ OASIS Sandbox tests passed")
 
