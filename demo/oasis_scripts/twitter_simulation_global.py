@@ -527,8 +527,7 @@ class TwitterSimulationGlobal:
         # 尝试初始化camel和oasis
         self.agent_graph = None
         self.env = None
-        if HAS_CAMEL and HAS_OASIS:
-            self._initialize_camel_oasis()
+        # 注意：_initialize_camel_oasis是async方法，需要在外部调用
     
     async def _initialize_camel_oasis(self):
         """初始化camel和oasis组件"""
@@ -971,8 +970,9 @@ async def main():
     # 创建模拟器
     simulation = TwitterSimulationGlobal(num_users=50, num_steps=30)
     
-    # 如果camel/oasis可用，运行环境步骤
+    # 如果camel/oasis可用，先初始化
     if HAS_CAMEL and HAS_OASIS:
+        await simulation._initialize_camel_oasis()
         await simulation.run_camel_oasis_steps()
     
     # 运行模拟
