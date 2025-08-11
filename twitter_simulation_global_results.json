@@ -1,0 +1,2434 @@
+{
+  "simulation_config": {
+    "num_users": 50,
+    "num_steps": 30
+  },
+  "final_users": [
+    {
+      "user_id": 0,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 0.25426006164741505,
+      "num_followers": 701
+    },
+    {
+      "user_id": 1,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 0.7447370407337327,
+      "num_followers": 57
+    },
+    {
+      "user_id": 2,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 0.34692323913129175,
+      "num_followers": 59
+    },
+    {
+      "user_id": 3,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 0.43439465184589043,
+      "num_followers": 345
+    },
+    {
+      "user_id": 4,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 0.6545991384509554,
+      "num_followers": 365
+    },
+    {
+      "user_id": 5,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 0.36526407563139773,
+      "num_followers": 442
+    },
+    {
+      "user_id": 6,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 0.4896565094086644,
+      "num_followers": 224
+    },
+    {
+      "user_id": 7,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 0.07305353325063836,
+      "num_followers": 641
+    },
+    {
+      "user_id": 8,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 2.8996936842652056e-17,
+      "num_followers": 268
+    },
+    {
+      "user_id": 9,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 1.7879982806358296e-17,
+      "num_followers": 471
+    },
+    {
+      "user_id": 10,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 2.1163683243901295e-17,
+      "num_followers": 605
+    },
+    {
+      "user_id": 11,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 3.1240893513376034e-17,
+      "num_followers": 859
+    },
+    {
+      "user_id": 12,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 4.339189436805111e-17,
+      "num_followers": 825
+    },
+    {
+      "user_id": 13,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 1.3670237379394889e-17,
+      "num_followers": 183
+    },
+    {
+      "user_id": 14,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 2.0612517253515988e-17,
+      "num_followers": 426
+    },
+    {
+      "user_id": 15,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 1.6076439935775876e-17,
+      "num_followers": 427
+    },
+    {
+      "user_id": 16,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 1.4714645876857314e-17,
+      "num_followers": 481
+    },
+    {
+      "user_id": 17,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 2.3974380300535844e-17,
+      "num_followers": 581
+    },
+    {
+      "user_id": 18,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 3.089399628778323e-17,
+      "num_followers": 785
+    },
+    {
+      "user_id": 19,
+      "group": "TRUMP",
+      "belief_strength": 1.0,
+      "influence_score": 6.425518117759446e-17,
+      "num_followers": 610
+    },
+    {
+      "user_id": 20,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 1.0,
+      "num_followers": 351
+    },
+    {
+      "user_id": 21,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 0.729863992633942,
+      "num_followers": 378
+    },
+    {
+      "user_id": 22,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 0.2921850556084146,
+      "num_followers": 117
+    },
+    {
+      "user_id": 23,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 0.6165535769869682,
+      "num_followers": 922
+    },
+    {
+      "user_id": 24,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 0.5598375105914849,
+      "num_followers": 665
+    },
+    {
+      "user_id": 25,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 0.16100016725937333,
+      "num_followers": 288
+    },
+    {
+      "user_id": 26,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 3.894886843492534e-17,
+      "num_followers": 111
+    },
+    {
+      "user_id": 27,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 4.354958632185909e-17,
+      "num_followers": 309
+    },
+    {
+      "user_id": 28,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 4.06997807576409e-17,
+      "num_followers": 971
+    },
+    {
+      "user_id": 29,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 2.183663605610887e-17,
+      "num_followers": 503
+    },
+    {
+      "user_id": 30,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 5.817963299889846e-17,
+      "num_followers": 938
+    },
+    {
+      "user_id": 31,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 3.970207693665838e-17,
+      "num_followers": 293
+    },
+    {
+      "user_id": 32,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 3.347195394911995e-17,
+      "num_followers": 854
+    },
+    {
+      "user_id": 33,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 4.0545663897609124e-17,
+      "num_followers": 405
+    },
+    {
+      "user_id": 34,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 1.687175162947754e-17,
+      "num_followers": 14
+    },
+    {
+      "user_id": 35,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 7.055519961002725e-17,
+      "num_followers": 425
+    },
+    {
+      "user_id": 36,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 3.625435671900299e-17,
+      "num_followers": 662
+    },
+    {
+      "user_id": 37,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 1.833262388546551e-17,
+      "num_followers": 949
+    },
+    {
+      "user_id": 38,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 1.2998620954634102e-17,
+      "num_followers": 622
+    },
+    {
+      "user_id": 39,
+      "group": "BIDEN",
+      "belief_strength": 1.0,
+      "influence_score": 4.976212919611915e-17,
+      "num_followers": 303
+    },
+    {
+      "user_id": 40,
+      "group": "NEUTRAL",
+      "belief_strength": 1.0,
+      "influence_score": 0.17760993246982848,
+      "num_followers": 395
+    },
+    {
+      "user_id": 41,
+      "group": "NEUTRAL",
+      "belief_strength": 1.0,
+      "influence_score": 0.10044577467776879,
+      "num_followers": 470
+    },
+    {
+      "user_id": 42,
+      "group": "NEUTRAL",
+      "belief_strength": 1.0,
+      "influence_score": 0.17711458062601154,
+      "num_followers": 919
+    },
+    {
+      "user_id": 43,
+      "group": "NEUTRAL",
+      "belief_strength": 1.0,
+      "influence_score": 0.1601953627775391,
+      "num_followers": 630
+    },
+    {
+      "user_id": 44,
+      "group": "NEUTRAL",
+      "belief_strength": 1.0,
+      "influence_score": 0.3013456063726309,
+      "num_followers": 73
+    },
+    {
+      "user_id": 45,
+      "group": "NEUTRAL",
+      "belief_strength": 1.0,
+      "influence_score": 0.440809102024722,
+      "num_followers": 355
+    },
+    {
+      "user_id": 46,
+      "group": "NEUTRAL",
+      "belief_strength": 1.0,
+      "influence_score": 0.28125330185845976,
+      "num_followers": 831
+    },
+    {
+      "user_id": 47,
+      "group": "NEUTRAL",
+      "belief_strength": 1.0,
+      "influence_score": 0.020089722827867217,
+      "num_followers": 743
+    },
+    {
+      "user_id": 48,
+      "group": "NEUTRAL",
+      "belief_strength": 1.0,
+      "influence_score": 3.911778177350561e-17,
+      "num_followers": 679
+    },
+    {
+      "user_id": 49,
+      "group": "NEUTRAL",
+      "belief_strength": 1.0,
+      "influence_score": 5.94558450903806e-17,
+      "num_followers": 504
+    }
+  ],
+  "final_posts": [
+    {
+      "post_id": 0,
+      "user_id": 0,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 0: Make America Great Again!"
+    },
+    {
+      "post_id": 1,
+      "user_id": 1,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 1: Make America Great Again!"
+    },
+    {
+      "post_id": 2,
+      "user_id": 1,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 2: Make America Great Again!"
+    },
+    {
+      "post_id": 3,
+      "user_id": 1,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 3: Make America Great Again!"
+    },
+    {
+      "post_id": 4,
+      "user_id": 2,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 4: Make America Great Again!"
+    },
+    {
+      "post_id": 5,
+      "user_id": 3,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 5: Make America Great Again!"
+    },
+    {
+      "post_id": 6,
+      "user_id": 4,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 6: Make America Great Again!"
+    },
+    {
+      "post_id": 7,
+      "user_id": 4,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 7: Make America Great Again!"
+    },
+    {
+      "post_id": 8,
+      "user_id": 5,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 8: Make America Great Again!"
+    },
+    {
+      "post_id": 9,
+      "user_id": 6,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 9: Make America Great Again!"
+    },
+    {
+      "post_id": 10,
+      "user_id": 6,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 10: Make America Great Again!"
+    },
+    {
+      "post_id": 11,
+      "user_id": 7,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 11: Make America Great Again!"
+    },
+    {
+      "post_id": 12,
+      "user_id": 7,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 12: Make America Great Again!"
+    },
+    {
+      "post_id": 13,
+      "user_id": 7,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 13: Make America Great Again!"
+    },
+    {
+      "post_id": 14,
+      "user_id": 8,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 14: Make America Great Again!"
+    },
+    {
+      "post_id": 15,
+      "user_id": 8,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 15: Make America Great Again!"
+    },
+    {
+      "post_id": 16,
+      "user_id": 8,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 16: Make America Great Again!"
+    },
+    {
+      "post_id": 17,
+      "user_id": 9,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 17: Make America Great Again!"
+    },
+    {
+      "post_id": 18,
+      "user_id": 9,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 18: Make America Great Again!"
+    },
+    {
+      "post_id": 19,
+      "user_id": 9,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 19: Make America Great Again!"
+    },
+    {
+      "post_id": 20,
+      "user_id": 10,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 20: Make America Great Again!"
+    },
+    {
+      "post_id": 21,
+      "user_id": 11,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 21: Make America Great Again!"
+    },
+    {
+      "post_id": 22,
+      "user_id": 11,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 22: Make America Great Again!"
+    },
+    {
+      "post_id": 23,
+      "user_id": 12,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 23: Make America Great Again!"
+    },
+    {
+      "post_id": 24,
+      "user_id": 12,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 24: Make America Great Again!"
+    },
+    {
+      "post_id": 25,
+      "user_id": 12,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 25: Make America Great Again!"
+    },
+    {
+      "post_id": 26,
+      "user_id": 13,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 26: Make America Great Again!"
+    },
+    {
+      "post_id": 27,
+      "user_id": 13,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 27: Make America Great Again!"
+    },
+    {
+      "post_id": 28,
+      "user_id": 14,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 28: Make America Great Again!"
+    },
+    {
+      "post_id": 29,
+      "user_id": 15,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 29: Make America Great Again!"
+    },
+    {
+      "post_id": 30,
+      "user_id": 15,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 30: Make America Great Again!"
+    },
+    {
+      "post_id": 31,
+      "user_id": 16,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 31: Make America Great Again!"
+    },
+    {
+      "post_id": 32,
+      "user_id": 16,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 32: Make America Great Again!"
+    },
+    {
+      "post_id": 33,
+      "user_id": 16,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 33: Make America Great Again!"
+    },
+    {
+      "post_id": 34,
+      "user_id": 17,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 34: Make America Great Again!"
+    },
+    {
+      "post_id": 35,
+      "user_id": 17,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 35: Make America Great Again!"
+    },
+    {
+      "post_id": 36,
+      "user_id": 17,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 36: Make America Great Again!"
+    },
+    {
+      "post_id": 37,
+      "user_id": 18,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 37: Make America Great Again!"
+    },
+    {
+      "post_id": 38,
+      "user_id": 18,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 38: Make America Great Again!"
+    },
+    {
+      "post_id": 39,
+      "user_id": 19,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 39: Make America Great Again!"
+    },
+    {
+      "post_id": 40,
+      "user_id": 19,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "TRUMP supporter post 40: Make America Great Again!"
+    },
+    {
+      "post_id": 41,
+      "user_id": 20,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 41: Build Back Better!"
+    },
+    {
+      "post_id": 42,
+      "user_id": 20,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 42: Build Back Better!"
+    },
+    {
+      "post_id": 43,
+      "user_id": 20,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 43: Build Back Better!"
+    },
+    {
+      "post_id": 44,
+      "user_id": 21,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 44: Build Back Better!"
+    },
+    {
+      "post_id": 45,
+      "user_id": 21,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 45: Build Back Better!"
+    },
+    {
+      "post_id": 46,
+      "user_id": 22,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 46: Build Back Better!"
+    },
+    {
+      "post_id": 47,
+      "user_id": 23,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 47: Build Back Better!"
+    },
+    {
+      "post_id": 48,
+      "user_id": 23,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 48: Build Back Better!"
+    },
+    {
+      "post_id": 49,
+      "user_id": 24,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 49: Build Back Better!"
+    },
+    {
+      "post_id": 50,
+      "user_id": 24,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 50: Build Back Better!"
+    },
+    {
+      "post_id": 51,
+      "user_id": 25,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 51: Build Back Better!"
+    },
+    {
+      "post_id": 52,
+      "user_id": 25,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 52: Build Back Better!"
+    },
+    {
+      "post_id": 53,
+      "user_id": 25,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 53: Build Back Better!"
+    },
+    {
+      "post_id": 54,
+      "user_id": 26,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 54: Build Back Better!"
+    },
+    {
+      "post_id": 55,
+      "user_id": 26,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 55: Build Back Better!"
+    },
+    {
+      "post_id": 56,
+      "user_id": 27,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 56: Build Back Better!"
+    },
+    {
+      "post_id": 57,
+      "user_id": 27,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 57: Build Back Better!"
+    },
+    {
+      "post_id": 58,
+      "user_id": 28,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 58: Build Back Better!"
+    },
+    {
+      "post_id": 59,
+      "user_id": 28,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 59: Build Back Better!"
+    },
+    {
+      "post_id": 60,
+      "user_id": 29,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 60: Build Back Better!"
+    },
+    {
+      "post_id": 61,
+      "user_id": 30,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 61: Build Back Better!"
+    },
+    {
+      "post_id": 62,
+      "user_id": 30,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 62: Build Back Better!"
+    },
+    {
+      "post_id": 63,
+      "user_id": 30,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 63: Build Back Better!"
+    },
+    {
+      "post_id": 64,
+      "user_id": 31,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 64: Build Back Better!"
+    },
+    {
+      "post_id": 65,
+      "user_id": 31,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 65: Build Back Better!"
+    },
+    {
+      "post_id": 66,
+      "user_id": 31,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 66: Build Back Better!"
+    },
+    {
+      "post_id": 67,
+      "user_id": 32,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 67: Build Back Better!"
+    },
+    {
+      "post_id": 68,
+      "user_id": 33,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 68: Build Back Better!"
+    },
+    {
+      "post_id": 69,
+      "user_id": 33,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 69: Build Back Better!"
+    },
+    {
+      "post_id": 70,
+      "user_id": 33,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 70: Build Back Better!"
+    },
+    {
+      "post_id": 71,
+      "user_id": 34,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 71: Build Back Better!"
+    },
+    {
+      "post_id": 72,
+      "user_id": 34,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 72: Build Back Better!"
+    },
+    {
+      "post_id": 73,
+      "user_id": 34,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 73: Build Back Better!"
+    },
+    {
+      "post_id": 74,
+      "user_id": 35,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 74: Build Back Better!"
+    },
+    {
+      "post_id": 75,
+      "user_id": 35,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 75: Build Back Better!"
+    },
+    {
+      "post_id": 76,
+      "user_id": 36,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 76: Build Back Better!"
+    },
+    {
+      "post_id": 77,
+      "user_id": 36,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 77: Build Back Better!"
+    },
+    {
+      "post_id": 78,
+      "user_id": 36,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 78: Build Back Better!"
+    },
+    {
+      "post_id": 79,
+      "user_id": 37,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 79: Build Back Better!"
+    },
+    {
+      "post_id": 80,
+      "user_id": 38,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 80: Build Back Better!"
+    },
+    {
+      "post_id": 81,
+      "user_id": 38,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 81: Build Back Better!"
+    },
+    {
+      "post_id": 82,
+      "user_id": 38,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 82: Build Back Better!"
+    },
+    {
+      "post_id": 83,
+      "user_id": 39,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 83: Build Back Better!"
+    },
+    {
+      "post_id": 84,
+      "user_id": 39,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "BIDEN supporter post 84: Build Back Better!"
+    },
+    {
+      "post_id": 85,
+      "user_id": 40,
+      "group": "NEUTRAL",
+      "num_likes": 9,
+      "num_reposts": 0,
+      "content": "Neutral post 85: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 86,
+      "user_id": 41,
+      "group": "NEUTRAL",
+      "num_likes": 5,
+      "num_reposts": 0,
+      "content": "Neutral post 86: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 87,
+      "user_id": 42,
+      "group": "NEUTRAL",
+      "num_likes": 9,
+      "num_reposts": 0,
+      "content": "Neutral post 87: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 88,
+      "user_id": 43,
+      "group": "NEUTRAL",
+      "num_likes": 8,
+      "num_reposts": 0,
+      "content": "Neutral post 88: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 89,
+      "user_id": 44,
+      "group": "NEUTRAL",
+      "num_likes": 7,
+      "num_reposts": 0,
+      "content": "Neutral post 89: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 90,
+      "user_id": 44,
+      "group": "NEUTRAL",
+      "num_likes": 8,
+      "num_reposts": 0,
+      "content": "Neutral post 90: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 91,
+      "user_id": 45,
+      "group": "NEUTRAL",
+      "num_likes": 9,
+      "num_reposts": 0,
+      "content": "Neutral post 91: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 92,
+      "user_id": 45,
+      "group": "NEUTRAL",
+      "num_likes": 4,
+      "num_reposts": 0,
+      "content": "Neutral post 92: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 93,
+      "user_id": 45,
+      "group": "NEUTRAL",
+      "num_likes": 9,
+      "num_reposts": 0,
+      "content": "Neutral post 93: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 94,
+      "user_id": 46,
+      "group": "NEUTRAL",
+      "num_likes": 3,
+      "num_reposts": 0,
+      "content": "Neutral post 94: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 95,
+      "user_id": 46,
+      "group": "NEUTRAL",
+      "num_likes": 8,
+      "num_reposts": 0,
+      "content": "Neutral post 95: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 96,
+      "user_id": 46,
+      "group": "NEUTRAL",
+      "num_likes": 3,
+      "num_reposts": 0,
+      "content": "Neutral post 96: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 97,
+      "user_id": 47,
+      "group": "NEUTRAL",
+      "num_likes": 1,
+      "num_reposts": 0,
+      "content": "Neutral post 97: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 98,
+      "user_id": 47,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "Neutral post 98: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 99,
+      "user_id": 48,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "Neutral post 99: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 100,
+      "user_id": 48,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "Neutral post 100: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 101,
+      "user_id": 48,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "Neutral post 101: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 102,
+      "user_id": 49,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "Neutral post 102: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 103,
+      "user_id": 49,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "Neutral post 103: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 104,
+      "user_id": 49,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "Neutral post 104: Let's discuss politics calmly."
+    },
+    {
+      "post_id": 105,
+      "user_id": 29,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 106,
+      "user_id": 5,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 107,
+      "user_id": 25,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 108,
+      "user_id": 14,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 109,
+      "user_id": 29,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 110,
+      "user_id": 33,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 111,
+      "user_id": 38,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 112,
+      "user_id": 9,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 113,
+      "user_id": 20,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 114,
+      "user_id": 4,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 115,
+      "user_id": 23,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 116,
+      "user_id": 4,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 117,
+      "user_id": 21,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 118,
+      "user_id": 31,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 119,
+      "user_id": 36,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 120,
+      "user_id": 47,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 121,
+      "user_id": 48,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 122,
+      "user_id": 31,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 123,
+      "user_id": 32,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 124,
+      "user_id": 36,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 125,
+      "user_id": 40,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 126,
+      "user_id": 49,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 127,
+      "user_id": 5,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 128,
+      "user_id": 15,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 129,
+      "user_id": 43,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 130,
+      "user_id": 44,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 131,
+      "user_id": 48,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 132,
+      "user_id": 3,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 133,
+      "user_id": 7,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 134,
+      "user_id": 17,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 135,
+      "user_id": 26,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 136,
+      "user_id": 17,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 137,
+      "user_id": 18,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 138,
+      "user_id": 24,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 139,
+      "user_id": 27,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 140,
+      "user_id": 35,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 141,
+      "user_id": 9,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 142,
+      "user_id": 29,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 143,
+      "user_id": 33,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 144,
+      "user_id": 34,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 145,
+      "user_id": 2,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 146,
+      "user_id": 3,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 147,
+      "user_id": 5,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 148,
+      "user_id": 18,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 149,
+      "user_id": 25,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 150,
+      "user_id": 28,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 151,
+      "user_id": 29,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 152,
+      "user_id": 31,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 153,
+      "user_id": 37,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 154,
+      "user_id": 4,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 155,
+      "user_id": 7,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 156,
+      "user_id": 20,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 157,
+      "user_id": 25,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 158,
+      "user_id": 32,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 159,
+      "user_id": 35,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 160,
+      "user_id": 39,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 161,
+      "user_id": 41,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 162,
+      "user_id": 47,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 163,
+      "user_id": 21,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 164,
+      "user_id": 31,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 165,
+      "user_id": 47,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 166,
+      "user_id": 3,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 167,
+      "user_id": 11,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 168,
+      "user_id": 14,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 169,
+      "user_id": 31,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 170,
+      "user_id": 40,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 171,
+      "user_id": 1,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 172,
+      "user_id": 38,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 173,
+      "user_id": 4,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 174,
+      "user_id": 6,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 175,
+      "user_id": 22,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 176,
+      "user_id": 44,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 177,
+      "user_id": 47,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 178,
+      "user_id": 14,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 179,
+      "user_id": 31,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 180,
+      "user_id": 43,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 181,
+      "user_id": 11,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 182,
+      "user_id": 19,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 183,
+      "user_id": 20,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 184,
+      "user_id": 8,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 185,
+      "user_id": 12,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 186,
+      "user_id": 14,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 187,
+      "user_id": 12,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 188,
+      "user_id": 17,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 189,
+      "user_id": 40,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 190,
+      "user_id": 26,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 191,
+      "user_id": 42,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 192,
+      "user_id": 1,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 193,
+      "user_id": 6,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 194,
+      "user_id": 8,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 195,
+      "user_id": 13,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 196,
+      "user_id": 27,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 197,
+      "user_id": 43,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 198,
+      "user_id": 47,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 199,
+      "user_id": 49,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 200,
+      "user_id": 8,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 201,
+      "user_id": 27,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 202,
+      "user_id": 34,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 203,
+      "user_id": 46,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 204,
+      "user_id": 0,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 205,
+      "user_id": 7,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 206,
+      "user_id": 25,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 207,
+      "user_id": 30,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 208,
+      "user_id": 35,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 209,
+      "user_id": 4,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 210,
+      "user_id": 8,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 211,
+      "user_id": 14,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 212,
+      "user_id": 16,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 213,
+      "user_id": 20,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 214,
+      "user_id": 21,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 215,
+      "user_id": 39,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 216,
+      "user_id": 44,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 217,
+      "user_id": 6,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 218,
+      "user_id": 7,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 219,
+      "user_id": 9,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 220,
+      "user_id": 28,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 221,
+      "user_id": 35,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 222,
+      "user_id": 39,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 223,
+      "user_id": 45,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 224,
+      "user_id": 11,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 225,
+      "user_id": 18,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 226,
+      "user_id": 21,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 227,
+      "user_id": 45,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 228,
+      "user_id": 8,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 229,
+      "user_id": 13,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 230,
+      "user_id": 18,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 231,
+      "user_id": 2,
+      "group": "TRUMP",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support TRUMP and will post/forward TRUMP messages this round."
+    },
+    {
+      "post_id": 232,
+      "user_id": 30,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 233,
+      "user_id": 32,
+      "group": "BIDEN",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I support BIDEN and will post/forward BIDEN messages this round."
+    },
+    {
+      "post_id": 234,
+      "user_id": 47,
+      "group": "NEUTRAL",
+      "num_likes": 0,
+      "num_reposts": 0,
+      "content": "I will post/forward TRUMP messages this round."
+    }
+  ],
+  "statistics": {
+    "trump_users": [
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "biden_users": [
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "neutral_users": [
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10
+    ],
+    "total_posts": [
+      106,
+      108,
+      112,
+      114,
+      116,
+      122,
+      127,
+      132,
+      136,
+      141,
+      145,
+      154,
+      163,
+      166,
+      171,
+      173,
+      178,
+      181,
+      184,
+      187,
+      190,
+      192,
+      200,
+      204,
+      209,
+      217,
+      224,
+      228,
+      231,
+      235
+    ],
+    "total_likes": [
+      5,
+      8,
+      11,
+      15,
+      18,
+      21,
+      26,
+      27,
+      27,
+      29,
+      34,
+      38,
+      41,
+      44,
+      45,
+      48,
+      51,
+      55,
+      56,
+      58,
+      59,
+      60,
+      64,
+      67,
+      69,
+      72,
+      76,
+      77,
+      81,
+      83
+    ],
+    "total_reposts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

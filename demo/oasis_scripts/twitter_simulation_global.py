@@ -600,19 +600,19 @@ class TwitterSimulationGlobal:
         
         if HAS_SANDGRAPH:
             try:
-                # 初始化奖励槽管理器
+                # 1. 初始化奖励槽管理器
                 self.slot_manager = RewardBasedSlotManager(max_slots=20)
                 print("   ✅ RewardBasedSlotManager 初始化成功")
                 
-                # 初始化OASIS沙盒
-                self.oasis_sandbox = OASISSandbox(BeliefType.NEUTRAL, [])
-                print("   ✅ OASIS沙盒 初始化成功")
+                # 2. 初始化基于总统信仰的OASIS沙盒
+                self._initialize_presidential_sandboxes()
+                print("   ✅ 总统信仰沙盒 初始化成功")
                 
-                # 初始化代理图
+                # 3. 初始化代理图
                 self.sandgraph_agent_graph = AgentGraph()
                 print("   ✅ AgentGraph 初始化成功")
                 
-                # 初始化LLM策略
+                # 4. 初始化LLM策略
                 self.llm_policy = LLMPolicy(
                     mode='frozen',
                     model_name="qwen-2",
@@ -620,7 +620,7 @@ class TwitterSimulationGlobal:
                 )
                 print("   ✅ LLMPolicy 初始化成功")
                 
-                # 初始化异步代理工作流
+                # 5. 初始化异步代理工作流
                 self.async_workflow = AsyncAgentWorkflow(
                     self.sandgraph_agent_graph,
                     self.llm_policy,
@@ -628,31 +628,160 @@ class TwitterSimulationGlobal:
                 )
                 print("   ✅ AsyncAgentWorkflow 初始化成功")
                 
-                # 初始化OASIS正确模拟
+                # 6. 初始化OASIS正确模拟
                 config = {"num_agents": self.num_users, "max_steps": self.num_steps}
                 self.oasis_simulation = OASISCorrectSimulation(
                     config, "http://localhost:8001/v1", "qwen-2"
                 )
                 print("   ✅ OASISCorrectSimulation 初始化成功")
                 
+                # 7. 初始化Frozen Adaptive LLM
+                self._initialize_frozen_adaptive_llm()
+                print("   ✅ FrozenAdaptiveLLM 初始化成功")
+                
+                # 8. 初始化AReaL集成
+                self._initialize_areal_integration()
+                print("   ✅ AReaL集成 初始化成功")
+                
+                # 9. 初始化自进化OASIS
+                self._initialize_self_evolving_oasis()
+                print("   ✅ 自进化OASIS 初始化成功")
+                
                 print("   🎉 所有SandGraph组件初始化完成!")
                 
             except Exception as e:
                 print(f"   ❌ SandGraph组件初始化失败: {e}")
-                self.slot_manager = None
-                self.oasis_sandbox = None
-                self.sandgraph_agent_graph = None
-                self.llm_policy = None
-                self.async_workflow = None
-                self.oasis_simulation = None
+                import traceback
+                traceback.print_exc()
+                self._reset_sandgraph_components()
         else:
             print("   ⚠️ SandGraph模块不可用，跳过组件初始化")
-            self.slot_manager = None
-            self.oasis_sandbox = None
-            self.sandgraph_agent_graph = None
-            self.llm_policy = None
-            self.async_workflow = None
-            self.oasis_simulation = None
+            self._reset_sandgraph_components()
+    
+    def _reset_sandgraph_components(self):
+        """重置SandGraph组件"""
+        self.slot_manager = None
+        self.presidential_sandboxes = {}
+        self.sandgraph_agent_graph = None
+        self.llm_policy = None
+        self.async_workflow = None
+        self.oasis_simulation = None
+        self.frozen_adaptive_llm = None
+        self.areal_integration = None
+        self.self_evolving_oasis = None
+    
+    def _initialize_presidential_sandboxes(self):
+        """初始化基于总统信仰的沙盒"""
+        print("     🏛️ 初始化总统信仰沙盒...")
+        
+        # 创建不同总统信仰的沙盒
+        self.presidential_sandboxes = {
+            "TRUMP": OASISSandbox(BeliefType.POSITIVE, []),
+            "BIDEN": OASISSandbox(BeliefType.NEGATIVE, []),
+            "NEUTRAL": OASISSandbox(BeliefType.NEUTRAL, [])
+        }
+        
+        # 为每个沙盒添加描述
+        sandbox_descriptions = {
+            "TRUMP": "支持特朗普的选民沙盒 - 关注MAGA运动、经济政策、边境安全等议题",
+            "BIDEN": "支持拜登的选民沙盒 - 关注气候变化、医疗改革、社会公平等议题", 
+            "NEUTRAL": "中立选民沙盒 - 关注两党政策对比、理性讨论、寻求共识"
+        }
+        
+        for president, sandbox in self.presidential_sandboxes.items():
+            print(f"       - {president}沙盒: {sandbox_descriptions[president]}")
+    
+    def _initialize_frozen_adaptive_llm(self):
+        """初始化Frozen Adaptive LLM"""
+        print("     🧊 初始化Frozen Adaptive LLM...")
+        
+        try:
+            from sandgraph.core.llm_frozen_adaptive import (
+                create_frozen_adaptive_llm, create_frozen_config
+            )
+            
+            # 创建冻结配置
+            frozen_config = create_frozen_config(
+                strategy="adaptive",
+                frozen_layers=["embedding", "layers.0", "layers.1"],
+                adaptive_learning_rate=True,
+                min_learning_rate=1e-6,
+                max_learning_rate=1e-3
+            )
+            
+            # 创建模拟的base_llm（实际使用时需要真实的LLM）
+            class MockBaseLLM:
+                def __init__(self):
+                    self.parameters = {"layer1": [1.0, 2.0], "layer2": [3.0, 4.0]}
+                
+                def get_parameters(self):
+                    return self.parameters
+            
+            base_llm = MockBaseLLM()
+            self.frozen_adaptive_llm = create_frozen_adaptive_llm(base_llm, frozen_config)
+            
+            print(f"       - 策略: {frozen_config.strategy.value}")
+            print(f"       - 冻结层: {frozen_config.frozen_layers}")
+            print(f"       - 自适应学习率: {frozen_config.adaptive_learning_rate}")
+            
+        except Exception as e:
+            print(f"       ⚠️ FrozenAdaptiveLLM初始化失败: {e}")
+            self.frozen_adaptive_llm = None
+    
+    def _initialize_areal_integration(self):
+        """初始化AReaL集成"""
+        print("     🚀 初始化AReaL集成...")
+        
+        try:
+            from sandgraph.core.areal_integration import (
+                create_areal_integration, IntegrationLevel
+            )
+            
+            # 创建AReaL集成管理器
+            self.areal_integration = create_areal_integration(
+                integration_level=IntegrationLevel.ADVANCED,
+                cache_size=10000,
+                max_memory_gb=8.0,
+                enable_distributed=False,
+                enable_optimization=True
+            )
+            
+            print(f"       - 集成级别: {IntegrationLevel.ADVANCED.value}")
+            print(f"       - 缓存大小: 10000")
+            print(f"       - 最大内存: 8.0GB")
+            print(f"       - 优化启用: True")
+            
+        except Exception as e:
+            print(f"       ⚠️ AReaL集成初始化失败: {e}")
+            self.areal_integration = None
+    
+    def _initialize_self_evolving_oasis(self):
+        """初始化自进化OASIS"""
+        print("     🧬 初始化自进化OASIS...")
+        
+        try:
+            from sandgraph.core.self_evolving_oasis import (
+                create_self_evolving_oasis, EvolutionStrategy
+            )
+            
+            # 创建自进化OASIS沙盒
+            self.self_evolving_oasis = create_self_evolving_oasis(
+                evolution_strategy=EvolutionStrategy.MULTI_MODEL,
+                enable_lora=True,
+                enable_kv_cache_compression=True,
+                lora_rank=8,
+                lora_alpha=16.0,
+                evolution_interval=10
+            )
+            
+            print(f"       - 进化策略: {EvolutionStrategy.MULTI_MODEL.value}")
+            print(f"       - LoRA启用: True")
+            print(f"       - KV缓存压缩: True")
+            print(f"       - 进化间隔: 10步")
+            
+        except Exception as e:
+            print(f"       ⚠️ 自进化OASIS初始化失败: {e}")
+            self.self_evolving_oasis = None
     
     async def _initialize_camel_oasis(self):
         """初始化camel和oasis组件"""
@@ -972,44 +1101,53 @@ class TwitterSimulationGlobal:
                 print(f"   - 槽位数量: {len(self.slot_manager.slots)}")
                 print(f"   - 总奖励: {sum(self.slot_manager.slots.values()):.2f}")
             
-            # 2. 演示OASIS沙盒
-            print(f"\n🏖️ 2. OASIS沙盒演示:")
-            if self.oasis_sandbox:
-                # 创建一些代理状态
-                agent1 = AgentState(
-                    agent_id=1,
-                    belief_type=BeliefType.POSITIVE,
-                    influence_score=0.8,
-                    neighbors=[2, 3],
-                    group="TRUMP"
-                )
-                agent2 = AgentState(
-                    agent_id=2,
-                    belief_type=BeliefType.NEGATIVE,
-                    influence_score=0.6,
-                    neighbors=[1, 3],
-                    group="BIDEN"
-                )
-                
-                # 添加到沙盒
-                self.oasis_sandbox.add_agent(agent1)
-                self.oasis_sandbox.add_agent(agent2)
-                
-                print(f"   - 沙盒中的代理数量: {len(self.oasis_sandbox.get_agents())}")
-                print(f"   - 总影响力: {self.oasis_sandbox.total_influence:.2f}")
+            # 2. 演示基于总统信仰的沙盒
+            print(f"\n🏛️ 2. 总统信仰沙盒演示:")
+            if hasattr(self, 'presidential_sandboxes') and self.presidential_sandboxes:
+                for president, sandbox in self.presidential_sandboxes.items():
+                    # 创建对应信仰的代理
+                    if president == "TRUMP":
+                        agent = AgentState(
+                            agent_id=len(self.presidential_sandboxes),
+                            belief_type=BeliefType.POSITIVE,
+                            influence_score=0.8,
+                            neighbors=[1, 2],
+                            group="TRUMP"
+                        )
+                    elif president == "BIDEN":
+                        agent = AgentState(
+                            agent_id=len(self.presidential_sandboxes) + 1,
+                            belief_type=BeliefType.NEGATIVE,
+                            influence_score=0.7,
+                            neighbors=[1, 2],
+                            group="BIDEN"
+                        )
+                    else:
+                        agent = AgentState(
+                            agent_id=len(self.presidential_sandboxes) + 2,
+                            belief_type=BeliefType.NEUTRAL,
+                            influence_score=0.5,
+                            neighbors=[1, 2],
+                            group="NEUTRAL"
+                        )
+                    
+                    # 添加到对应沙盒
+                    sandbox.add_agent(agent)
+                    print(f"   - {president}沙盒: 代理数量={len(sandbox.get_agents())}, 总影响力={sandbox.total_influence:.2f}")
             
             # 3. 演示代理图
             print(f"\n🕸️ 3. 代理图演示:")
             if self.sandgraph_agent_graph:
                 # 添加代理
-                if 'agent1' in locals():
-                    self.sandgraph_agent_graph.add_agent(agent1)
-                if 'agent2' in locals():
-                    self.sandgraph_agent_graph.add_agent(agent2)
+                if hasattr(self, 'presidential_sandboxes') and self.presidential_sandboxes:
+                    for president, sandbox in self.presidential_sandboxes.items():
+                        agents = sandbox.get_agents()
+                        for agent in agents:
+                            self.sandgraph_agent_graph.add_agent(agent)
                 
-                agents = self.sandgraph_agent_graph.get_agents()
-                print(f"   - 代理图大小: {len(agents)}")
-                for agent_id, agent in agents.items():
+                all_agents = self.sandgraph_agent_graph.get_agents()
+                print(f"   - 代理图大小: {len(all_agents)}")
+                for agent_id, agent in all_agents.items():
                     print(f"     * 代理{agent_id}: {agent.group}, 影响力={agent.influence_score:.2f}")
             
             # 4. 演示异步工作流
@@ -1027,6 +1165,37 @@ class TwitterSimulationGlobal:
                 print(f"   - 模型名称: {self.llm_policy.model_name}")
                 print(f"   - 后端: {self.llm_policy.backend}")
                 print(f"   - 监控启用: {self.llm_policy.enable_monitoring}")
+            
+            # 6. 演示Frozen Adaptive LLM
+            print(f"\n🧊 6. Frozen Adaptive LLM演示:")
+            if self.frozen_adaptive_llm:
+                param_info = self.frozen_adaptive_llm.get_parameter_info()
+                print(f"   - 参数数量: {len(param_info)}")
+                print(f"   - 冻结层: {[name for name, info in param_info.items() if info.frozen]}")
+                print(f"   - 可更新参数: {[name for name, info in param_info.items() if not info.frozen]}")
+            else:
+                print("   - 未初始化")
+            
+            # 7. 演示AReaL集成
+            print(f"\n🚀 7. AReaL集成演示:")
+            if self.areal_integration:
+                stats = self.areal_integration.get_stats()
+                print(f"   - 缓存命中率: {stats.get('cache_hit_rate', 'N/A')}")
+                print(f"   - 任务队列长度: {stats.get('task_queue_length', 'N/A')}")
+                print(f"   - 内存使用: {stats.get('memory_usage_gb', 'N/A')}GB")
+            else:
+                print("   - 未初始化")
+            
+            # 8. 演示自进化OASIS
+            print(f"\n🧬 8. 自进化OASIS演示:")
+            if self.self_evolving_oasis:
+                evolution_stats = self.self_evolving_oasis.get_evolution_stats()
+                print(f"   - 进化步数: {evolution_stats.get('evolution_step', 'N/A')}")
+                print(f"   - 模型池大小: {evolution_stats.get('model_pool_size', 'N/A')}")
+                print(f"   - 平均性能: {evolution_stats.get('average_performance', 'N/A')}")
+                print(f"   - 进化策略: {evolution_stats.get('evolution_strategy', 'N/A')}")
+            else:
+                print("   - 未初始化")
             
             print(f"\n🎉 SandGraph组件演示完成!")
             
