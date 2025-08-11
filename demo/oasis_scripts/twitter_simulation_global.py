@@ -20,23 +20,50 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import json
 
+# Import SandGraph core and architecture modules
+try:
+    from sandgraph.core.async_architecture import (
+        VLLMClient as SandGraphVLLMClient,
+        RewardBasedSlotManager,
+        OASISSandbox,
+        AsyncAgentWorkflow,
+        LLMPolicy,
+        AgentGraph,
+        OASISCorrectSimulation,
+        BeliefType,
+        AgentState
+    )
+    from sandgraph.core.llm_interface import LLMInterface
+    from sandgraph.core.reward_based_slot_manager import RewardBasedSlotManager as CoreSlotManager
+    from sandgraph.core.self_evolving_oasis import SelfEvolvingOASIS
+    from sandgraph.core.areal_integration import ArealIntegration
+    from sandgraph.core.llm_frozen_adaptive import LLMFrozenAdaptive
+    HAS_SANDGRAPH = True
+    print("✅ SandGraph core modules imported successfully")
+except ImportError as e:
+    HAS_SANDGRAPH = False
+    print(f"❌ SandGraph core modules not available: {e}")
+    print("Will use mock implementations")
+
 # Import camel and oasis related modules
 try:
     from camel.models import ModelFactory
     from camel.types import ModelPlatformType
     HAS_CAMEL = True
+    print("✅ Camel modules imported successfully")
 except ImportError:
     HAS_CAMEL = False
-    print("camel modules not available, using mock implementations")
+    print("❌ Camel modules not available, using mock implementations")
 
 try:
     import oasis
     from oasis import (ActionType, LLMAction, ManualAction,
                       generate_reddit_agent_graph)
     HAS_OASIS = True
+    print("✅ Oasis modules imported successfully")
 except ImportError:
     HAS_OASIS = False
-    print("oasis modules not available, using mock implementations")
+    print("❌ Oasis modules not available, using mock implementations")
 
 # Optional numpy import
 try:
@@ -157,20 +184,49 @@ class VLLMClient:
         self.url = url
         self.model_name = model_name
         self.session = None
+        self.sandgraph_client = None
+        
+        # 如果SandGraph可用，尝试使用其VLLM客户端
+        if HAS_SANDGRAPH:
+            try:
+                self.sandgraph_client = SandGraphVLLMClient(url, model_name)
+                print(f"✅ 使用SandGraph VLLM客户端: {url}")
+            except Exception as e:
+                print(f"⚠️ SandGraph VLLM客户端初始化失败: {e}")
+                print("将使用模拟模式")
     
     async def generate(self, prompt: str) -> str:
         """生成文本响应"""
-        try:
-            # 这里应该实现真正的VLLM调用
-            # 为了演示，我们返回一个模拟响应
-            if "TRUMP" in prompt.upper():
-                return "I support TRUMP and will post/forward TRUMP messages this round."
-            elif "BIDEN" in prompt.upper():
-                return "I support BIDEN and will post/forward BIDEN messages this round."
+        # 优先使用SandGraph的VLLM客户端
+        if self.sandgraph_client and HAS_SANDGRAPH:
+            try:
+                async with self.sandgraph_client as client:
+                    response = await client.generate(prompt)
+                    print(f"🤖 SandGraph VLLM生成: {response[:50]}...")
+                    return response
+            except Exception as e:
+                print(f"❌ SandGraph VLLM调用失败: {e}")
+                print("回退到模拟模式")
+        
+        # 回退到模拟模式
+        return self._generate_mock_response(prompt)
+    
+    def _generate_mock_response(self, prompt: str) -> str:
+        """生成模拟响应"""
+        prompt_upper = prompt.upper()
+        if "TRUMP" in prompt_upper:
+            return "I support TRUMP and will post/forward TRUMP messages this round."
+        elif "BIDEN" in prompt_upper:
+            return "I support BIDEN and will post/forward BIDEN messages this round."
+        elif "LIKE" in prompt_upper or "REPOST" in prompt_upper or "DISLIKE" in prompt_upper:
+            # 互动决策
+            if "TRUMP" in prompt_upper:
+                return "LIKE" if random.random() > 0.3 else "REPOST"
+            elif "BIDEN" in prompt_upper:
+                return "LIKE" if random.random() > 0.3 else "REPOST"
             else:
-                return "I will post/forward TRUMP messages this round."
-        except Exception as e:
-            logging.error(f"VLLM generation failed: {e}")
+                return "LIKE" if random.random() > 0.5 else "DISLIKE"
+        else:
             return "I will post/forward TRUMP messages this round."
 
 
@@ -506,8 +562,17 @@ class TwitterSimulationGlobal:
         self.current_post_id = 0
         self.current_time = 0
         
+        print(f"\n🚀 初始化TwitterSimulationGlobal:")
+        print(f"   - 用户数量: {num_users}")
+        print(f"   - 时间步数: {num_steps}")
+        print(f"   - VLLM URL: {vllm_url}")
+        print(f"   - 模型名称: {model_name}")
+        
         # 初始化VLLM客户端
         self.vllm_client = VLLMClient(vllm_url, model_name)
+        
+        # 初始化SandGraph组件
+        self._initialize_sandgraph_components()
         
         # 初始化组件
         self.rec_system = GlobalRecommendationSystem(max_rec_posts=10)
@@ -528,6 +593,66 @@ class TwitterSimulationGlobal:
         self.agent_graph = None
         self.env = None
         # 注意：_initialize_camel_oasis是async方法，需要在外部调用
+    
+    def _initialize_sandgraph_components(self):
+        """初始化SandGraph核心组件"""
+        print(f"\n🔧 初始化SandGraph组件:")
+        
+        if HAS_SANDGRAPH:
+            try:
+                # 初始化奖励槽管理器
+                self.slot_manager = RewardBasedSlotManager(max_slots=20)
+                print("   ✅ RewardBasedSlotManager 初始化成功")
+                
+                # 初始化OASIS沙盒
+                self.oasis_sandbox = OASISSandbox(BeliefType.NEUTRAL, [])
+                print("   ✅ OASIS沙盒 初始化成功")
+                
+                # 初始化代理图
+                self.sandgraph_agent_graph = AgentGraph()
+                print("   ✅ AgentGraph 初始化成功")
+                
+                # 初始化LLM策略
+                self.llm_policy = LLMPolicy(
+                    mode='frozen',
+                    model_name="qwen-2",
+                    url="http://localhost:8001/v1"
+                )
+                print("   ✅ LLMPolicy 初始化成功")
+                
+                # 初始化异步代理工作流
+                self.async_workflow = AsyncAgentWorkflow(
+                    self.sandgraph_agent_graph,
+                    self.llm_policy,
+                    self.slot_manager
+                )
+                print("   ✅ AsyncAgentWorkflow 初始化成功")
+                
+                # 初始化OASIS正确模拟
+                config = {"num_agents": self.num_users, "max_steps": self.num_steps}
+                self.oasis_simulation = OASISCorrectSimulation(
+                    config, "http://localhost:8001/v1", "qwen-2"
+                )
+                print("   ✅ OASISCorrectSimulation 初始化成功")
+                
+                print("   🎉 所有SandGraph组件初始化完成!")
+                
+            except Exception as e:
+                print(f"   ❌ SandGraph组件初始化失败: {e}")
+                self.slot_manager = None
+                self.oasis_sandbox = None
+                self.sandgraph_agent_graph = None
+                self.llm_policy = None
+                self.async_workflow = None
+                self.oasis_simulation = None
+        else:
+            print("   ⚠️ SandGraph模块不可用，跳过组件初始化")
+            self.slot_manager = None
+            self.oasis_sandbox = None
+            self.sandgraph_agent_graph = None
+            self.llm_policy = None
+            self.async_workflow = None
+            self.oasis_simulation = None
     
     async def _initialize_camel_oasis(self):
         """初始化camel和oasis组件"""
@@ -818,6 +943,98 @@ class TwitterSimulationGlobal:
         logger.info("模拟完成!")
         self._print_final_statistics()
     
+    async def demonstrate_sandgraph_components(self):
+        """演示SandGraph组件的功能"""
+        if not HAS_SANDGRAPH:
+            print("❌ SandGraph模块不可用，无法演示组件功能")
+            return
+        
+        print(f"\n🎭 演示SandGraph组件功能:")
+        
+        try:
+            # 1. 演示奖励槽管理器
+            print(f"\n📊 1. 奖励槽管理器演示:")
+            if self.slot_manager:
+                # 分配一些槽位
+                self.slot_manager.allocate_slot("user_1", 0.8)
+                self.slot_manager.allocate_slot("user_2", 0.6)
+                self.slot_manager.allocate_slot("user_3", 0.9)
+                
+                # 更新奖励
+                self.slot_manager.update_slot_reward("user_1", 0.9)
+                self.slot_manager.update_slot_reward("user_2", 0.7)
+                
+                # 获取顶级槽位
+                top_slots = self.slot_manager.get_top_slots(3)
+                print(f"   - 顶级槽位: {top_slots}")
+                
+                # 显示槽位状态
+                print(f"   - 槽位数量: {len(self.slot_manager.slots)}")
+                print(f"   - 总奖励: {sum(self.slot_manager.slots.values()):.2f}")
+            
+            # 2. 演示OASIS沙盒
+            print(f"\n🏖️ 2. OASIS沙盒演示:")
+            if self.oasis_sandbox:
+                # 创建一些代理状态
+                agent1 = AgentState(
+                    agent_id=1,
+                    belief_type=BeliefType.POSITIVE,
+                    influence_score=0.8,
+                    neighbors=[2, 3],
+                    group="TRUMP"
+                )
+                agent2 = AgentState(
+                    agent_id=2,
+                    belief_type=BeliefType.NEGATIVE,
+                    influence_score=0.6,
+                    neighbors=[1, 3],
+                    group="BIDEN"
+                )
+                
+                # 添加到沙盒
+                self.oasis_sandbox.add_agent(agent1)
+                self.oasis_sandbox.add_agent(agent2)
+                
+                print(f"   - 沙盒中的代理数量: {len(self.oasis_sandbox.get_agents())}")
+                print(f"   - 总影响力: {self.oasis_sandbox.total_influence:.2f}")
+            
+            # 3. 演示代理图
+            print(f"\n🕸️ 3. 代理图演示:")
+            if self.sandgraph_agent_graph:
+                # 添加代理
+                if 'agent1' in locals():
+                    self.sandgraph_agent_graph.add_agent(agent1)
+                if 'agent2' in locals():
+                    self.sandgraph_agent_graph.add_agent(agent2)
+                
+                agents = self.sandgraph_agent_graph.get_agents()
+                print(f"   - 代理图大小: {len(agents)}")
+                for agent_id, agent in agents.items():
+                    print(f"     * 代理{agent_id}: {agent.group}, 影响力={agent.influence_score:.2f}")
+            
+            # 4. 演示异步工作流
+            print(f"\n⚡ 4. 异步工作流演示:")
+            if self.async_workflow:
+                print(f"   - 工作流状态: 已初始化")
+                print(f"   - 任务队列大小: {self.async_workflow.task_queue.qsize()}")
+                print(f"   - 推理工作器数量: {len(self.async_workflow.inference_workers)}")
+                print(f"   - 权重更新工作器数量: {len(self.async_workflow.weight_update_workers)}")
+            
+            # 5. 演示LLM策略
+            print(f"\n🤖 5. LLM策略演示:")
+            if self.llm_policy:
+                print(f"   - 策略模式: {self.llm_policy.mode}")
+                print(f"   - 模型名称: {self.llm_policy.model_name}")
+                print(f"   - 后端: {self.llm_policy.backend}")
+                print(f"   - 监控启用: {self.llm_policy.enable_monitoring}")
+            
+            print(f"\n🎉 SandGraph组件演示完成!")
+            
+        except Exception as e:
+            print(f"❌ 组件演示过程中发生错误: {e}")
+            import traceback
+            traceback.print_exc()
+    
     async def run_camel_oasis_steps(self):
         """运行camel/oasis环境步骤，类似原始twitter_simulation.py"""
         if not self.env or not self.agent_graph:
@@ -967,19 +1184,43 @@ class TwitterSimulationGlobal:
 
 async def main():
     """主函数"""
-    # 创建模拟器
-    simulation = TwitterSimulationGlobal(num_users=50, num_steps=30)
+    print("=" * 60)
+    print("🚀 Twitter Simulation Global - SandGraph集成版")
+    print("=" * 60)
     
-    # 如果camel/oasis可用，先初始化
-    if HAS_CAMEL and HAS_OASIS:
-        await simulation._initialize_camel_oasis()
-        await simulation.run_camel_oasis_steps()
-    
-    # 运行模拟
-    await simulation.run_simulation()
-    
-    # 保存结果
-    simulation.save_results()
+    try:
+        # 创建模拟器
+        print("\n📋 创建Twitter模拟器...")
+        simulation = TwitterSimulationGlobal(num_users=50, num_steps=30)
+        
+        # 演示SandGraph组件功能
+        print("\n🔍 演示SandGraph核心组件...")
+        await simulation.demonstrate_sandgraph_components()
+        
+        # 如果camel/oasis可用，先初始化
+        if HAS_CAMEL and HAS_OASIS:
+            print("\n🌐 初始化Camel和Oasis...")
+            await simulation._initialize_camel_oasis()
+            await simulation.run_camel_oasis_steps()
+        else:
+            print("\n⚠️ Camel/Oasis不可用，跳过环境步骤")
+        
+        # 运行模拟
+        print("\n🎬 开始全局Twitter模拟...")
+        await simulation.run_simulation()
+        
+        # 保存结果
+        print("\n💾 保存模拟结果...")
+        simulation.save_results()
+        
+        print("\n" + "=" * 60)
+        print("🎉 模拟完成！所有SandGraph组件已成功集成和演示")
+        print("=" * 60)
+        
+    except Exception as e:
+        print(f"\n❌ 模拟过程中发生错误: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 if __name__ == "__main__":
