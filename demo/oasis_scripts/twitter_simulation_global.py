@@ -20,6 +20,24 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import json
 
+# Import camel and oasis related modules
+try:
+    from camel.models import ModelFactory
+    from camel.types import ModelPlatformType
+    HAS_CAMEL = True
+except ImportError:
+    HAS_CAMEL = False
+    print("camel modules not available, using mock implementations")
+
+try:
+    import oasis
+    from oasis import (ActionType, LLMAction, ManualAction,
+                      generate_reddit_agent_graph)
+    HAS_OASIS = True
+except ImportError:
+    HAS_OASIS = False
+    print("oasis modules not available, using mock implementations")
+
 # Optional numpy import
 try:
     import numpy as np
@@ -130,6 +148,30 @@ class Trace:
     action: str  # LIKE_POST, UNLIKE_POST, REPOST, CREATE_POST
     timestamp: str
     info: str = ""
+
+
+class VLLMClient:
+    """VLLM客户端，用于LLM调用"""
+    
+    def __init__(self, url: str = "http://localhost:8001/v1", model_name: str = "qwen-2"):
+        self.url = url
+        self.model_name = model_name
+        self.session = None
+    
+    async def generate(self, prompt: str) -> str:
+        """生成文本响应"""
+        try:
+            # 这里应该实现真正的VLLM调用
+            # 为了演示，我们返回一个模拟响应
+            if "TRUMP" in prompt.upper():
+                return "I support TRUMP and will post/forward TRUMP messages this round."
+            elif "BIDEN" in prompt.upper():
+                return "I support BIDEN and will post/forward BIDEN messages this round."
+            else:
+                return "I will post/forward TRUMP messages this round."
+        except Exception as e:
+            logging.error(f"VLLM generation failed: {e}")
+            return "I will post/forward TRUMP messages this round."
 
 
 class GlobalRecommendationSystem:
@@ -453,7 +495,9 @@ class GlobalBeliefUpdater:
 class TwitterSimulationGlobal:
     """全局Twitter模拟器"""
     
-    def __init__(self, num_users: int = 100, num_steps: int = 50):
+    def __init__(self, num_users: int = 100, num_steps: int = 50, 
+                 vllm_url: str = "http://localhost:8001/v1", 
+                 model_name: str = "qwen-2"):
         self.num_users = num_users
         self.num_steps = num_steps
         self.users = []
@@ -461,6 +505,9 @@ class TwitterSimulationGlobal:
         self.traces = []
         self.current_post_id = 0
         self.current_time = 0
+        
+        # 初始化VLLM客户端
+        self.vllm_client = VLLMClient(vllm_url, model_name)
         
         # 初始化组件
         self.rec_system = GlobalRecommendationSystem(max_rec_posts=10)
@@ -476,6 +523,70 @@ class TwitterSimulationGlobal:
             'total_likes': [],
             'total_reposts': []
         }
+        
+        # 尝试初始化camel和oasis
+        self.agent_graph = None
+        self.env = None
+        if HAS_CAMEL and HAS_OASIS:
+            self._initialize_camel_oasis()
+    
+    async def _initialize_camel_oasis(self):
+        """初始化camel和oasis组件"""
+        try:
+            # 创建VLLM模型
+            vllm_model_1 = ModelFactory.create(
+                model_platform=ModelPlatformType.VLLM,
+                model_type="qwen-2",
+                url="http://localhost:8001/v1",
+            )
+            vllm_model_2 = ModelFactory.create(
+                model_platform=ModelPlatformType.VLLM,
+                model_type="qwen-2",
+                url="http://localhost:8001/v1",
+            )
+            models = [vllm_model_1, vllm_model_2]
+            
+            # 定义可用动作
+            available_actions = [
+                ActionType.CREATE_POST,
+                ActionType.LIKE_POST,
+                ActionType.REPOST,
+                ActionType.FOLLOW,
+                ActionType.DO_NOTHING,
+                ActionType.QUOTE_POST,
+            ]
+            
+            # 生成代理图
+            self.agent_graph = await generate_reddit_agent_graph(
+                profile_path="user_data_36.json",
+                model=models,
+                available_actions=available_actions,
+            )
+            
+            # 分配组别
+            trump_ratio = 0.5
+            agent_ids = [id for id, _ in self.agent_graph.get_agents()]
+            trump_agents = set(random.sample(agent_ids, int(len(agent_ids) * trump_ratio)))
+            for id, agent in self.agent_graph.get_agents():
+                agent.group = "TRUMP" if id in trump_agents else "BIDEN"
+            
+            # 创建环境
+            db_path = "twitter_simulation_global.db"
+            if os.path.exists(db_path):
+                os.remove(db_path)
+            
+            self.env = oasis.make(
+                agent_graph=self.agent_graph,
+                platform=oasis.DefaultPlatformType.TWITTER,
+                database_path=db_path,
+            )
+            
+            print("Camel和Oasis初始化成功")
+            
+        except Exception as e:
+            print(f"Camel和Oasis初始化失败: {e}")
+            self.agent_graph = None
+            self.env = None
     
     def initialize_users(self):
         """初始化用户"""
@@ -548,7 +659,7 @@ class TwitterSimulationGlobal:
         self.current_post_id += 1
         return post
     
-    def simulate_step(self):
+    async def simulate_step(self):
         """模拟一个时间步"""
         logger.info(f"=== 时间步 {self.current_time + 1} ===")
         
@@ -562,7 +673,24 @@ class TwitterSimulationGlobal:
         for user in self.users:
             # 用户发帖概率
             if random.random() < 0.1:  # 10%概率发帖
-                post = self._create_post(user)
+                # 使用VLLM生成帖子内容
+                prompt = (
+                    f"You are a {user.group} supporter. "
+                    f"Generate a short post (max 100 characters) about your political views. "
+                    f"Make it engaging and authentic to your group's perspective."
+                )
+                
+                try:
+                    generated_content = await self.vllm_client.generate(prompt)
+                    # 清理生成的内容，确保不超过100字符
+                    clean_content = generated_content[:100].strip()
+                    if not clean_content:
+                        clean_content = f"{user.group} supporter post {self.current_post_id}"
+                except Exception as e:
+                    print(f"VLLM generation failed for user {user.user_id}: {e}")
+                    clean_content = f"{user.group} supporter post {self.current_post_id}"
+                
+                post = self._create_post(user, clean_content)
                 new_posts.append(post)
                 
                 # 记录发帖行为
@@ -585,20 +713,45 @@ class TwitterSimulationGlobal:
                     post = next((p for p in self.posts if p.post_id == post_id), None)
                     
                     if post:
-                        # 基于用户信念决定互动类型
-                        if user.group == post.group:
-                            # 同组帖子，点赞
-                            action = "LIKE_POST"
-                            post.num_likes += 1
-                            user.liked_posts.append(post_id)
-                        elif random.random() < 0.2:  # 20%概率转发
-                            action = "REPOST"
-                            post.num_reposts += 1
-                        else:
-                            # 不同组帖子，可能点踩
-                            action = "UNLIKE_POST"
-                            post.num_dislikes += 1
-                            user.disliked_posts.append(post_id)
+                        # 使用VLLM决定互动类型
+                        interaction_prompt = (
+                            f"You are a {user.group} supporter. "
+                            f"You see a post: '{post.content[:50]}...' "
+                            f"from a {post.group} supporter. "
+                            f"Will you LIKE, REPOST, or DISLIKE this post? "
+                            f"Respond with only one word: LIKE, REPOST, or DISLIKE."
+                        )
+                        
+                        try:
+                            interaction_decision = await self.vllm_client.generate(interaction_prompt)
+                            action_upper = interaction_decision.upper().strip()
+                            
+                            if "LIKE" in action_upper:
+                                action = "LIKE_POST"
+                                post.num_likes += 1
+                                user.liked_posts.append(post_id)
+                            elif "REPOST" in action_upper:
+                                action = "REPOST"
+                                post.num_reposts += 1
+                            else:
+                                action = "UNLIKE_POST"
+                                post.num_dislikes += 1
+                                user.disliked_posts.append(post_id)
+                                
+                        except Exception as e:
+                            print(f"VLLM interaction decision failed for user {user.user_id}: {e}")
+                            # 回退到基于信念的决策
+                            if user.group == post.group:
+                                action = "LIKE_POST"
+                                post.num_likes += 1
+                                user.liked_posts.append(post_id)
+                            elif random.random() < 0.2:
+                                action = "REPOST"
+                                post.num_reposts += 1
+                            else:
+                                action = "UNLIKE_POST"
+                                post.num_dislikes += 1
+                                user.disliked_posts.append(post_id)
                         
                         trace = Trace(
                             user_id=user.user_id,
@@ -647,7 +800,7 @@ class TwitterSimulationGlobal:
         logger.info(f"统计: TRUMP={trump_count}, BIDEN={biden_count}, NEUTRAL={neutral_count}")
         logger.info(f"帖子总数: {len(self.posts)}, 总点赞: {total_likes}, 总转发: {total_reposts}")
     
-    def run_simulation(self):
+    async def run_simulation(self):
         """运行完整模拟"""
         logger.info("开始全局Twitter模拟...")
         
@@ -657,7 +810,7 @@ class TwitterSimulationGlobal:
         
         # 运行模拟
         for step in range(self.num_steps):
-            self.simulate_step()
+            await self.simulate_step()
             
             # 每10步输出详细统计
             if (step + 1) % 10 == 0:
@@ -665,6 +818,49 @@ class TwitterSimulationGlobal:
         
         logger.info("模拟完成!")
         self._print_final_statistics()
+    
+    async def run_camel_oasis_steps(self):
+        """运行camel/oasis环境步骤，类似原始twitter_simulation.py"""
+        if not self.env or not self.agent_graph:
+            logger.warning("Camel/Oasis环境未初始化，跳过环境步骤")
+            return
+        
+        try:
+            # 重置环境
+            await self.env.reset()
+            
+            # 步骤1: 创建第一个帖子
+            actions_1 = {}
+            actions_1[self.env.agent_graph.get_agent(0)] = ManualAction(
+                action_type=ActionType.CREATE_POST,
+                action_args={"content": "Earth is flat."})
+            await self.env.step(actions_1)
+            
+            # 步骤2: 激活5个代理
+            actions_2 = {
+                agent: LLMAction()
+                for _, agent in self.env.agent_graph.get_agents([1, 3, 5, 7, 9])
+            }
+            await self.env.step(actions_2)
+            
+            # 步骤3: 创建第二个帖子
+            actions_3 = {}
+            actions_3[self.env.agent_graph.get_agent(1)] = ManualAction(
+                action_type=ActionType.CREATE_POST,
+                action_args={"content": "Earth is not flat."})
+            await self.env.step(actions_3)
+            
+            # 步骤4: 激活所有代理
+            actions_4 = {
+                agent: LLMAction()
+                for _, agent in self.env.agent_graph.get_agents()
+            }
+            await self.env.step(actions_4)
+            
+            logger.info("Camel/Oasis环境步骤执行完成")
+            
+        except Exception as e:
+            logger.error(f"Camel/Oasis环境步骤执行失败: {e}")
     
     def _print_detailed_statistics(self):
         """打印详细统计信息"""
@@ -775,8 +971,12 @@ async def main():
     # 创建模拟器
     simulation = TwitterSimulationGlobal(num_users=50, num_steps=30)
     
+    # 如果camel/oasis可用，运行环境步骤
+    if HAS_CAMEL and HAS_OASIS:
+        await simulation.run_camel_oasis_steps()
+    
     # 运行模拟
-    simulation.run_simulation()
+    await simulation.run_simulation()
     
     # 保存结果
     simulation.save_results()
