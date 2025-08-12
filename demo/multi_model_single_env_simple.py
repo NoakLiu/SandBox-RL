@@ -19,16 +19,17 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 
 # 简化的numpy替代
+def simple_randn(*shape):
+    """简化的随机数生成函数"""
+    if len(shape) == 1:
+        return [random.uniform(-1, 1) for _ in range(shape[0])]
+    elif len(shape) == 2:
+        return [[random.uniform(-1, 1) for _ in range(shape[1])] 
+               for _ in range(shape[0])]
+    else:
+        return [random.uniform(-1, 1) for _ in range(shape[0])]
+
 class SimpleNumpy:
-    @staticmethod
-    def random():
-        class Random:
-            @staticmethod
-            def randn(*shape):
-                return [[random.uniform(-1, 1) for _ in range(shape[1] if len(shape) > 1 else 1)] 
-                       for _ in range(shape[0])]
-        return Random()
-    
     @staticmethod
     def mean(data):
         if not data:
@@ -38,6 +39,14 @@ class SimpleNumpy:
     @staticmethod
     def array(data):
         return data
+    
+    @staticmethod
+    def zeros(shape):
+        if len(shape) == 1:
+            return [0.0] * shape[0]
+        elif len(shape) == 2:
+            return [[0.0] * shape[1] for _ in range(shape[0])]
+        return [0.0] * shape[0]
 
 np = SimpleNumpy()
 
@@ -168,10 +177,10 @@ class MockFrozenLLM:
         self.learning_rate = learning_rate
         self.weight_update_count = 0
         self.parameters = {
-            "embedding": np.random.randn(100, 768),
-            "layers.0": np.random.randn(768, 768),
-            "layers.1": np.random.randn(768, 768),
-            "output": np.random.randn(768, 100)
+            "embedding": simple_randn(100, 768),
+            "layers.0": simple_randn(768, 768),
+            "layers.1": simple_randn(768, 768),
+            "output": simple_randn(768, 100)
         }
     
     def update_parameters(self, gradients: Dict[str, Any], lr: float):
@@ -297,10 +306,10 @@ class LoRAModel:
         if result.get("accuracy", 0) > 0.7:
             # 生成模拟梯度
             gradients = {
-                "embedding": np.random.randn(100, 768),
-                "layers.0": np.random.randn(768, 768),
-                "layers.1": np.random.randn(768, 768),
-                "output": np.random.randn(768, 100)
+                "embedding": simple_randn(100, 768),
+                "layers.0": simple_randn(768, 768),
+                "layers.1": simple_randn(768, 768),
+                "output": simple_randn(768, 100)
             }
             
             try:
