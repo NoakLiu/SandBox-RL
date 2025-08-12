@@ -189,20 +189,43 @@ class VLLMClient:
         self.model_name = model_name
         self.session = None
         self.sandgraph_client = None
+        self.connection_available = False
         
-        # 如果SandGraph可用，尝试使用其VLLM客户端
-        if HAS_SANDGRAPH:
+        # 测试VLLM连接
+        self._test_connection()
+        
+        # 如果SandGraph可用且连接可用，尝试使用其VLLM客户端
+        if HAS_SANDGRAPH and self.connection_available:
             try:
                 self.sandgraph_client = SandGraphVLLMClient(url, model_name)
                 print(f"✅ 使用SandGraph VLLM客户端: {url}")
             except Exception as e:
                 print(f"⚠️ SandGraph VLLM客户端初始化失败: {e}")
                 print("将使用模拟模式")
+                self.connection_available = False
+        else:
+            print(f"⚠️ VLLM服务器不可用: {url}")
+            print("将使用模拟模式")
+    
+    def _test_connection(self):
+        """测试VLLM服务器连接"""
+        try:
+            import requests
+            response = requests.get(f"{self.url}/models", timeout=5)
+            if response.status_code == 200:
+                self.connection_available = True
+                print(f"✅ VLLM服务器连接成功: {self.url}")
+            else:
+                self.connection_available = False
+                print(f"⚠️ VLLM服务器响应异常: {response.status_code}")
+        except Exception as e:
+            self.connection_available = False
+            print(f"⚠️ VLLM服务器连接失败: {e}")
     
     async def generate(self, prompt: str) -> str:
         """生成文本响应"""
         # 优先使用SandGraph的VLLM客户端
-        if self.sandgraph_client and HAS_SANDGRAPH:
+        if self.sandgraph_client and HAS_SANDGRAPH and self.connection_available:
             try:
                 async with self.sandgraph_client as client:
                     response = await client.generate(prompt)
