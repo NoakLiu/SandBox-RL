@@ -18,6 +18,27 @@ from datetime import datetime
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
+# VLLM集成 - 使用Camel和Oasis接口
+try:
+    from camel.models import ModelFactory
+    from camel.types import ModelPlatformType
+    import oasis
+    CAMEL_OASIS_AVAILABLE = True
+    print("✅ Camel和Oasis VLLM接口可用")
+except ImportError:
+    CAMEL_OASIS_AVAILABLE = False
+    print("⚠️ Camel和Oasis VLLM接口不可用，将使用模拟模式")
+
+# 备用HTTP客户端
+try:
+    import requests
+    import aiohttp
+    VLLM_AVAILABLE = True
+    print("✅ VLLM HTTP客户端可用")
+except ImportError:
+    VLLM_AVAILABLE = False
+    print("⚠️ VLLM HTTP客户端不可用，将使用模拟模式")
+
 # 简化的numpy替代
 def simple_randn(*shape):
     """简化的随机数生成函数"""
@@ -51,6 +72,83 @@ class SimpleNumpy:
 np = SimpleNumpy()
 
 logger = logging.getLogger(__name__)
+
+class VLLMClient:
+    """VLLM客户端 - 使用Camel和Oasis接口"""
+    
+    def __init__(self, url: str = "http://localhost:8001/v1", model_name: str = "qwen-2"):
+        self.url = url
+        self.model_name = model_name
+        self.camel_model = None
+        self.connection_available = False
+        self._initialize_camel_model()
+    
+    def _initialize_camel_model(self):
+        """初始化Camel模型"""
+        if CAMEL_OASIS_AVAILABLE:
+            try:
+                self.camel_model = ModelFactory.create(
+                    model_platform=ModelPlatformType.VLLM,
+                    model_type=self.model_name,
+                    url=self.url,
+                )
+                self.connection_available = True
+                print(f"✅ Camel VLLM模型初始化成功: {self.url}")
+            except Exception as e:
+                print(f"⚠️ Camel VLLM模型初始化失败: {e}")
+                self.connection_available = False
+        else:
+            print("⚠️ Camel和Oasis不可用，将使用模拟模式")
+            self.connection_available = False
+    
+    async def generate(self, prompt: str, max_tokens: int = 100) -> str:
+        """生成文本响应"""
+        if self.camel_model and CAMEL_OASIS_AVAILABLE and self.connection_available:
+            try:
+                # 使用Camel模型生成响应
+                response = await self.camel_model.generate(prompt, max_tokens=max_tokens)
+                print(f"🤖 Camel VLLM生成: {response[:50]}...")
+                return response
+            except Exception as e:
+                print(f"❌ Camel VLLM调用失败: {e}")
+                print("回退到模拟模式")
+        
+        # 备用HTTP客户端
+        if VLLM_AVAILABLE:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "model": self.model_name,
+                        "messages": [{"role": "user", "content": prompt}],
+                        "max_tokens": max_tokens,
+                        "temperature": 0.7
+                    }
+                    
+                    async with session.post(f"{self.url}/chat/completions", json=payload) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            content = result["choices"][0]["message"]["content"]
+                            print(f"🤖 HTTP VLLM生成: {content[:50]}...")
+                            return content
+                        else:
+                            print(f"❌ HTTP VLLM响应错误: {response.status}")
+                            return self._generate_mock_response(prompt)
+            except Exception as e:
+                print(f"❌ HTTP VLLM调用失败: {e}")
+                return self._generate_mock_response(prompt)
+        
+        return self._generate_mock_response(prompt)
+    
+    def _generate_mock_response(self, prompt: str) -> str:
+        """生成模拟响应"""
+        mock_responses = [
+            "基于当前任务分析，我建议采用协同策略。",
+            "通过竞争机制可以获得更好的性能表现。",
+            "团队合作是解决复杂问题的关键。",
+            "需要平衡效率和准确性的关系。",
+            "LoRA适应可以帮助模型更好地完成任务。"
+        ]
+        return random.choice(mock_responses)
 
 class TrainingMode(Enum):
     """训练模式"""
@@ -215,7 +313,11 @@ class LoRAModel:
         self.performance_history: List[ModelPerformance] = []
         self.current_task = None
         
+        # 初始化VLLM客户端
+        self.vllm_client = VLLMClient(vllm_url, f"{config.model_name}-lora-{config.lora_rank}")
+        
         print(f"✅ Model {self.config.model_id} initialized with LoRA rank={self.config.lora_rank}")
+        print(f"🤖 VLLM客户端: {self.vllm_client.connection_available}")
     
     async def process_task(self, task: TrainingTask, other_models: List['LoRAModel']) -> ModelPerformance:
         """处理训练任务"""
@@ -274,17 +376,30 @@ class LoRAModel:
     async def _execute_task(self, task: TrainingTask, strategy: Dict[str, Any], 
                           other_models: List['LoRAModel']) -> Dict[str, Any]:
         """执行任务"""
-        # 模拟任务执行
-        await asyncio.sleep(random.uniform(0.1, 0.5))
+        # 构建VLLM提示词
+        prompt = self._build_task_prompt(task, strategy, other_models)
         
-        # 根据策略计算性能
+        # 使用VLLM生成响应
+        try:
+            vllm_response = await self.vllm_client.generate(prompt, max_tokens=150)
+            print(f"🤖 Model {self.config.model_id} VLLM响应: {vllm_response[:100]}...")
+        except Exception as e:
+            print(f"❌ VLLM调用失败: {e}")
+            vllm_response = "使用默认策略执行任务"
+        
+        # 根据VLLM响应和策略计算性能
         base_accuracy = random.uniform(0.6, 0.9)
         base_efficiency = random.uniform(0.5, 0.8)
         
+        # VLLM响应质量加成
+        vllm_bonus = 0.1 if "协同" in vllm_response or "合作" in vllm_response else 0.05
+        if "竞争" in vllm_response or "优化" in vllm_response:
+            vllm_bonus += 0.05
+        
         # 合作加成
         cooperation_bonus = strategy["teamwork_level"] * 0.2
-        accuracy = min(1.0, base_accuracy + cooperation_bonus)
-        efficiency = min(1.0, base_efficiency + cooperation_bonus)
+        accuracy = min(1.0, base_accuracy + cooperation_bonus + vllm_bonus)
+        efficiency = min(1.0, base_efficiency + cooperation_bonus + vllm_bonus)
         
         # 计算奖励
         reward_earned = task.reward_pool * accuracy * efficiency / len(other_models + [self])
@@ -298,8 +413,38 @@ class LoRAModel:
             "efficiency": efficiency,
             "cooperation_score": strategy["teamwork_level"],
             "reward_earned": reward_earned,
+            "vllm_response": vllm_response,
             "strategy_used": strategy
         }
+    
+    def _build_task_prompt(self, task: TrainingTask, strategy: Dict[str, Any], 
+                          other_models: List['LoRAModel']) -> str:
+        """构建VLLM任务提示词"""
+        prompt = f"""
+你是一个AI模型，正在参与多模型训练任务。
+
+任务信息:
+- 任务ID: {task.task_id}
+- 任务类型: {task.task_type}
+- 难度: {task.difficulty:.2f}
+- 奖励池: {task.reward_pool:.2f}
+- 合作级别: {task.cooperation_level:.2f}
+
+你的角色: {self.config.role.value}
+你的团队: {self.config.team_id or '无'}
+你的专长: {self.config.specialization}
+
+当前策略:
+- 模式: {strategy.get('mode', 'unknown')}
+- 团队合作级别: {strategy.get('teamwork_level', 0):.2f}
+- 通信: {strategy.get('communication', False)}
+- 资源共享: {strategy.get('resource_sharing', False)}
+
+其他模型数量: {len(other_models)}
+
+请根据以上信息，为这个任务提供执行策略建议。考虑你的角色、任务类型和合作级别。
+"""
+        return prompt
     
     async def _update_weights(self, result: Dict[str, Any]):
         """更新模型权重"""
@@ -357,8 +502,20 @@ class MultiModelEnvironment:
         self.task_queue: List[TrainingTask] = []
         self.completed_tasks: List[TrainingTask] = []
         
+        # 测试VLLM连接
+        self.vllm_available = self._test_vllm_connection()
+        
         self._generate_initial_tasks()
         print(f"✅ Multi-model environment initialized with mode: {training_mode.value}")
+        print(f"🤖 VLLM可用性: {self.vllm_available}")
+    
+    def _test_vllm_connection(self) -> bool:
+        """测试VLLM连接"""
+        try:
+            response = requests.get(f"{self.vllm_url}/models", timeout=5)
+            return response.status_code == 200
+        except:
+            return False
     
     def _generate_initial_tasks(self):
         """生成初始训练任务"""
@@ -438,6 +595,7 @@ class MultiModelEnvironment:
         print(f"📋 Executing task: {task.task_id} ({task.task_type})")
         print(f"   Cooperation level: {task.cooperation_level:.2f}")
         print(f"   Required models: {task.required_models}")
+        print(f"   VLLM available: {self.vllm_available}")
         
         # 选择参与模型
         participating_models = random.sample(available_models, 
@@ -722,6 +880,10 @@ async def demo_mixed_training():
 async def main():
     """主函数"""
     print("🚀 Multi-Model Single Environment Training System (Simplified)")
+    print("=" * 70)
+    print("🤖 VLLM Integration: Enabled")
+    print(f"📡 VLLM HTTP Client: {'Available' if VLLM_AVAILABLE else 'Not Available'}")
+    print(f"🔗 Camel & Oasis VLLM Client: {'Available' if CAMEL_OASIS_AVAILABLE else 'Not Available'}")
     print("=" * 70)
     
     # 设置日志
