@@ -162,10 +162,23 @@ class VLLMClient:
                     selected_model = random.choice(self.camel_models)
                 
                 # 使用Camel VLLM的正确API: arun方法
-                response = await selected_model.arun(prompt)
-                
-                print(f"🤖 VLLM (LoRA {lora_id or 'random'}) 生成: {response[:50]}...")
-                return response
+                # 添加超时和重试机制
+                import asyncio
+                try:
+                    response = await asyncio.wait_for(
+                        selected_model.arun(prompt), 
+                        timeout=10.0
+                    )
+                    print(f"🤖 VLLM (LoRA {lora_id or 'random'}) 生成: {response[:50]}...")
+                    return response
+                except asyncio.TimeoutError:
+                    print(f"⚠️ VLLM (LoRA {lora_id or 'random'}) 请求超时，使用模拟模式")
+                except Exception as e:
+                    print(f"❌ VLLM (LoRA {lora_id or 'random'}) 调用失败: {e}")
+                    # 如果是连接错误，标记连接不可用
+                    if "Connection" in str(e) or "timeout" in str(e).lower():
+                        print("⚠️ 检测到连接问题，后续将使用模拟模式")
+                        self.connection_available = False
             except Exception as e:
                 print(f"❌ Camel VLLM调用失败: {e}")
                 print("回退到模拟模式")

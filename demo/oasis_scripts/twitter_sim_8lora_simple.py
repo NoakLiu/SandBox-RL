@@ -62,8 +62,10 @@ class VLLMClient:
                 )
                 self.camel_models.append(vllm_model)
             
+            # 不立即测试连接，延迟到第一次使用时
             self.connection_available = True
             print(f"✅ 创建了 {len(self.camel_models)} 个Camel VLLM模型")
+            print("⚠️ 连接测试将在第一次使用时进行")
             
         except ImportError:
             print("⚠️ Camel模块不可用，将使用模拟模式")
@@ -84,14 +86,29 @@ class VLLMClient:
                     selected_model = self.camel_models[model_index]
                     
                     # 使用Camel VLLM的正确API: arun方法
-                    response = await selected_model.arun(prompt)
-                    print(f"🤖 VLLM (LoRA {lora_id}) 生成: {response[:50]}...")
-                    return response
+                    # 添加超时和重试机制
+                    import asyncio
+                    try:
+                        response = await asyncio.wait_for(
+                            selected_model.arun(prompt), 
+                            timeout=10.0
+                        )
+                        print(f"🤖 VLLM (LoRA {lora_id}) 生成: {response[:50]}...")
+                        return response
+                    except asyncio.TimeoutError:
+                        print(f"⚠️ VLLM (LoRA {lora_id}) 请求超时，使用模拟模式")
+                    except Exception as e:
+                        print(f"❌ VLLM (LoRA {lora_id}) 调用失败: {e}")
+                        # 如果是连接错误，标记连接不可用
+                        if "Connection" in str(e) or "timeout" in str(e).lower():
+                            print("⚠️ 检测到连接问题，后续将使用模拟模式")
+                            self.connection_available = False
                 else:
                     print(f"⚠️ LoRA ID {lora_id} 超出范围，使用模拟模式")
             except Exception as e:
                 print(f"❌ Camel VLLM调用失败: {e}")
                 print("回退到模拟模式")
+                self.connection_available = False
         
         # 模拟VLLM响应
         if lora_id <= 4:  # TRUMP组
