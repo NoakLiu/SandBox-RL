@@ -131,7 +131,7 @@ class VLLMClient:
                 else:
                     selected_model = random.choice(self.camel_models)
                 
-                response = await selected_model.generate(prompt)
+                response = await selected_model.arun(prompt)
                 print(f"🤖 VLLM (LoRA {lora_id or 'random'}) 生成: {response[:50]}...")
                 return response
             except Exception as e:

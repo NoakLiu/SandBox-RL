@@ -1,0 +1,9 @@
+{
+  "start_time": "2025-08-13T18:09:40.730023",
+  "memory_limit_gb": 32,
+  "enable_gpu": true,
+  "output_dir": "training_outputs",
+  "checkpoint_dir": "checkpoints",
+  "log_dir": "logs",
+  "system_info": {}
+}
