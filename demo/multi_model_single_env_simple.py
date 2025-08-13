@@ -105,10 +105,16 @@ class VLLMClient:
         """生成文本响应"""
         if self.camel_model and CAMEL_OASIS_AVAILABLE and self.connection_available:
             try:
-                # 使用Camel模型生成响应
-                response = await self.camel_model.generate(prompt, max_tokens=max_tokens)
+                # 使用Camel VLLM的正确API: arun方法
+                import asyncio
+                response = await asyncio.wait_for(
+                    self.camel_model.arun(prompt), 
+                    timeout=10.0
+                )
                 print(f"🤖 Camel VLLM生成: {response[:50]}...")
                 return response
+            except asyncio.TimeoutError:
+                print(f"⚠️ Camel VLLM请求超时，使用模拟模式")
             except Exception as e:
                 print(f"❌ Camel VLLM调用失败: {e}")
                 print("回退到模拟模式")
