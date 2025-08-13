@@ -161,28 +161,8 @@ class VLLMClient:
                 else:
                     selected_model = random.choice(self.camel_models)
                 
-                # 尝试不同的Camel VLLM API调用方式
-                try:
-                    # 方式1: 直接调用generate方法
-                    response = await selected_model.generate(prompt)
-                except AttributeError:
-                    try:
-                        # 方式2: 使用chat方法
-                        response = await selected_model.chat(prompt)
-                    except AttributeError:
-                        try:
-                            # 方式3: 使用completion方法
-                            response = await selected_model.completion(prompt)
-                        except AttributeError:
-                            try:
-                                # 方式4: 使用__call__方法
-                                response = await selected_model(prompt)
-                            except Exception:
-                                # 方式5: 检查模型对象的可用方法
-                                available_methods = [method for method in dir(selected_model) 
-                                                   if not method.startswith('_') and callable(getattr(selected_model, method))]
-                                print(f"⚠️ Camel VLLM模型可用方法: {available_methods}")
-                                raise Exception(f"Camel VLLM模型没有可用的生成方法，可用方法: {available_methods}")
+                # 使用Camel VLLM的正确API: arun方法
+                response = await selected_model.arun(prompt)
                 
                 print(f"🤖 VLLM (LoRA {lora_id or 'random'}) 生成: {response[:50]}...")
                 return response

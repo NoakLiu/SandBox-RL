@@ -41,10 +41,57 @@ class VLLMClient:
     
     def __init__(self):
         self.call_count = 0
+        self.camel_models = []
+        self.connection_available = False
+        
+        # 尝试初始化Camel VLLM模型
+        self._initialize_camel_models()
+    
+    def _initialize_camel_models(self):
+        """初始化Camel VLLM模型"""
+        try:
+            from camel.models import ModelFactory
+            from camel.types import ModelPlatformType
+            
+            # 创建8个VLLM模型实例
+            for i in range(8):
+                vllm_model = ModelFactory.create(
+                    model_platform=ModelPlatformType.VLLM,
+                    model_type="qwen-2",
+                    url="http://localhost:8001/v1",
+                )
+                self.camel_models.append(vllm_model)
+            
+            self.connection_available = True
+            print(f"✅ 创建了 {len(self.camel_models)} 个Camel VLLM模型")
+            
+        except ImportError:
+            print("⚠️ Camel模块不可用，将使用模拟模式")
+            self.connection_available = False
+        except Exception as e:
+            print(f"⚠️ Camel VLLM模型初始化失败: {e}")
+            self.connection_available = False
     
     async def generate(self, prompt: str, lora_id: int) -> str:
         """生成响应"""
         self.call_count += 1
+        
+        if self.camel_models and self.connection_available:
+            try:
+                # 根据lora_id选择模型 (lora_id从1开始，数组索引从0开始)
+                model_index = lora_id - 1
+                if 0 <= model_index < len(self.camel_models):
+                    selected_model = self.camel_models[model_index]
+                    
+                    # 使用Camel VLLM的正确API: arun方法
+                    response = await selected_model.arun(prompt)
+                    print(f"🤖 VLLM (LoRA {lora_id}) 生成: {response[:50]}...")
+                    return response
+                else:
+                    print(f"⚠️ LoRA ID {lora_id} 超出范围，使用模拟模式")
+            except Exception as e:
+                print(f"❌ Camel VLLM调用失败: {e}")
+                print("回退到模拟模式")
         
         # 模拟VLLM响应
         if lora_id <= 4:  # TRUMP组
