@@ -182,57 +182,57 @@ class Trace:
 
 
 class VLLMClient:
-    """VLLM客户端，用于LLM调用"""
+    """VLLM客户端，使用Camel和Oasis接口"""
     
     def __init__(self, url: str = "http://localhost:8001/v1", model_name: str = "qwen-2"):
         self.url = url
         self.model_name = model_name
-        self.session = None
-        self.sandgraph_client = None
+        self.camel_models = []
         self.connection_available = False
         
-        # 测试VLLM连接
-        self._test_connection()
-        
-        # 如果SandGraph可用且连接可用，尝试使用其VLLM客户端
-        if HAS_SANDGRAPH and self.connection_available:
+        # 初始化Camel VLLM模型
+        self._initialize_camel_models()
+    
+    def _initialize_camel_models(self):
+        """初始化Camel VLLM模型"""
+        if HAS_CAMEL:
             try:
-                self.sandgraph_client = SandGraphVLLMClient(url, model_name)
-                print(f"✅ 使用SandGraph VLLM客户端: {url}")
+                # 创建多个VLLM模型实例，类似twitter_simulation.py
+                vllm_model_1 = ModelFactory.create(
+                    model_platform=ModelPlatformType.VLLM,
+                    model_type=self.model_name,
+                    url=self.url,
+                )
+                vllm_model_2 = ModelFactory.create(
+                    model_platform=ModelPlatformType.VLLM,
+                    model_type=self.model_name,
+                    url=self.url,
+                )
+                self.camel_models = [vllm_model_1, vllm_model_2]
+                self.connection_available = True
+                print(f"✅ Camel VLLM模型初始化成功: {self.url}")
+                print(f"   - 模型数量: {len(self.camel_models)}")
             except Exception as e:
-                print(f"⚠️ SandGraph VLLM客户端初始化失败: {e}")
-                print("将使用模拟模式")
+                print(f"⚠️ Camel VLLM模型初始化失败: {e}")
                 self.connection_available = False
         else:
-            print(f"⚠️ VLLM服务器不可用: {url}")
-            print("将使用模拟模式")
-    
-    def _test_connection(self):
-        """测试VLLM服务器连接"""
-        try:
-            import requests
-            response = requests.get(f"{self.url}/models", timeout=5)
-            if response.status_code == 200:
-                self.connection_available = True
-                print(f"✅ VLLM服务器连接成功: {self.url}")
-            else:
-                self.connection_available = False
-                print(f"⚠️ VLLM服务器响应异常: {response.status_code}")
-        except Exception as e:
+            print("⚠️ Camel模块不可用，将使用模拟模式")
             self.connection_available = False
-            print(f"⚠️ VLLM服务器连接失败: {e}")
     
     async def generate(self, prompt: str) -> str:
         """生成文本响应"""
-        # 优先使用SandGraph的VLLM客户端
-        if self.sandgraph_client and HAS_SANDGRAPH and self.connection_available:
+        if self.camel_models and self.connection_available:
             try:
-                async with self.sandgraph_client as client:
-                    response = await client.generate(prompt)
-                    print(f"🤖 SandGraph VLLM生成: {response[:50]}...")
-                    return response
+                # 随机选择一个模型实例
+                import random
+                selected_model = random.choice(self.camel_models)
+                
+                # 使用Camel模型生成响应
+                response = await selected_model.generate(prompt)
+                print(f"🤖 Camel VLLM生成: {response[:50]}...")
+                return response
             except Exception as e:
-                print(f"❌ SandGraph VLLM调用失败: {e}")
+                print(f"❌ Camel VLLM调用失败: {e}")
                 print("回退到模拟模式")
         
         # 回退到模拟模式
@@ -842,9 +842,11 @@ class TwitterSimulationGlobal:
             self.self_evolving_oasis = None
     
     async def _initialize_camel_oasis(self):
-        """初始化camel和oasis组件"""
+        """初始化camel和oasis组件，使用与twitter_simulation.py相同的方式"""
         try:
-            # 创建VLLM模型
+            print("🔧 初始化Camel和Oasis组件...")
+            
+            # 创建VLLM模型，与twitter_simulation.py相同
             vllm_model_1 = ModelFactory.create(
                 model_platform=ModelPlatformType.VLLM,
                 model_type="qwen-2",
@@ -857,7 +859,9 @@ class TwitterSimulationGlobal:
             )
             models = [vllm_model_1, vllm_model_2]
             
-            # 定义可用动作
+            print(f"✅ 创建了 {len(models)} 个VLLM模型")
+            
+            # 定义可用动作，与twitter_simulation.py相同
             available_actions = [
                 ActionType.CREATE_POST,
                 ActionType.LIKE_POST,
@@ -867,46 +871,50 @@ class TwitterSimulationGlobal:
                 ActionType.QUOTE_POST,
             ]
             
-            # 生成代理图
+            print(f"✅ 定义了 {len(available_actions)} 个可用动作")
+            
+            # 生成代理图，与twitter_simulation.py相同
             self.agent_graph = await generate_reddit_agent_graph(
                 profile_path="user_data_36.json",
                 model=models,
                 available_actions=available_actions,
             )
             
-            # 分配组别
-            trump_ratio = 0.5
+            print(f"✅ 生成了代理图，包含 {len(list(self.agent_graph.get_agents()))} 个agents")
+            
+            # 分配组别，与twitter_simulation.py相同
+            trump_ratio = 0.5  # 50% Trump, 50% Biden
             agent_ids = [id for id, _ in self.agent_graph.get_agents()]
             trump_agents = set(random.sample(agent_ids, int(len(agent_ids) * trump_ratio)))
             for id, agent in self.agent_graph.get_agents():
                 agent.group = "TRUMP" if id in trump_agents else "BIDEN"
             
-            # 创建环境
+            print(f"✅ 分配了agent组: TRUMP={len(trump_agents)}, BIDEN={len(agent_ids)-len(trump_agents)}")
+            
+            # 创建环境，与twitter_simulation.py相同
             db_path = "twitter_simulation_global.db"
             if os.path.exists(db_path):
                 os.remove(db_path)
             
-            # 尝试使用oasis.make，如果不存在则使用其他方法
-            try:
-                if hasattr(oasis, 'make'):
-                    self.env = oasis.make(
-                        agent_graph=self.agent_graph,
-                        database_path=db_path,
-                    )
-                else:
-                    # 回退到其他方法
-                    self.env = oasis.Environment(
-                        agent_graph=self.agent_graph,
-                        database_path=db_path,
-                    )
-            except Exception as e:
-                print(f"Oasis环境创建失败: {e}")
-                self.env = None
+            # 使用oasis.make，与twitter_simulation.py相同
+            self.env = oasis.make(
+                agent_graph=self.agent_graph,
+                platform=oasis.DefaultPlatformType.TWITTER,
+                database_path=db_path,
+            )
             
-            print("Camel和Oasis初始化成功")
+            print("✅ 创建了Oasis环境")
+            
+            # 运行环境，与twitter_simulation.py相同
+            await self.env.reset()
+            print("✅ 环境重置完成")
+            
+            print("🎉 Camel和Oasis初始化成功")
             
         except Exception as e:
-            print(f"Camel和Oasis初始化失败: {e}")
+            print(f"❌ Camel和Oasis初始化失败: {e}")
+            import traceback
+            traceback.print_exc()
             self.agent_graph = None
             self.env = None
     
@@ -1295,47 +1303,100 @@ class TwitterSimulationGlobal:
             traceback.print_exc()
     
     async def run_camel_oasis_steps(self):
-        """运行camel/oasis环境步骤，类似原始twitter_simulation.py"""
+        """运行camel/oasis环境步骤，完全按照twitter_simulation.py的方式"""
         if not self.env or not self.agent_graph:
             logger.warning("Camel/Oasis环境未初始化，跳过环境步骤")
             return
         
         try:
-            # 重置环境
-            await self.env.reset()
+            print("🔄 运行Camel/Oasis环境步骤...")
             
-            # 步骤1: 创建第一个帖子
+            # 步骤1: 创建第一个帖子，与twitter_simulation.py相同
+            print("   📝 步骤1: 创建第一个帖子")
             actions_1 = {}
             actions_1[self.env.agent_graph.get_agent(0)] = ManualAction(
                 action_type=ActionType.CREATE_POST,
                 action_args={"content": "Earth is flat."})
             await self.env.step(actions_1)
+            print("   ✅ 第一个帖子创建完成")
             
-            # 步骤2: 激活5个代理
+            # 步骤2: 激活5个代理，与twitter_simulation.py相同
+            print("   🤖 步骤2: 激活5个代理 (ID: 1, 3, 5, 7, 9)")
             actions_2 = {
                 agent: LLMAction()
                 for _, agent in self.env.agent_graph.get_agents([1, 3, 5, 7, 9])
             }
             await self.env.step(actions_2)
+            print("   ✅ 5个代理激活完成")
             
-            # 步骤3: 创建第二个帖子
+            # 步骤3: 创建第二个帖子，与twitter_simulation.py相同
+            print("   📝 步骤3: 创建第二个帖子")
             actions_3 = {}
             actions_3[self.env.agent_graph.get_agent(1)] = ManualAction(
                 action_type=ActionType.CREATE_POST,
                 action_args={"content": "Earth is not flat."})
             await self.env.step(actions_3)
+            print("   ✅ 第二个帖子创建完成")
             
-            # 步骤4: 激活所有代理
+            # 步骤4: 激活所有代理，与twitter_simulation.py相同
+            print("   🤖 步骤4: 激活所有代理")
             actions_4 = {
                 agent: LLMAction()
                 for _, agent in self.env.agent_graph.get_agents()
             }
             await self.env.step(actions_4)
+            print("   ✅ 所有代理激活完成")
             
-            logger.info("Camel/Oasis环境步骤执行完成")
+            # 步骤5: 运行30步的信念传播模拟，与twitter_simulation.py相同
+            print("   🔄 步骤5: 运行30步信念传播模拟")
+            for step in range(30):
+                actions = {}
+                for id, agent in self.agent_graph.get_agents():
+                    neighbors = agent.get_neighbors()
+                    neighbor_groups = [n.group for n in neighbors]
+                    prompt = (
+                        f"You are a {agent.group} supporter. "
+                        f"Your neighbors' groups: {neighbor_groups}. "
+                        "Will you post/forward TRUMP or BIDEN message this round?"
+                    )
+                    
+                    # 使用VLLM生成响应
+                    try:
+                        resp = await self.vllm_client.generate(prompt)
+                        print(f"   [LLM][Agent {id}] Output: {resp}")
+                        if "TRUMP" in str(resp).upper():
+                            actions[id] = "TRUMP"
+                        else:
+                            actions[id] = "BIDEN"
+                    except Exception as e:
+                        print(f"   [LLM][Agent {id}] VLLM调用失败: {e}")
+                        # 回退到基于信念的决策
+                        actions[id] = agent.group
+                
+                # 传播规则，与twitter_simulation.py相同
+                for id, agent in self.agent_graph.get_agents():
+                    action = actions[id]
+                    neighbors = agent.get_neighbors()
+                    neighbor_groups = [n.group for n in neighbors]
+                    trump_ratio = neighbor_groups.count("TRUMP") / len(neighbor_groups) if neighbors else 0
+                    biden_ratio = 1 - trump_ratio
+                    if action != agent.group:
+                        if (action == "TRUMP" and trump_ratio > 0.6) or (action == "BIDEN" and biden_ratio > 0.6):
+                            agent.group = action
+                
+                # 统计当前状态
+                trump_count = sum(1 for _, agent in self.agent_graph.get_agents() if agent.group == "TRUMP")
+                biden_count = sum(1 for _, agent in self.agent_graph.get_agents() if agent.group == "BIDEN")
+                print(f"   Step {step+1}: TRUMP={trump_count} BIDEN={biden_count}")
+            
+            print("   ✅ 30步信念传播模拟完成")
+            
+            logger.info("🎉 Camel/Oasis环境步骤执行完成")
             
         except Exception as e:
-            logger.error(f"Camel/Oasis环境步骤执行失败: {e}")
+            logger.error(f"❌ Camel/Oasis环境步骤执行失败: {e}")
+            import traceback
+            traceback.print_exc()
     
     def _print_detailed_statistics(self):
         """打印详细统计信息"""
