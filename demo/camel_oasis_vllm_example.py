@@ -128,7 +128,9 @@ async def test_camel_oasis_vllm():
                 
                 # 使用VLLM模型生成响应
                 try:
-                    resp = await vllm_model_1.arun(prompt)
+                    # 使用正确的Camel VLLM API格式
+                    messages = [{"role": "user", "content": prompt}]
+                    resp = await vllm_model_1.arun(messages)
                     print(f"     Agent {id} ({agent.group}): {resp[:50]}...")
                 except Exception as e:
                     print(f"     Agent {id} ({agent.group}): VLLM调用失败 - {e}")

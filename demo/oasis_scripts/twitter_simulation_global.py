@@ -165,8 +165,10 @@ class VLLMClient:
                 # 添加超时和重试机制
                 import asyncio
                 try:
+                    # 使用正确的Camel VLLM API格式
+                    messages = [{"role": "user", "content": prompt}]
                     response = await asyncio.wait_for(
-                        selected_model.arun(prompt), 
+                        selected_model.arun(messages), 
                         timeout=10.0
                     )
                     print(f"🤖 VLLM (LoRA {lora_id or 'random'}) 生成: {response[:50]}...")

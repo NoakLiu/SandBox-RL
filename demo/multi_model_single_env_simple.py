@@ -107,8 +107,10 @@ class VLLMClient:
             try:
                 # 使用Camel VLLM的正确API: arun方法
                 import asyncio
+                # 使用正确的Camel VLLM API格式
+                messages = [{"role": "user", "content": prompt}]
                 response = await asyncio.wait_for(
-                    self.camel_model.arun(prompt), 
+                    self.camel_model.arun(messages), 
                     timeout=10.0
                 )
                 print(f"🤖 Camel VLLM生成: {response[:50]}...")
