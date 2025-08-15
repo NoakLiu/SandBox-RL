@@ -713,7 +713,7 @@ class MultiModelScheduler:
             prompt = f"竞争任务: {task.task_type}\n你需要与其他模型竞争，展示你的优势。\n任务复杂度: {task.complexity}"
             
             start_time = time.time()
-            response = await model_profile.model.generate(prompt)
+            response = model_profile.model.generate(prompt)
             execution_time = time.time() - start_time
             
             # 计算竞争分数
@@ -752,7 +752,7 @@ class MultiModelScheduler:
             prompt = f"任务: {task.task_type}\n复杂度: {task.complexity}"
             
             start_time = time.time()
-            response = await model_profile.model.generate(prompt)
+            response = model_profile.model.generate(prompt)
             execution_time = time.time() - start_time
             
             return {

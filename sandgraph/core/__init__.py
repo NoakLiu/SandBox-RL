@@ -85,6 +85,22 @@ from .async_architecture import (
     BeliefType
 )
 
+# 多模型调度器相关导出
+from .multi_model_scheduler import (
+    MultiModelScheduler,
+    ModelProfile,
+    ModelRole,
+    InteractionType,
+    TaskDefinition,
+    InteractionResult,
+    ResourceManager,
+    CapabilityAnalyzer,
+    InteractionOrchestrator,
+    create_multi_model_scheduler,
+    create_competitive_scheduler,
+    create_cooperative_scheduler
+)
+
 # 其他核心功能导出
 from .rl_algorithms import *
 from .enhanced_rl_algorithms import *
@@ -170,5 +186,19 @@ __all__ = [
     'AgentGraph',
     'OASISCorrectSimulation',
     'AgentState',
-    'BeliefType'
+    'BeliefType',
+    
+    # 多模型调度器相关
+    'MultiModelScheduler',
+    'ModelProfile',
+    'ModelRole',
+    'InteractionType',
+    'TaskDefinition',
+    'InteractionResult',
+    'ResourceManager',
+    'CapabilityAnalyzer',
+    'InteractionOrchestrator',
+    'create_multi_model_scheduler',
+    'create_competitive_scheduler',
+    'create_cooperative_scheduler'
 ] 
