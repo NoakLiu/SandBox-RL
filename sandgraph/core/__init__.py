@@ -101,6 +101,16 @@ from .multi_model_scheduler import (
     create_cooperative_scheduler
 )
 
+# 分布式多模型调度器相关导出
+from .distributed_multi_model_scheduler import (
+    DistributedVLLMClient,
+    DistributedModelProfile,
+    LoRAConfig,
+    create_distributed_scheduler,
+    create_distributed_competitive_scheduler,
+    create_distributed_cooperative_scheduler
+)
+
 # 其他核心功能导出
 from .rl_algorithms import *
 from .enhanced_rl_algorithms import *
@@ -200,5 +210,13 @@ __all__ = [
     'InteractionOrchestrator',
     'create_multi_model_scheduler',
     'create_competitive_scheduler',
-    'create_cooperative_scheduler'
+    'create_cooperative_scheduler',
+    
+    # 分布式多模型调度器相关
+    'DistributedVLLMClient',
+    'DistributedModelProfile',
+    'LoRAConfig',
+    'create_distributed_scheduler',
+    'create_distributed_competitive_scheduler',
+    'create_distributed_cooperative_scheduler'
 ] 
