@@ -39,9 +39,7 @@ vllm serve "${MODEL_PATH}" \
   --max-num-seqs 128 \
   --enable-lora \
   --max-lora-rank 64 \
-  --max-loras 16 \
-  --disable-compilation \
-  > vllm_single_8gpu.log 2>&1 &
+  --max-loras 16
 
 echo "✅ 单模型+8GPU启动完成"
 echo "⏳ 等待实例启动..."
