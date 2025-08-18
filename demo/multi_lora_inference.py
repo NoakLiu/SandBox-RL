@@ -15,34 +15,19 @@ from vllm.lora.request import LoRARequest
 def main():
     """Main function that sets up and runs the prompt processing."""
     
-    # 1. 下载LoRA适配器
+    # 1. 下载LoRA适配器（使用官方示例的LoRA）
     print("正在下载LoRA适配器...")
-    sql_lora_path = snapshot_download(repo_id="ngxson/LoRA-Human-Like-Qwen2.5-7B-Instruct")
+    sql_lora_path = snapshot_download(repo_id="yard1/llama-2-7b-sql-lora-test")
     print(f"SQL LoRA下载完成: {sql_lora_path}")
-    
-    # 修复LoRA配置以符合vLLM要求
-    config_path = os.path.join(sql_lora_path, "adapter_config.json")
-    if os.path.exists(config_path):
-        with open(config_path, 'r') as f:
-            config = json.load(f)
-        
-        # 修复配置
-        config['modules_to_save'] = None  # vLLM要求必须为None
-        if 'r' in config and config['r'] > 64:
-            config['r'] = 64  # 限制rank大小
-        
-        with open(config_path, 'w') as f:
-            json.dump(config, f, indent=2)
-        print(f"已修复LoRA配置: {config_path}")
     
     # 2. 实例化基础模型，启用LoRA
     print("初始化vLLM模型...")
     llm = LLM(
-        model="/cpfs04/shared/kilab/hf-hub/Qwen2.5-7B-Instruct", 
+        model="meta-llama/Llama-2-7b-hf",  # 使用官方示例的模型
         enable_lora=True,
         max_lora_rank=64,  # 增加到64以支持下载的LoRA
         max_loras=2,
-        tensor_parallel_size=4  # 使用4个GPU，因为Qwen2.5-7B有28个注意力头
+        tensor_parallel_size=4  # 使用4个GPU
     )
     
     # 3. 设置采样参数
