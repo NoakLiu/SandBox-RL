@@ -24,7 +24,7 @@ for i in $(seq 0 7); do
     --dtype bfloat16 \
     --max-model-len 32768 \
     --gpu-memory-utilization 0.92 \
-    --enforce-eager False \
+    --enforce-eager \
     --max-num-seqs 512 \
     > "${LOG}" 2>&1 &
 
