@@ -23,7 +23,7 @@ from datetime import datetime
 BASE_URL = "http://127.0.0.1:8001"     # 单实例端口
 SERVED_MODEL = "qwen-2"
 POLL_INTERVAL = 5.0
-CPFS_BASE = "/cpfs04/shared/kilab/lora_ckpts"
+CPFS_BASE = "/cpfs04/shared/kilab/liudong"
 
 # 配置日志
 logging.basicConfig(

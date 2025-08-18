@@ -19,7 +19,7 @@ from typing import Dict, Optional, Any
 from datetime import datetime
 
 # 配置
-CPFS_BASE = "/cpfs04/shared/kilab/lora_ckpts"
+CPFS_BASE = "/cpfs04/shared/kilab/liudong"
 
 # 配置日志
 logging.basicConfig(
