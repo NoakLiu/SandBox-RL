@@ -15,7 +15,7 @@ def main():
     
     # 1. 下载LoRA适配器
     print("正在下载LoRA适配器...")
-    sql_lora_path = snapshot_download(repo_id="yard1/llama-2-7b-sql-lora-test")
+    sql_lora_path = snapshot_download(repo_id="ngxson/LoRA-Human-Like-Qwen2.5-7B-Instruct")
     print(f"SQL LoRA下载完成: {sql_lora_path}")
     
     # 2. 实例化基础模型，启用LoRA
