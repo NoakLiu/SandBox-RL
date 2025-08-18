@@ -1,0 +1,10 @@
+﻿Metric,Value,Max,Min
+GPU Average Utilization,82.9%,91.5%,75.3%
+GPU Average Memory Usage,16.9 GB,19.7 GB,14.3 GB
+GPU Average Temperature,59.8°C,63.0°C,56.8°C
+GPU Average Power,250.6 W,294.2 W,205.6 W
+LoRA Average Accuracy Improvement,6.0%,8.1%,4.4%
+LoRA Average Inference Speed,150.1 tokens/sec,176.4 tokens/sec,122.7 tokens/sec
+LoRA Average Memory Overhead,111.6 MB,138.0 MB,89.9 MB
+System Average Request Success Rate,95.4%,101.2%,88.7%
+System Average Latency,100.8 ms,116.0 ms,80.2 ms
