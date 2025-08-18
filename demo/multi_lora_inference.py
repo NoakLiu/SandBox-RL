@@ -5,6 +5,8 @@ This example shows how to use the multi-LoRA functionality
 for offline inference with Qwen2.5-7B-Instruct model.
 """
 
+import os
+import json
 from huggingface_hub import snapshot_download
 from vllm import LLM, SamplingParams
 from vllm.lora.request import LoRARequest
@@ -17,6 +19,21 @@ def main():
     print("正在下载LoRA适配器...")
     sql_lora_path = snapshot_download(repo_id="ngxson/LoRA-Human-Like-Qwen2.5-7B-Instruct")
     print(f"SQL LoRA下载完成: {sql_lora_path}")
+    
+    # 修复LoRA配置以符合vLLM要求
+    config_path = os.path.join(sql_lora_path, "adapter_config.json")
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+        
+        # 修复配置
+        config['modules_to_save'] = None  # vLLM要求必须为None
+        if 'r' in config and config['r'] > 64:
+            config['r'] = 64  # 限制rank大小
+        
+        with open(config_path, 'w') as f:
+            json.dump(config, f, indent=2)
+        print(f"已修复LoRA配置: {config_path}")
     
     # 2. 实例化基础模型，启用LoRA
     print("初始化vLLM模型...")
