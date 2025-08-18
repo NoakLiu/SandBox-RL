@@ -23,6 +23,8 @@ def main():
     llm = LLM(
         model="/cpfs04/shared/kilab/hf-hub/Qwen2.5-7B-Instruct", 
         enable_lora=True,
+        max_lora_rank=64,  # 增加到64以支持下载的LoRA
+        max_loras=2,
         tensor_parallel_size=4  # 使用4个GPU，因为Qwen2.5-7B有28个注意力头
     )
     
