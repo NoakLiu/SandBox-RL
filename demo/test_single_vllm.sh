@@ -20,7 +20,6 @@ vllm serve "${MODEL_PATH}" \
   --dtype bfloat16 \
   --max-model-len 8192 \
   --gpu-memory-utilization 0.3 \
-  --enforce-eager False \
   --max-num-seqs 64 \
   --served-model-name qwen-2 \
   --enable-auto-tool-choice \

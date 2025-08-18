@@ -29,7 +29,6 @@ for i in $(seq 0 7); do
     --dtype bfloat16 \
     --max-model-len 8192 \
     --gpu-memory-utilization 0.4 \
-    --enforce-eager False \
     --max-num-seqs 128 \
     --served-model-name qwen-2 \
     --enable-auto-tool-choice \
