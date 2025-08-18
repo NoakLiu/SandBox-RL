@@ -101,14 +101,33 @@ from .multi_model_scheduler import (
     create_cooperative_scheduler
 )
 
-# 分布式多模型调度器相关导出
+# 分布式调度器相关导出
 from .distributed_multi_model_scheduler import (
     DistributedVLLMClient,
     DistributedModelProfile,
     LoRAConfig,
+    DistributedResourceManager,
+    DistributedMultiModelScheduler,
     create_distributed_scheduler,
     create_distributed_competitive_scheduler,
     create_distributed_cooperative_scheduler
+)
+
+# LoRA热更新相关导出
+from .lora_hotswap_manager import (
+    LoRAConfig as LoRAHotSwapConfig,
+    LoRAVersion,
+    LoRAHotSwapManager,
+    LoRAPublisher,
+    create_lora_hotswap_manager,
+    create_lora_publisher
+)
+
+from .distributed_lora_scheduler import (
+    LoRAUpdateEvent,
+    DistributedLoRAScheduler,
+    LoRARLStrategy,
+    create_distributed_lora_scheduler
 )
 
 # 其他核心功能导出
@@ -216,7 +235,23 @@ __all__ = [
     'DistributedVLLMClient',
     'DistributedModelProfile',
     'LoRAConfig',
+    'DistributedResourceManager',
+    'DistributedMultiModelScheduler',
     'create_distributed_scheduler',
     'create_distributed_competitive_scheduler',
-    'create_distributed_cooperative_scheduler'
+    'create_distributed_cooperative_scheduler',
+    
+    # LoRA热更新
+    'LoRAHotSwapConfig',
+    'LoRAVersion',
+    'LoRAHotSwapManager',
+    'LoRAPublisher',
+    'create_lora_hotswap_manager',
+    'create_lora_publisher',
+    
+    # 分布式LoRA调度器
+    'LoRAUpdateEvent',
+    'DistributedLoRAScheduler',
+    'LoRARLStrategy',
+    'create_distributed_lora_scheduler'
 ] 
