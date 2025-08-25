@@ -26,6 +26,25 @@ from .self_evolving_oasis import (
     run_self_evolving_oasis_demo
 )
 
+# RL算法相关导出（包含合作和能力因子）
+from .rl_algorithms import (
+    RLAlgorithm,
+    RLConfig,
+    TrajectoryStep,
+    PPOAlgorithm,
+    GRPOAlgorithm,
+    SACAlgorithm,
+    TD3Algorithm,
+    RLTrainer,
+    # 新增的合作和能力因子
+    CooperationType,
+    CompetenceType,
+    CooperationFactor,
+    CompetenceFactor,
+    OnPolicyRLAgent,
+    MultiAgentOnPolicyRL
+)
+
 # LLM接口相关导出
 from .llm_interface import (
     BaseLLM,
@@ -131,7 +150,6 @@ from .distributed_lora_scheduler import (
 )
 
 # 其他核心功能导出
-from .rl_algorithms import *
 from .enhanced_rl_algorithms import *
 from .reward_based_slot_manager import *
 from .workflow import *
@@ -154,6 +172,22 @@ __all__ = [
     'create_online_lora_manager',
     'get_lora_config',
     'LORA_CONFIGS',
+    
+    # RL算法相关（包含合作和能力因子）
+    'RLAlgorithm',
+    'RLConfig',
+    'TrajectoryStep',
+    'PPOAlgorithm',
+    'GRPOAlgorithm',
+    'SACAlgorithm',
+    'TD3Algorithm',
+    'RLTrainer',
+    'CooperationType',
+    'CompetenceType',
+    'CooperationFactor',
+    'CompetenceFactor',
+    'OnPolicyRLAgent',
+    'MultiAgentOnPolicyRL',
     
     # 自进化Oasis相关
     'SelfEvolvingLLM',
@@ -231,17 +265,16 @@ __all__ = [
     'create_competitive_scheduler',
     'create_cooperative_scheduler',
     
-    # 分布式多模型调度器相关
+    # 分布式调度器相关
     'DistributedVLLMClient',
     'DistributedModelProfile',
-    'LoRAConfig',
     'DistributedResourceManager',
     'DistributedMultiModelScheduler',
     'create_distributed_scheduler',
     'create_distributed_competitive_scheduler',
     'create_distributed_cooperative_scheduler',
     
-    # LoRA热更新
+    # LoRA热更新相关
     'LoRAHotSwapConfig',
     'LoRAVersion',
     'LoRAHotSwapManager',
@@ -249,9 +282,20 @@ __all__ = [
     'create_lora_hotswap_manager',
     'create_lora_publisher',
     
-    # 分布式LoRA调度器
+    # 分布式LoRA调度器相关
     'LoRAUpdateEvent',
     'DistributedLoRAScheduler',
     'LoRARLStrategy',
-    'create_distributed_lora_scheduler'
+    'create_distributed_lora_scheduler',
+    
+    # 其他核心功能
+    'Sandbox',
+    'SandboxProtocol',
+    'WorkflowGraph',
+    'WorkflowNode',
+    'MCPSandboxServer',
+    'MCPClient',
+    'create_mcp_server',
+    'create_mcp_client',
+    'check_mcp_availability'
 ] 

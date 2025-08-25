@@ -1,0 +1,50 @@
+============================================================
+LoRA CONVERGENCE ANALYSIS REPORT
+Single vLLM + 8 LoRA Adapters
+============================================================
+
+TASK: OASIS
+------------------------------
+Task Characteristics:
+  - Complexity: high
+  - Cooperation Required: True
+  - Exploration Needed: True
+  - Expected Convergence: medium
+
+Statistical Summary:
+  - Average Convergence Speed: 0.0148 ± 0.0021
+  - Average Final Reward: 0.8917 ± 0.0297
+  - Average Improvement Rate: 0.005485 ± 0.000415
+
+Performance Analysis:
+  - Best Performer: adapter_4 (Reward: 0.9407)
+  - Worst Performer: adapter_6 (Reward: 0.8464)
+  - Performance Gap: 0.0943
+
+TASK: Maze_Game
+------------------------------
+Task Characteristics:
+  - Complexity: medium
+  - Cooperation Required: False
+  - Exploration Needed: True
+  - Expected Convergence: fast
+
+Statistical Summary:
+  - Average Convergence Speed: 0.0173 ± 0.0032
+  - Average Final Reward: 0.8329 ± 0.0344
+  - Average Improvement Rate: 0.004793 ± 0.000288
+
+Performance Analysis:
+  - Best Performer: adapter_7 (Reward: 0.8725)
+  - Worst Performer: adapter_1 (Reward: 0.7566)
+  - Performance Gap: 0.1159
+
+CROSS-TASK COMPARISON
+------------------------------
+Convergence Speed Comparison:
+  - OASIS: 0.0148 ± 0.0021
+  - Maze Game: 0.0173 ± 0.0032
+  - T-test p-value: 0.107369
+  - Significant difference: No
+
+============================================================

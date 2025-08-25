@@ -2,16 +2,18 @@
 强化学习算法实现
 
 包含PPO (Proximal Policy Optimization) 和 GRPO (Group Robust Policy Optimization) 算法
+支持Cooperation Factor和Competence Factor的on-policy RL
 """
 
 from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 import logging
 import time
 from collections import defaultdict, deque
 import math
 import random
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,65 @@ class RLAlgorithm(Enum):
     GRPO = "grpo"
     SAC = "sac"      # Soft Actor-Critic
     TD3 = "td3"      # Twin Delayed Deep Deterministic Policy Gradient
+    ON_POLICY_PPO = "on_policy_ppo"  # On-policy PPO with cooperation/competence factors
+
+
+class CooperationType(Enum):
+    """合作类型"""
+    NONE = "none"
+    TEAM_BASED = "team_based"
+    SHARED_REWARDS = "shared_rewards"
+    KNOWLEDGE_TRANSFER = "knowledge_transfer"
+    RESOURCE_SHARING = "resource_sharing"
+
+
+class CompetenceType(Enum):
+    """能力类型"""
+    GENERAL = "general"
+    SPECIALIZED = "specialized"
+    ADAPTIVE = "adaptive"
+    EXPERT = "expert"
+    NOVICE = "novice"
+
+
+@dataclass
+class CooperationFactor:
+    """合作因子配置"""
+    cooperation_type: CooperationType = CooperationType.NONE
+    cooperation_strength: float = 0.0  # [0.0, 1.0]
+    team_size: int = 1
+    shared_reward_ratio: float = 0.5  # [0.0, 1.0]
+    knowledge_transfer_rate: float = 0.1  # [0.0, 1.0]
+    resource_sharing_enabled: bool = False
+    communication_cost: float = 0.01  # 合作成本
+    
+    def __post_init__(self):
+        """验证合作因子参数"""
+        assert 0.0 <= self.cooperation_strength <= 1.0, "合作强度必须在[0.0, 1.0]范围内"
+        assert 0.0 <= self.shared_reward_ratio <= 1.0, "共享奖励比例必须在[0.0, 1.0]范围内"
+        assert 0.0 <= self.knowledge_transfer_rate <= 1.0, "知识转移率必须在[0.0, 1.0]范围内"
+        assert self.team_size >= 1, "团队大小必须>=1"
+
+
+@dataclass
+class CompetenceFactor:
+    """能力因子配置"""
+    competence_type: CompetenceType = CompetenceType.GENERAL
+    base_capability: float = 0.5  # [0.0, 1.0]
+    learning_rate: float = 0.01  # [0.0, 1.0]
+    adaptation_speed: float = 0.1  # [0.0, 1.0]
+    specialization_level: float = 0.0  # [0.0, 1.0]
+    experience_decay: float = 0.95  # [0.0, 1.0]
+    max_capability: float = 1.0  # [0.0, 1.0]
+    
+    def __post_init__(self):
+        """验证能力因子参数"""
+        assert 0.0 <= self.base_capability <= 1.0, "基础能力必须在[0.0, 1.0]范围内"
+        assert 0.0 <= self.learning_rate <= 1.0, "学习率必须在[0.0, 1.0]范围内"
+        assert 0.0 <= self.adaptation_speed <= 1.0, "适应速度必须在[0.0, 1.0]范围内"
+        assert 0.0 <= self.specialization_level <= 1.0, "专业化水平必须在[0.0, 1.0]范围内"
+        assert 0.0 <= self.experience_decay <= 1.0, "经验衰减必须在[0.0, 1.0]范围内"
+        assert 0.0 <= self.max_capability <= 1.0, "最大能力必须在[0.0, 1.0]范围内"
 
 
 @dataclass
@@ -35,6 +96,10 @@ class RLConfig:
     value_loss_coef: float = 0.5  # 价值损失系数
     entropy_coef: float = 0.01  # 熵损失系数
     max_grad_norm: float = 0.5  # 梯度裁剪
+    
+    # 合作和能力因子
+    cooperation_factor: CooperationFactor = field(default_factory=CooperationFactor)
+    competence_factor: CompetenceFactor = field(default_factory=CompetenceFactor)
     
     # GRPO特有参数
     group_size: int = 4  # 组大小
@@ -70,6 +135,8 @@ class TrajectoryStep:
     done: bool
     advantage: float = 0.0
     return_: float = 0.0
+    cooperation_context: Optional[Dict[str, Any]] = None  # 合作上下文
+    competence_bonus: float = 0.0  # 能力奖励
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -80,8 +147,252 @@ class TrajectoryStep:
             "log_prob": self.log_prob,
             "done": self.done,
             "advantage": self.advantage,
-            "return": self.return_
+            "return": self.return_,
+            "cooperation_context": self.cooperation_context,
+            "competence_bonus": self.competence_bonus
         }
+
+
+class OnPolicyRLAgent:
+    """支持合作和能力因子的on-policy RL智能体"""
+    
+    def __init__(self, 
+                 agent_id: str,
+                 config: RLConfig,
+                 state_dim: int = 64,
+                 action_dim: int = 10):
+        
+        self.agent_id = agent_id
+        self.config = config
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+        
+        # 智能体状态
+        self.current_capability = config.competence_factor.base_capability
+        self.experience_count = 0
+        self.team_rewards = defaultdict(float)
+        
+        # 经验缓冲区
+        self.experience_buffer = deque(maxlen=10000)
+        self.episode_rewards = deque(maxlen=100)
+        
+        # 训练统计
+        self.training_stats = defaultdict(list)
+        
+        logger.info(f"初始化OnPolicyRLAgent {agent_id} - 合作类型: {config.cooperation_factor.cooperation_type.value}, 能力类型: {config.competence_factor.competence_type.value}")
+    
+    def get_action(self, state: Dict[str, Any], cooperation_context: Optional[Dict[str, Any]] = None) -> Tuple[str, float, float]:
+        """获取动作（简化版本，实际需要神经网络）"""
+        # 模拟策略网络输出
+        action_probs = np.random.dirichlet(np.ones(self.action_dim))
+        action_idx = np.random.choice(self.action_dim, p=action_probs)
+        action = f"action_{action_idx}"
+        
+        # 计算log概率和值函数
+        log_prob = np.log(action_probs[action_idx] + 1e-8)
+        value = np.random.normal(0.5, 0.1)  # 模拟值函数
+        
+        # 应用合作因子
+        if cooperation_context and self.config.cooperation_factor.cooperation_type != CooperationType.NONE:
+            cooperation_bonus = self.config.cooperation_factor.cooperation_strength * 0.1
+            value += cooperation_bonus
+        
+        # 应用能力因子
+        competence_bonus = self.current_capability * 0.05
+        value += competence_bonus
+        
+        return action, log_prob, value
+    
+    def update_capability(self, reward: float, team_performance: Optional[float] = None):
+        """更新智能体能力"""
+        # 个体学习
+        learning_gain = self.config.competence_factor.learning_rate * reward
+        self.current_capability += learning_gain
+        
+        # 团队学习（如果启用合作）
+        if (self.config.cooperation_factor.cooperation_type != CooperationType.NONE and 
+            team_performance is not None):
+            team_gain = self.config.cooperation_factor.cooperation_strength * team_performance
+            self.current_capability += team_gain
+        
+        # 能力边界
+        self.current_capability = np.clip(
+            self.current_capability, 
+            0.0, 
+            self.config.competence_factor.max_capability
+        )
+        
+        # 经验衰减
+        self.current_capability *= self.config.competence_factor.experience_decay
+        
+        self.experience_count += 1
+    
+    def store_experience(self, step: TrajectoryStep):
+        """存储经验"""
+        self.experience_buffer.append(step)
+        self.episode_rewards.append(step.reward)
+    
+    def get_cooperation_context(self, team_members: List[str], team_states: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """获取合作上下文"""
+        if self.config.cooperation_factor.cooperation_type == CooperationType.NONE:
+            return None
+        
+        if len(team_members) <= 1:
+            return None
+        
+        # 聚合团队信息
+        context = {
+            "team_size": len(team_members),
+            "team_states": team_states,
+            "cooperation_strength": self.config.cooperation_factor.cooperation_strength,
+            "shared_reward_ratio": self.config.cooperation_factor.shared_reward_ratio
+        }
+        
+        return context
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """获取智能体统计信息"""
+        return {
+            'agent_id': self.agent_id,
+            'capability': self.current_capability,
+            'experience_count': self.experience_count,
+            'cooperation_type': self.config.cooperation_factor.cooperation_type.value,
+            'competence_type': self.config.competence_factor.competence_type.value,
+            'avg_reward': np.mean(self.episode_rewards) if self.episode_rewards else 0.0,
+            'team_rewards': dict(self.team_rewards)
+        }
+
+
+class MultiAgentOnPolicyRL:
+    """多智能体on-policy RL系统"""
+    
+    def __init__(self, 
+                 num_agents: int = 8,
+                 state_dim: int = 64,
+                 action_dim: int = 10,
+                 cooperation_configs: Optional[List[CooperationFactor]] = None,
+                 competence_configs: Optional[List[CompetenceFactor]] = None):
+        
+        self.num_agents = num_agents
+        self.agents = {}
+        self.teams = {}
+        self.team_performance = defaultdict(float)
+        
+        # 初始化合作和能力配置
+        if cooperation_configs is None:
+            cooperation_configs = [CooperationFactor() for _ in range(num_agents)]
+        if competence_configs is None:
+            competence_configs = [CompetenceFactor() for _ in range(num_agents)]
+        
+        # 创建智能体
+        for i in range(num_agents):
+            agent_id = f"agent_{i}"
+            config = RLConfig(
+                algorithm=RLAlgorithm.ON_POLICY_PPO,
+                cooperation_factor=cooperation_configs[i],
+                competence_factor=competence_configs[i]
+            )
+            
+            self.agents[agent_id] = OnPolicyRLAgent(
+                agent_id=agent_id,
+                config=config,
+                state_dim=state_dim,
+                action_dim=action_dim
+            )
+        
+        # 创建团队
+        self._create_teams()
+        
+        logger.info(f"初始化MultiAgentOnPolicyRL，共{num_agents}个智能体")
+    
+    def _create_teams(self):
+        """基于合作因子创建团队"""
+        team_id = 0
+        
+        for agent_id, agent in self.agents.items():
+            if agent.config.cooperation_factor.cooperation_type == CooperationType.TEAM_BASED:
+                team_key = f"team_{team_id // agent.config.cooperation_factor.team_size}"
+                if team_key not in self.teams:
+                    self.teams[team_key] = []
+                self.teams[team_key].append(agent_id)
+                team_id += 1
+            else:
+                # 个体智能体
+                self.teams[f"individual_{agent_id}"] = [agent_id]
+    
+    def step(self, agent_id: str, state: Dict[str, Any]) -> Tuple[str, float, float]:
+        """智能体执行一步"""
+        if agent_id not in self.agents:
+            raise ValueError(f"未知智能体ID: {agent_id}")
+        
+        agent = self.agents[agent_id]
+        
+        # 获取合作上下文
+        cooperation_context = self._get_cooperation_context(agent_id, state)
+        
+        # 获取动作
+        action, log_prob, value = agent.get_action(state, cooperation_context)
+        
+        return action, log_prob, value
+    
+    def _get_cooperation_context(self, agent_id: str, state: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """获取合作上下文"""
+        agent = self.agents[agent_id]
+        
+        # 查找团队成员
+        team_members = []
+        for team_id, members in self.teams.items():
+            if agent_id in members:
+                team_members = members
+                break
+        
+        if len(team_members) <= 1:
+            return None
+        
+        # 聚合团队信息
+        team_states = []
+        for member_id in team_members:
+            if member_id != agent_id:
+                # 使用当前状态作为其他智能体的近似
+                team_states.append(state)
+        
+        if team_states:
+            return agent.get_cooperation_context(team_members, team_states)
+        
+        return None
+    
+    def update_agent(self, agent_id: str, step: TrajectoryStep):
+        """更新智能体"""
+        if agent_id not in self.agents:
+            raise ValueError(f"未知智能体ID: {agent_id}")
+        
+        agent = self.agents[agent_id]
+        
+        # 获取团队性能用于合作
+        team_performance = None
+        if agent.config.cooperation_factor.cooperation_type != CooperationType.NONE:
+            team_performance = self.team_performance.get(f"team_{agent_id}", 0.0)
+        
+        # 更新能力
+        agent.update_capability(step.reward, team_performance)
+        
+        # 存储经验
+        agent.store_experience(step)
+        
+        # 更新团队性能
+        if agent.config.cooperation_factor.cooperation_type != CooperationType.NONE:
+            self.team_performance[f"team_{agent_id}"] = step.reward
+    
+    def get_agent_stats(self) -> Dict[str, Dict[str, Any]]:
+        """获取所有智能体统计信息"""
+        stats = {}
+        for agent_id, agent in self.agents.items():
+            stats[agent_id] = agent.get_stats()
+        return stats
+    
+    def get_team_stats(self) -> Dict[str, List[str]]:
+        """获取团队统计信息"""
+        return self.teams
 
 
 class PPOAlgorithm:
@@ -754,6 +1065,8 @@ class RLTrainer:
             self.algorithm = SACAlgorithm(config)
         elif config.algorithm == RLAlgorithm.TD3:
             self.algorithm = TD3Algorithm(config)
+        elif config.algorithm == RLAlgorithm.ON_POLICY_PPO:
+            self.algorithm = OnPolicyPPOAlgorithm(config) # Assuming OnPolicyPPOAlgorithm is a new class
         else:
             raise ValueError(f"不支持的算法: {config.algorithm}")
         
@@ -778,6 +1091,8 @@ class RLTrainer:
         
         if isinstance(self.algorithm, GRPOAlgorithm):
             self.algorithm.add_trajectory_step(step, group_id)
+        elif isinstance(self.algorithm, OnPolicyRLAgent): # Handle OnPolicyRLAgent
+            self.algorithm.add_trajectory_step(step)
         else:
             self.algorithm.add_trajectory_step(step)
     
@@ -811,6 +1126,8 @@ class RLTrainer:
         
         if isinstance(self.algorithm, GRPOAlgorithm):
             stats["group_stats"] = self.algorithm.get_group_stats()
+        elif isinstance(self.algorithm, OnPolicyRLAgent): # Handle OnPolicyRLAgent
+            stats["agent_stats"] = self.algorithm.get_stats()
         
         return stats
 
