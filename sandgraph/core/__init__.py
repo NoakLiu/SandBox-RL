@@ -15,6 +15,20 @@ from .lora_compression import (
     LORA_CONFIGS
 )
 
+# 自定义LoRA调度器相关导出
+from .custom_lora_scheduler import (
+    LoRAUpdateStrategy,
+    LoRALoadingStatus,
+    CustomLoRAConfig,
+    LoRAWeights,
+    CustomLoRALayer,
+    CustomLoRAModel,
+    CustomLoRAScheduler,
+    CustomLoRAUpdater,
+    create_custom_lora_scheduler,
+    create_custom_lora_updater
+)
+
 # 自进化Oasis相关导出
 from .self_evolving_oasis import (
     SelfEvolvingLLM,
@@ -172,6 +186,18 @@ __all__ = [
     'create_online_lora_manager',
     'get_lora_config',
     'LORA_CONFIGS',
+    
+    # 自定义LoRA调度器相关
+    'LoRAUpdateStrategy',
+    'LoRALoadingStatus',
+    'CustomLoRAConfig',
+    'LoRAWeights',
+    'CustomLoRALayer',
+    'CustomLoRAModel',
+    'CustomLoRAScheduler',
+    'CustomLoRAUpdater',
+    'create_custom_lora_scheduler',
+    'create_custom_lora_updater',
     
     # RL算法相关（包含合作和能力因子）
     'RLAlgorithm',
