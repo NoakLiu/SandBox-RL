@@ -29,6 +29,20 @@ from .custom_lora_scheduler import (
     create_custom_lora_updater
 )
 
+# Concordia Contest沙盒相关导出
+from .concordia_sandbox import (
+    ConcordiaScenario,
+    ConcordiaRole,
+    ConcordiaConfig,
+    ConcordiaState,
+    ConcordiaEnvironment,
+    ConcordiaSandbox,
+    create_concordia_sandbox,
+    create_trading_scenario,
+    create_public_goods_scenario,
+    create_negotiation_scenario
+)
+
 # 自进化Oasis相关导出
 from .self_evolving_oasis import (
     SelfEvolvingLLM,
@@ -198,6 +212,18 @@ __all__ = [
     'CustomLoRAUpdater',
     'create_custom_lora_scheduler',
     'create_custom_lora_updater',
+    
+    # Concordia Contest沙盒相关
+    'ConcordiaScenario',
+    'ConcordiaRole',
+    'ConcordiaConfig',
+    'ConcordiaState',
+    'ConcordiaEnvironment',
+    'ConcordiaSandbox',
+    'create_concordia_sandbox',
+    'create_trading_scenario',
+    'create_public_goods_scenario',
+    'create_negotiation_scenario',
     
     # RL算法相关（包含合作和能力因子）
     'RLAlgorithm',
