@@ -43,6 +43,19 @@ from .concordia_sandbox import (
     create_negotiation_scenario
 )
 
+# 图可视化器相关导出
+from .graph_visualizer import (
+    NodeType,
+    EdgeType,
+    InteractionType,
+    GraphNode,
+    GraphEdge,
+    GraphEvent,
+    SandGraphVisualizer,
+    create_sandgraph_visualizer,
+    create_misinfo_visualization_demo
+)
+
 # 自进化Oasis相关导出
 from .self_evolving_oasis import (
     SelfEvolvingLLM,
@@ -224,6 +237,17 @@ __all__ = [
     'create_trading_scenario',
     'create_public_goods_scenario',
     'create_negotiation_scenario',
+    
+    # 图可视化器相关
+    'NodeType',
+    'EdgeType',
+    'InteractionType',
+    'GraphNode',
+    'GraphEdge',
+    'GraphEvent',
+    'SandGraphVisualizer',
+    'create_sandgraph_visualizer',
+    'create_misinfo_visualization_demo',
     
     # RL算法相关（包含合作和能力因子）
     'RLAlgorithm',
