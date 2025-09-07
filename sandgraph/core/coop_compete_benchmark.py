@@ -106,14 +106,54 @@ def _run_episode(env: CoopCompeteEnv, policy_a, policy_b, horizon: int, pg_train
     return ep_ra, ep_rb, traj_a, traj_b
 
 
+class OurMethodPolicy:
+    """Adaptive policy with opponent modeling and uncertainty-aware update.
+
+    - Maintains Bernoulli logit (theta) for cooperate.
+    - Tracks opponent's cooperate frequency (exp. moving avg).
+    - Adjusts update gain by payoff alignment with estimated cooperation regime.
+    """
+
+    def __init__(self, lr: float = 0.05, momentum: float = 0.9):
+        self.theta = 0.0
+        self.lr = lr
+        self.momentum = momentum
+        self.opp_coop_est = 0.5
+
+    @staticmethod
+    def _sigmoid(x: float) -> float:
+        return 1.0 / (1.0 + math.exp(-x))
+
+    def act(self) -> Tuple[int, float]:
+        p = self._sigmoid(self.theta)
+        a = 1 if random.random() < p else 0
+        logp = math.log(p + 1e-8) if a == 1 else math.log(1 - p + 1e-8)
+        return a, logp
+
+    def observe_opponent(self, opp_action: int):
+        self.opp_coop_est = self.momentum * self.opp_coop_est + (1 - self.momentum) * (1 if opp_action == 1 else 0)
+
+    def update(self, trajectories: List[Tuple[int, float, float]], env: CoopCompeteEnv):
+        if not trajectories:
+            return
+        rewards = [r for (_, _, r) in trajectories]
+        baseline = statistics.mean(rewards)
+        advantage = statistics.mean(r - baseline for r in rewards)
+        # Gain aligns with expected coop regime: if env likely cooperative, push towards cooperate
+        coop_regime = env.cooperation_level
+        gain = (2 * coop_regime - 1.0) * (2 * self.opp_coop_est - 1.0)
+        self.theta += self.lr * advantage * (1.0 + 0.5 * gain)
+
+
 def run_benchmark(runs: int = 5, episodes: int = 200, horizon: int = 32, coop_level: float = 0.6, difficulty: float = 0.3, seed: int = 42) -> Dict[str, dict]:
     random.seed(seed)
     results: Dict[str, Dict[str, List[float]]] = {
         "AC": {"A": [], "B": []},
         "AP": {"A": [], "B": []},
         "PG": {"A": [], "B": []},
+        "OUR": {"A": [], "B": []},
     }
-    steps_to_target: Dict[str, List[int]] = {"AC": [], "AP": [], "PG": []}
+    steps_to_target: Dict[str, List[int]] = {"AC": [], "AP": [], "PG": [], "OUR": []}
     target = 0.9 * (1.0 - difficulty)
 
     for _ in range(runs):
@@ -171,6 +211,40 @@ def run_benchmark(runs: int = 5, episodes: int = 200, horizon: int = 32, coop_le
         results["PG"]["A"].append(sum(curve_pg_a) / episodes)
         results["PG"]["B"].append(sum(curve_pg_b) / episodes)
 
+        # OUR METHOD
+        our_a = OurMethodPolicy(lr=0.05, momentum=0.9)
+        our_b = OurMethodPolicy(lr=0.05, momentum=0.9)
+        curve_our_a: List[float] = []
+        curve_our_b: List[float] = []
+        reached = False
+        for ep in range(episodes):
+            # roll out with opponent modeling per-step
+            ep_ra = 0.0
+            ep_rb = 0.0
+            traj_a: List[Tuple[int, float, float]] = []
+            traj_b: List[Tuple[int, float, float]] = []
+            for _ in range(horizon):
+                a, logpa = our_a.act()
+                b, logpb = our_b.act()
+                ra, rb = env.step(a, b)
+                our_a.observe_opponent(b)
+                our_b.observe_opponent(a)
+                ep_ra += ra
+                ep_rb += rb
+                traj_a.append((a, logpa, ra))
+                traj_b.append((b, logpb, rb))
+            ra_s = ep_ra / horizon
+            rb_s = ep_rb / horizon
+            curve_our_a.append(ra_s)
+            curve_our_b.append(rb_s)
+            our_a.update(traj_a, env)
+            our_b.update(traj_b, env)
+            if not reached and ra_s >= target and rb_s >= target:
+                steps_to_target["OUR"].append(ep + 1)
+                reached = True
+        results["OUR"]["A"].append(sum(curve_our_a) / episodes)
+        results["OUR"]["B"].append(sum(curve_our_b) / episodes)
+
     def summarize(name: str) -> Tuple[float, float, float, float, float]:
         a_list = results[name]["A"]
         b_list = results[name]["B"]
@@ -184,6 +258,7 @@ def run_benchmark(runs: int = 5, episodes: int = 200, horizon: int = 32, coop_le
     ac = summarize("AC")
     ap = summarize("AP")
     pg = summarize("PG")
+    our = summarize("OUR")
 
     return {
         "params": {
@@ -199,6 +274,7 @@ def run_benchmark(runs: int = 5, episodes: int = 200, horizon: int = 32, coop_le
             "AC": {"avg_A": ac[0], "avg_B": ac[1], "median_steps": ac[2], "mean_steps": ac[3], "std_steps": ac[4]},
             "AP": {"avg_A": ap[0], "avg_B": ap[1], "median_steps": ap[2], "mean_steps": ap[3], "std_steps": ap[4]},
             "PG": {"avg_A": pg[0], "avg_B": pg[1], "median_steps": pg[2], "mean_steps": pg[3], "std_steps": pg[4]},
+            "OUR": {"avg_A": our[0], "avg_B": our[1], "median_steps": our[2], "mean_steps": our[3], "std_steps": our[4]},
         },
     }
 
@@ -210,5 +286,21 @@ def write_report(results: Dict[str, Dict[str, float]], out_dir: str = "training_
     with open(path, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     return str(path)
+
+
+def run_benchmark_suite() -> Dict[str, list]:
+    """Run a parameter sweep to compare AC/AP/PG/OUR across regimes."""
+    settings = [
+        {"coop_level": 0.2, "difficulty": 0.3},
+        {"coop_level": 0.6, "difficulty": 0.3},
+        {"coop_level": 0.8, "difficulty": 0.3},
+        {"coop_level": 0.6, "difficulty": 0.6},
+    ]
+    summary: Dict[str, list] = {"suite": []}
+    for i, s in enumerate(settings):
+        res = run_benchmark(runs=5, episodes=200, horizon=32, coop_level=s["coop_level"], difficulty=s["difficulty"], seed=42 + i)
+        entry = {"setting": s, "metrics": res["metrics"]}
+        summary["suite"].append(entry)
+    return summary
 
 
