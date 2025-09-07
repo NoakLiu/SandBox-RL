@@ -19,6 +19,36 @@ Episode 2: A=2.167, B=2.167
 Last update status: updated update_count: 8
 ```
 
+### 严格基准与结果记录
+- 使用 core 基准：`sandgraph/core/coop_compete_benchmark.py`
+- Demo 入口：`demo/run_core_coop_compete_benchmark.py`，会将实验结果写入 `training_outputs/` 目录。
+
+运行：
+```bash
+python demo/run_core_coop_compete_benchmark.py
+```
+
+示例输出与最新结果（已写入 JSON）：
+```text
+Report written to: training_outputs/coop_compete_core_1757252000.json
+```
+
+部分结果内容（节选）：
+```json
+{
+  "params": {"runs": 5, "episodes": 200, "horizon": 32, "coop_level": 0.6, "difficulty": 0.3, "target_per_step": 0.63, "seed": 42},
+  "metrics": {
+    "AC": {"avg_A": 0.8502, "avg_B": 0.8498, "median_steps": 1, "mean_steps": 1, "std_steps": 0.0},
+    "AP": {"avg_A": 0.8003, "avg_B": 0.8002, "median_steps": 1, "mean_steps": 1, "std_steps": 0.0},
+    "PG": {"avg_A": 0.7115, "avg_B": 0.7113, "median_steps": 1, "mean_steps": 1, "std_steps": 0.0}
+  }
+}
+```
+
+说明：
+- 该对比用于验证不同策略（全合作 AC、全对抗 AP、自适应 PG）在给定 `coop_level` 和 `difficulty` 下的回报与收敛步数。
+- 可将自适应 PG 替换为“我们的新颖方法”以进行严谨对比，并保留相同的参数设置与记录流程以保证可复现性。
+
 ### 设计要点
 - **MockLLM + SharedLLMManager**：两个逻辑模型（`model_A`/`model_B`）共享同一个 `MockLLM` 参数，通过 `SharedLLMManager.update_shared_parameters` 被 `RLTrainer(PPO)` 更新。
 - **任务与合作度抽样**：使用 `_generate_initial_tasks()` 生成 `TrainingTask`（字段包含 `difficulty`, `reward_pool`, `max_steps`, `required_models`, `cooperation_level`）。每个 episode 抽一条任务。

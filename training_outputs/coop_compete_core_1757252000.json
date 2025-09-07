@@ -1,0 +1,34 @@
+{
+  "params": {
+    "runs": 5,
+    "episodes": 200,
+    "horizon": 32,
+    "coop_level": 0.6,
+    "difficulty": 0.3,
+    "target_per_step": 0.63,
+    "seed": 42
+  },
+  "metrics": {
+    "AC": {
+      "avg_A": 0.8502012478075947,
+      "avg_B": 0.8497946086580369,
+      "median_steps": 1,
+      "mean_steps": 1,
+      "std_steps": 0.0
+    },
+    "AP": {
+      "avg_A": 0.8003441157070391,
+      "avg_B": 0.8002065078805436,
+      "median_steps": 1,
+      "mean_steps": 1,
+      "std_steps": 0.0
+    },
+    "PG": {
+      "avg_A": 0.7115048616567852,
+      "avg_B": 0.7112689692004524,
+      "median_steps": 1,
+      "mean_steps": 1,
+      "std_steps": 0.0
+    }
+  }
+}
