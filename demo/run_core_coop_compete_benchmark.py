@@ -7,7 +7,12 @@ PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from sandgraph.core.coop_compete_benchmark import run_benchmark, write_report
+# Import core module directly to avoid heavy package __init__
+CORE_DIR = Path(PROJECT_ROOT) / "sandgraph" / "core"
+if str(CORE_DIR) not in sys.path:
+    sys.path.insert(0, str(CORE_DIR))
+
+from coop_compete_benchmark import run_benchmark, write_report  # type: ignore
 
 
 def main():
