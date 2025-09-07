@@ -17,6 +17,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Tuple
+import csv
 
 
 @dataclass
@@ -302,5 +303,30 @@ def run_benchmark_suite() -> Dict[str, list]:
         entry = {"setting": s, "metrics": res["metrics"]}
         summary["suite"].append(entry)
     return summary
+
+
+def write_suite_csv(summary: Dict[str, list], out_path: str = "training_outputs/coop_compete_core_suite.csv") -> str:
+    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["coop_level", "difficulty", "policy", "avg_A", "avg_B", "median_steps", "mean_steps", "std_steps"])
+        for item in summary.get("suite", []):
+            setting = item.get("setting", {})
+            metrics = item.get("metrics", {})
+            coop_level = setting.get("coop_level")
+            difficulty = setting.get("difficulty")
+            for policy in ["AC", "AP", "PG", "OUR"]:
+                m = metrics.get(policy, {})
+                writer.writerow([
+                    coop_level,
+                    difficulty,
+                    policy,
+                    round(m.get("avg_A", 0.0), 6),
+                    round(m.get("avg_B", 0.0), 6),
+                    m.get("median_steps", ""),
+                    m.get("mean_steps", ""),
+                    round(m.get("std_steps", 0.0), 6),
+                ])
+    return out_path
 
 
