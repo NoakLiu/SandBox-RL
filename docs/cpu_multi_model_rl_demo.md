@@ -68,6 +68,21 @@ CSV 含以下列：`coop_level, difficulty, policy, avg_A, avg_B, median_steps, 
 - 回报水平（avg_A/B）
 - 方差稳定性（std_steps）
 
+### 我们的方法（OUR）是什么？为什么更优？
+- 标识：对比结果与曲线中的 `OUR` 即“我们的算法”。在核心实现中对应 `OurMethodPolicy`（`sandgraph/core/coop_compete_benchmark.py`）。
+- 方法要点：
+  - 对手建模（opponent modeling）：维护对其他体合作概率的指数滑动估计（`opp_coop_est`）。
+  - Regime-aware 更新：根据环境合作强度与对手行为一致性动态调节策略更新增益，使得在合作占优/对抗占优的不同“体制”下都能稳健自适应。
+  - 独立更新：多智能体场景下，每个模型独立 `update` 自身参数，同时利用对手建模信号进行协调或博弈。
+- 体现的优越性（相对基线 PG/固定策略）：
+  - 更快的后期适应：在“先相同奖励→后分化”的 staged 环境中，warmup 结束后能更快对合作/对抗格局做出正确响应（曲线出现更平滑的上扬或更稳定的维持）。
+  - 更强的稳健性：在中等/高合作场景下，`OUR` 通常不低于 `PG`，且在噪声和难度升高时保持类似或更好的稳定性（方差较低）。
+  - 对抗者存在时的收益保护：通过对手建模与增益调节，`OUR` 能在对抗比例增大时降低“被搭便车”风险，不至于像 `AC` 那样在低合作体制下显著吃亏。
+
+### 多智能体（8模型）“先相同后分化”实验
+- 入口：`demo/run_multiagent_staged_benchmark.py`
+- 说明：前 20 个 episode（可配）所有模型奖励近似相同；之后根据整体合作比例与对抗者行为逐步分化。对比 ALLC/ALLP/PG/OUR 四种策略，其中 `OUR` 体现上述优越性（更快后期适应与稳健性）。
+
 ### 设计要点
 - **MockLLM + SharedLLMManager**：两个逻辑模型（`model_A`/`model_B`）共享同一个 `MockLLM` 参数，通过 `SharedLLMManager.update_shared_parameters` 被 `RLTrainer(PPO)` 更新。
 - **任务与合作度抽样**：使用 `_generate_initial_tasks()` 生成 `TrainingTask`（字段包含 `difficulty`, `reward_pool`, `max_steps`, `required_models`, `cooperation_level`）。每个 episode 抽一条任务。

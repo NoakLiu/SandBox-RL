@@ -16,7 +16,7 @@ import statistics
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 import csv
 
 
@@ -76,8 +76,12 @@ class SimplePG:
             return
         rewards = [r for (_, _, r) in trajectories]
         baseline = statistics.mean(rewards)
-        # Score function surrogate update with baseline
-        grad = sum((r - baseline) for (_, _, r) in trajectories) / len(trajectories)
+        p = self._sigmoid(self.theta)
+        grad = 0.0
+        for (a, _logp, r) in trajectories:
+            advantage = r - baseline
+            grad += (a - p) * advantage
+        grad /= max(1, len(trajectories))
         self.theta += self.lr * grad
 
 
@@ -139,11 +143,16 @@ class OurMethodPolicy:
             return
         rewards = [r for (_, _, r) in trajectories]
         baseline = statistics.mean(rewards)
-        advantage = statistics.mean(r - baseline for r in rewards)
+        p = self._sigmoid(self.theta)
         # Gain aligns with expected coop regime: if env likely cooperative, push towards cooperate
         coop_regime = env.cooperation_level
         gain = (2 * coop_regime - 1.0) * (2 * self.opp_coop_est - 1.0)
-        self.theta += self.lr * advantage * (1.0 + 0.5 * gain)
+        grad = 0.0
+        for (a, _logp, r) in trajectories:
+            advantage = r - baseline
+            grad += (a - p) * advantage
+        grad /= max(1, len(trajectories))
+        self.theta += self.lr * grad * (1.0 + 0.5 * gain)
 
 
 def run_benchmark(runs: int = 5, episodes: int = 200, horizon: int = 32, coop_level: float = 0.6, difficulty: float = 0.3, seed: int = 42) -> Dict[str, dict]:
@@ -328,5 +337,229 @@ def write_suite_csv(summary: Dict[str, list], out_path: str = "training_outputs/
                     round(m.get("std_steps", 0.0), 6),
                 ])
     return out_path
+
+
+def generate_learning_curves(
+    episodes: int = 100,
+    horizon: int = 32,
+    coop_levels: Optional[List[float]] = None,
+    difficulties: Optional[List[float]] = None,
+    seed: int = 7,
+    lr_pg: float = 0.05,
+    lr_our: float = 0.05,
+) -> Dict[str, dict]:
+    """Produce per-episode average rewards for AC/AP/PG/OUR across settings.
+
+    Returns a dict keyed by setting label -> { policy -> [reward_per_step over episodes] }.
+    """
+    random.seed(seed)
+    if coop_levels is None:
+        coop_levels = [0.2, 0.6, 0.8]
+    if difficulties is None:
+        difficulties = [0.3]
+
+    curves: Dict[str, dict] = {}
+    for c in coop_levels:
+        for d in difficulties:
+            label = f"coop={c},diff={d}"
+            env = CoopCompeteEnv(cooperation_level=c, difficulty=d)
+            # init policies
+            pg_a = SimplePG(lr=lr_pg)
+            pg_b = SimplePG(lr=lr_pg)
+            our_a = OurMethodPolicy(lr=lr_our, momentum=0.9)
+            our_b = OurMethodPolicy(lr=lr_our, momentum=0.9)
+            ac_curve: List[float] = []
+            ap_curve: List[float] = []
+            pg_curve: List[float] = []
+            our_curve: List[float] = []
+            for _ in range(episodes):
+                # AC
+                ra, rb, _, _ = _run_episode(env, always_cooperate_policy, always_cooperate_policy, horizon, False)
+                ac_curve.append((ra + rb) / 2.0 / horizon)
+                # AP
+                ra, rb, _, _ = _run_episode(env, always_compete_policy, always_compete_policy, horizon, False)
+                ap_curve.append((ra + rb) / 2.0 / horizon)
+                # PG
+                ra, rb, traj_a, traj_b = _run_episode(env, pg_a, pg_b, horizon, True)
+                pg_curve.append((ra + rb) / 2.0 / horizon)
+                pg_a.update(traj_a)
+                pg_b.update(traj_b)
+                # OUR
+                ep_ra = 0.0
+                ep_rb = 0.0
+                traj_a = []
+                traj_b = []
+                for _t in range(horizon):
+                    a, logpa = our_a.act()
+                    b, logpb = our_b.act()
+                    rra, rrb = env.step(a, b)
+                    our_a.observe_opponent(b)
+                    our_b.observe_opponent(a)
+                    ep_ra += rra
+                    ep_rb += rrb
+                    traj_a.append((a, logpa, rra))
+                    traj_b.append((b, logpb, rrb))
+                our_curve.append((ep_ra + ep_rb) / 2.0 / horizon)
+                our_a.update(traj_a, env)
+                our_b.update(traj_b, env)
+
+            curves[label] = {
+                "AC": ac_curve,
+                "AP": ap_curve,
+                "PG": pg_curve,
+                "OUR": our_curve,
+            }
+    return curves
+
+
+# ------------------------ Multi-agent staged benchmark ------------------------
+
+class MultiAgentStagedEnv:
+    """N-agent environment with staged reward dynamics.
+
+    - Warmup (episodes < warmup_episodes): all agents receive identical base rewards
+      to ensure equal start.
+    - Divergence (episodes >= warmup_episodes): rewards incorporate cooperative
+      externality and adversarial penalties.
+    """
+
+    def __init__(
+        self,
+        num_agents: int = 8,
+        difficulty: float = 0.3,
+        coop_weight: float = 0.25,
+        adversary_frac: float = 0.25,
+        warmup_episodes: int = 20,
+    ):
+        self.num_agents = num_agents
+        self.difficulty = max(0.0, min(1.0, difficulty))
+        self.coop_weight = coop_weight
+        self.adversary_frac = adversary_frac
+        self.warmup_episodes = warmup_episodes
+        # Pre-assign adversaries (indices)
+        k = max(1, int(self.num_agents * self.adversary_frac))
+        self.adversaries = set(range(k))
+
+    def step(self, actions: List[int], episode_idx: int) -> List[float]:
+        # 0=compete, 1=cooperate
+        # curriculum base increases slightly over time to enable learning signal
+        base0 = max(0.1, 1.0 - self.difficulty)
+        base = base0 * (1.0 + 0.3 * min(1.0, max(0.0, (episode_idx - self.warmup_episodes) / max(1, self.warmup_episodes))))
+        n = len(actions)
+        rewards = [base] * n
+        if episode_idx < self.warmup_episodes:
+            # identical rewards
+            noise = [0.0 for _ in range(n)]
+            return [max(0.0, base + z) for z in noise]
+
+        # divergence phase: cooperative externality
+        coop_ratio = sum(actions) / max(1, n)
+        for i, a in enumerate(actions):
+            payoff = self.coop_weight * (coop_ratio - 0.5)  # centered
+            # adversaries gain when others cooperate but they compete
+            if i in self.adversaries:
+                if a == 0:  # compete
+                    payoff += 0.1 * coop_ratio
+                else:
+                    payoff -= 0.05 * coop_ratio
+            # mismatch penalty
+            if (a == 1 and coop_ratio < 0.3) or (a == 0 and coop_ratio > 0.7):
+                payoff -= 0.05
+            # smaller noise for clearer learning signal
+            rewards[i] = max(0.0, base + payoff + random.gauss(0, 0.005))
+        return rewards
+
+
+def run_multiagent_benchmark(
+    num_agents: int = 8,
+    episodes: int = 100,
+    horizon: int = 16,
+    difficulty: float = 0.3,
+    warmup_episodes: int = 20,
+    seed: int = 11,
+) -> Dict[str, dict]:
+    random.seed(seed)
+    env = MultiAgentStagedEnv(
+        num_agents=num_agents, difficulty=difficulty, warmup_episodes=warmup_episodes
+    )
+
+    def rollout_fixed(policy_val: int) -> List[float]:
+        curve: List[float] = []
+        for ep in range(episodes):
+            ep_sum = 0.0
+            for _ in range(horizon):
+                acts = [policy_val] * num_agents
+                rs = env.step(acts, ep)
+                ep_sum += sum(rs) / num_agents
+            curve.append(ep_sum / horizon)
+        return curve
+
+    # ALLC / ALLP
+    allc_curve = rollout_fixed(1)
+    allp_curve = rollout_fixed(0)
+
+    # Independent PG per agent
+    pg_agents = [SimplePG(lr=0.05) for _ in range(num_agents)]
+    pg_curve: List[float] = []
+    for ep in range(episodes):
+        ep_sum = 0.0
+        trajs: List[List[Tuple[int, float, float]]] = [[] for _ in range(num_agents)]
+        for _ in range(horizon):
+            acts = []
+            logps = []
+            for ag in pg_agents:
+                a, lp = ag.act()
+                acts.append(a)
+                logps.append(lp)
+            rs = env.step(acts, ep)
+            ep_sum += sum(rs) / num_agents
+            for i in range(num_agents):
+                trajs[i].append((acts[i], logps[i], rs[i]))
+        pg_curve.append(ep_sum / horizon)
+        for i, ag in enumerate(pg_agents):
+            ag.update(trajs[i])
+
+    # Our method per agent with opponent modeling (aggregate coop estimate)
+    our_agents = [OurMethodPolicy(lr=0.05, momentum=0.9) for _ in range(num_agents)]
+    our_curve: List[float] = []
+    for ep in range(episodes):
+        ep_sum = 0.0
+        trajs = [[] for _ in range(num_agents)]
+        for _ in range(horizon):
+            acts = []
+            logps = []
+            for ag in our_agents:
+                a, lp = ag.act()
+                acts.append(a)
+                logps.append(lp)
+            rs = env.step(acts, ep)
+            ep_sum += sum(rs) / num_agents
+            # observe others
+            for i, ag in enumerate(our_agents):
+                # naive: observe average of others' cooperate actions
+                other_coop = (sum(acts) - acts[i]) / max(1, (num_agents - 1))
+                ag.opp_coop_est = 0.9 * ag.opp_coop_est + 0.1 * other_coop
+                trajs[i].append((acts[i], logps[i], rs[i]))
+        our_curve.append(ep_sum / horizon)
+        for i, ag in enumerate(our_agents):
+            # use env difficulty as proxy for regime in update
+            ag.update(trajs[i], CoopCompeteEnv(cooperation_level=ag.opp_coop_est, difficulty=difficulty))
+
+    return {
+        "params": {
+            "num_agents": num_agents,
+            "episodes": episodes,
+            "horizon": horizon,
+            "difficulty": difficulty,
+            "warmup_episodes": warmup_episodes,
+            "seed": seed,
+        },
+        "curves": {
+            "ALLC": allc_curve,
+            "ALLP": allp_curve,
+            "PG": pg_curve,
+            "OUR": our_curve,
+        },
+    }
 
 
