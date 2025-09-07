@@ -563,3 +563,142 @@ def run_multiagent_benchmark(
     }
 
 
+# ------------------------ 4v4 Team battle environment ------------------------
+
+class TeamBattleEnv:
+    """4v4 team setting: indices 0..3 -> Team A, 4..7 -> Team B.
+    Intra-team cooperation yields team benefit; inter-team competition reduces opponent benefit.
+    """
+
+    def __init__(self, difficulty: float = 0.3, warmup_episodes: int = 10, coop_weight: float = 0.25):
+        self.difficulty = max(0.0, min(1.0, difficulty))
+        self.warmup_episodes = warmup_episodes
+        self.coop_weight = coop_weight
+
+    def step(self, actions: List[int], episode_idx: int) -> List[float]:
+        # 0=compete, 1=cooperate
+        assert len(actions) == 8, "TeamBattleEnv expects 8 agents"
+        base = max(0.1, 1.0 - self.difficulty)
+        if episode_idx < self.warmup_episodes:
+            return [base] * 8
+        a_team = actions[:4]
+        b_team = actions[4:]
+        coop_a = sum(a_team) / 4.0
+        coop_b = sum(b_team) / 4.0
+        # Team benefit increases with own coop, decreases with opponent coop if competing
+        res: List[float] = []
+        for i in range(8):
+            team = 0 if i < 4 else 1
+            a = actions[i]
+            own = coop_a if team == 0 else coop_b
+            opp = coop_b if team == 0 else coop_a
+            payoff = self.coop_weight * (own - 0.5)
+            if a == 0:  # compete lever exploits opponent coop
+                payoff += 0.15 * opp
+            else:
+                payoff -= 0.05 * (1 - own)
+            res.append(max(0.0, base + payoff + random.gauss(0, 0.005)))
+        return res
+
+
+def run_team_battle(episodes: int = 100, horizon: int = 16, seed: int = 17) -> Dict[str, object]:
+    random.seed(seed)
+    env = TeamBattleEnv(difficulty=0.3, warmup_episodes=10)
+    # Policies per agent (PG and OUR variants)
+    pg_agents = [SimplePG(lr=0.05) for _ in range(8)]
+    our_agents = [OurMethodPolicy(lr=0.05, momentum=0.9) for _ in range(8)]
+
+    def rollout(agents, label: str) -> List[List[float]]:
+        rewards_hist: List[List[float]] = [[] for _ in range(8)]
+        for ep in range(episodes):
+            ep_rewards = [0.0] * 8
+            trajs = [[] for _ in range(8)]
+            for _ in range(horizon):
+                actions = []
+                logps = []
+                for ag in agents:
+                    a, lp = ag.act()
+                    actions.append(a)
+                    logps.append(lp)
+                rs = env.step(actions, ep)
+                for i in range(8):
+                    ep_rewards[i] += rs[i]
+                    trajs[i].append((actions[i], logps[i], rs[i]))
+                # observe opponents for OUR
+                if isinstance(agents[0], OurMethodPolicy):
+                    for i, ag in enumerate(agents):
+                        other_coop = (sum(actions) - actions[i]) / 7.0
+                        ag.opp_coop_est = 0.9 * ag.opp_coop_est + 0.1 * other_coop
+            # avg per-step
+            for i in range(8):
+                rewards_hist[i].append(ep_rewards[i] / horizon)
+            # update
+            if isinstance(agents[0], OurMethodPolicy):
+                for i, ag in enumerate(agents):
+                    ag.update(trajs[i], CoopCompeteEnv(cooperation_level=ag.opp_coop_est, difficulty=env.difficulty))
+            else:
+                for i, ag in enumerate(agents):
+                    ag.update(trajs[i])
+        return rewards_hist
+
+    pg_hist = rollout(pg_agents, "PG")
+    our_hist = rollout(our_agents, "OUR")
+    return {
+        "params": {"episodes": episodes, "horizon": horizon, "seed": seed},
+        "pg": pg_hist,
+        "our": our_hist,
+    }
+
+
+# ------------------------ Classic RL task: 2-armed bandit ------------------------
+
+class BanditPolicy:
+    """Softmax 2-armed bandit with REINFORCE and baseline."""
+
+    def __init__(self, lr: float = 0.1):
+        self.theta = [0.0, 0.0]  # preferences
+        self.lr = lr
+
+    def _softmax(self):
+        m = max(self.theta)
+        exps = [math.exp(t - m) for t in self.theta]
+        s = sum(exps)
+        return [e / s for e in exps]
+
+    def act(self) -> Tuple[int, List[float]]:
+        p = self._softmax()
+        r = random.random()
+        a = 0 if r < p[0] else 1
+        return a, p
+
+    def update(self, traj: List[Tuple[int, float]], baseline: float):
+        # traj: (action, reward)
+        for a, r in traj:
+            p = self._softmax()
+            advantage = r - baseline
+            for i in range(2):
+                grad = (1.0 if i == a else 0.0) - p[i]
+                self.theta[i] += self.lr * advantage * grad
+
+
+def run_bandit_benchmark(episodes: int = 200, seed: int = 23) -> Dict[str, object]:
+    random.seed(seed)
+    # Ground truth arms: warmup equal, then arm1 becomes better
+    arm0_p = 0.5
+    arm1_p_start = 0.5
+    arm1_p_after = 0.7
+    switch_ep = 50
+    pol = BanditPolicy(lr=0.1)
+    rewards = []
+    probs = []
+    for ep in range(episodes):
+        a, p = pol.act()
+        p1 = arm1_p_start if ep < switch_ep else arm1_p_after
+        rew = 1.0 if (a == 1 and random.random() < p1) or (a == 0 and random.random() < arm0_p) else 0.0
+        rewards.append(rew)
+        probs.append(p[1])
+        baseline = statistics.mean(rewards) if rewards else 0.0
+        pol.update([(a, rew)], baseline)
+    return {"params": {"episodes": episodes, "switch_ep": switch_ep}, "rewards": rewards, "prob_arm1": probs}
+
+
