@@ -199,6 +199,9 @@ from .dag_manager import *
 from .monitoring import *
 from .visualization import *
 from .mcp import *
+from .workflow_executor import *
+from .dag_replay_buffer import *
+from .rl_engine import *
 
 __all__ = [
     # LoRA相关
@@ -374,4 +377,10 @@ __all__ = [
     'create_mcp_server',
     'create_mcp_client',
     'check_mcp_availability'
-] 
+    ,
+    # Paper-aligned aliases
+    'WorkflowGraphExecutor',
+    'DAGReplayBuffer',
+    'DAGTraceStep',
+    'RLEngine'
+]

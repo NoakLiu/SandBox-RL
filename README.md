@@ -418,6 +418,15 @@ SandGraph supports various mainstream large language models:
 
 MIT License
 
+## 👥 Authors
+
+- Dong Liu (`~Dong_Liu24`) — dong.liu.dl2367@yale.edu
+- Yanxuan Yu — yy3523@columbia.edu
+- Ying Nian Wu
+- Xuhong Wang
+
+See `AUTHORS.md` for details.
+
 ## 🤝 Contact
 
-- Email - dong.liu.dl2367@yale.edu 
+- General contact — dong.liu.dl2367@yale.edu 
