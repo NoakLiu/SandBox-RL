@@ -425,8 +425,6 @@ MIT License
 - Ying Nian Wu — ywu@stat.ucla.edu
 - Xuhong Wang - wangxuhong@pjlab.org.cn
 
-See `AUTHORS.md` for details.
-
 ## 🤝 Contact
 
 - General contact — dong.liu.dl2367@yale.edu 
