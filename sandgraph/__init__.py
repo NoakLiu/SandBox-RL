@@ -59,7 +59,7 @@ except ImportError:
 from .examples import UserCaseExamples
 
 __version__ = "0.2.0"
-__author__ = "SandGraph Team"
+__author__ = "Dong Liu, Yanxuan Yu, Ying Nian Wu, Xuhong Wang"
 
 __all__ = [
     # 核心组件

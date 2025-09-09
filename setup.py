@@ -11,8 +11,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="sandgraph",
     version="0.2.0",
-    author="SandGraph Team",
-    author_email="team@sandgraph.ai",
+    author="Dong Liu, Yanxuan Yu, Ying Nian Wu, Xuhong Wang",
+    author_email="dong.liu.dl2367@yale.edu, yy3523@columbia.edu",
+    maintainer="Dong Liu",
+    maintainer_email="dong.liu.dl2367@yale.edu",
     description="基于官方MCP协议的多智能体执行框架，集成InternBootcamp推理训练沙盒",
     long_description=long_description,
     long_description_content_type="text/markdown",
