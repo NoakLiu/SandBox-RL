@@ -1,0 +1,13 @@
+{
+  "params": {
+    "width": 7,
+    "height": 7,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      6,
+      6
+    ],
+    "walls": 
