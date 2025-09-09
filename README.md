@@ -420,10 +420,10 @@ MIT License
 
 ## 👥 Authors
 
-- Dong Liu (`~Dong_Liu24`) — dong.liu.dl2367@yale.edu
+- Dong Liu — dong.liu.dl2367@yale.edu
 - Yanxuan Yu — yy3523@columbia.edu
-- Ying Nian Wu
-- Xuhong Wang
+- Ying Nian Wu — ywu@stat.ucla.edu
+- Xuhong Wang - wangxuhong@pjlab.org.cn
 
 See `AUTHORS.md` for details.
 
