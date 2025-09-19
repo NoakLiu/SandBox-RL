@@ -2,7 +2,7 @@
 
 ## 🎯 概述
 
-本文档总结了在SandGraph core模块中实现的on-policy RL功能，包括合作因子（Cooperation Factor）和能力因子（Competence Factor）的支持。
+本文档总结了在Sandbox-RL core模块中实现的on-policy RL功能，包括合作因子（Cooperation Factor）和能力因子（Competence Factor）的支持。
 
 ## 🔧 实现位置
 
@@ -93,7 +93,7 @@ class MultiAgentOnPolicyRL:
 ### 1. 基本使用
 
 ```python
-from sandgraph.core.rl_algorithms import (
+from sandbox_rl.core.rl_algorithms import (
     CooperationType, CompetenceType,
     CooperationFactor, CompetenceFactor,
     MultiAgentOnPolicyRL
@@ -211,7 +211,7 @@ python test_core_rl.py
 - 多层次合作结构
 
 ### 3. 环境集成
-- 与SandGraph环境系统集成
+- 与Sandbox-RL环境系统集成
 - 支持真实任务场景
 - 多任务学习支持
 
@@ -222,11 +222,11 @@ python test_core_rl.py
 
 ## 📝 总结
 
-本次实现成功在SandGraph core模块中集成了：
+本次实现成功在Sandbox-RL core模块中集成了：
 
 1. **合作因子系统** - 支持多种合作模式
 2. **能力因子系统** - 支持智能体能力进化
 3. **On-Policy RL框架** - 支持实时策略学习
 4. **多智能体协调** - 支持团队协作学习
 
-这些功能为SandGraph提供了强大的多智能体强化学习能力，支持复杂的协作和竞争场景，为后续的高级AI系统开发奠定了坚实基础。
+这些功能为Sandbox-RL提供了强大的多智能体强化学习能力，支持复杂的协作和竞争场景，为后续的高级AI系统开发奠定了坚实基础。

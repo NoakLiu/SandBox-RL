@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SandGraph + InternBootcamp MCP服务器
+Sandbox-RL + InternBootcamp MCP服务器
 
 展示如何将 InternBootcamp 推理训练沙盒集成到官方MCP生态系统中。
 支持多种推理任务类型，包括：
@@ -37,9 +37,9 @@ except ImportError as e:
     MCP_AVAILABLE = False
     sys.exit(1)
 
-# 导入SandGraph InternBootcamp组件
+# 导入Sandbox-RL InternBootcamp组件
 try:
-    from sandgraph.internbootcamp_sandbox import (
+    from sandbox_rl.internbootcamp_sandbox import (
         Game24BootcampSandbox,
         ARCBootcampSandbox, 
         KORBootcampSandbox,
@@ -51,8 +51,8 @@ try:
     )
     SANDGRAPH_AVAILABLE = True
 except ImportError as e:
-    print(f"错误：SandGraph InternBootcamp模块未找到: {e}")
-    print("请确保正确安装SandGraph并将其添加到Python路径")
+    print(f"错误：Sandbox-RL InternBootcamp模块未找到: {e}")
+    print("请确保正确安装Sandbox-RL并将其添加到Python路径")
     SANDGRAPH_AVAILABLE = False
     sys.exit(1)
 
@@ -61,7 +61,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # 创建MCP服务器
-mcp_server = FastMCP("SandGraph-InternBootcamp")
+mcp_server = FastMCP("Sandbox-RL-InternBootcamp")
 
 # 创建各种InternBootcamp沙盒实例
 game24_sandbox = Game24BootcampSandbox(seed=42)
@@ -413,7 +413,7 @@ def get_internbootcamp_resource_info() -> str:
     sandboxes = list_internbootcamp_sandboxes()
     
     return f"""
-SandGraph + InternBootcamp 集成信息
+Sandbox-RL + InternBootcamp 集成信息
 
 🚀 基于上海AI实验室InternBootcamp项目的推理训练沙盒
 
@@ -589,7 +589,7 @@ InternBootcamp 编程能力沙盒使用指南：
 def internbootcamp_reasoning_guide() -> str:
     """InternBootcamp推理训练指南提示"""
     return """
-🚀 欢迎使用 SandGraph + InternBootcamp 推理训练系统！
+🚀 欢迎使用 Sandbox-RL + InternBootcamp 推理训练系统！
 
 你现在可以使用基于上海AI实验室InternBootcamp项目的多种推理沙盒：
 
@@ -656,7 +656,7 @@ Agent 3 - 质量评估师: 验证解答的正确性和完整性
 
 def main():
     """主函数"""
-    parser = argparse.ArgumentParser(description="SandGraph InternBootcamp MCP服务器")
+    parser = argparse.ArgumentParser(description="Sandbox-RL InternBootcamp MCP服务器")
     parser.add_argument("--transport", choices=["stdio", "sse"], default="stdio",
                        help="传输协议 (默认: stdio)")
     parser.add_argument("--port", type=int, default=8080,
@@ -671,7 +671,7 @@ def main():
     # 设置日志级别
     logging.getLogger().setLevel(getattr(logging, args.log_level))
     
-    logger.info("🚀 启动SandGraph InternBootcamp MCP服务器...")
+    logger.info("🚀 启动Sandbox-RL InternBootcamp MCP服务器...")
     logger.info(f"📡 传输协议: {args.transport}")
     
     # 显示InternBootcamp状态

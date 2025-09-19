@@ -1,8 +1,8 @@
-# SandGraphX Usage Report
+# Sandbox-RLX Usage Report
 
 ## Overview
 
-This report provides detailed analysis of SandGraphX usage patterns through two comprehensive examples: Trading System and Social Network Simulation. Each example demonstrates the framework's capabilities in LLM decision-making, RL optimization, and workflow orchestration.
+This report provides detailed analysis of Sandbox-RLX usage patterns through two comprehensive examples: Trading System and Social Network Simulation. Each example demonstrates the framework's capabilities in LLM decision-making, RL optimization, and workflow orchestration.
 
 ## Example 1: Trading System
 
@@ -18,7 +18,7 @@ The trading system implements a reinforcement learning-based approach where:
 
 #### 1. LLM Manager Setup
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
 
 llm_manager = create_shared_llm_manager(
     model_name="Qwen/Qwen-7B-Chat",
@@ -43,7 +43,7 @@ llm_manager = create_shared_llm_manager(
 
 #### 2. RL Trainer Configuration
 ```python
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
 
 rl_config = RLConfig(
     algorithm=RLAlgorithm.PPO,
@@ -454,6 +454,6 @@ Both examples demonstrate:
 
 ## Conclusion
 
-SandGraphX provides a powerful framework for building intelligent systems that combine LLM decision-making with RL optimization. The trading and social network examples demonstrate the framework's versatility and effectiveness across different domains. Key success factors include proper prompt engineering, robust RL training, and careful workflow design.
+Sandbox-RLX provides a powerful framework for building intelligent systems that combine LLM decision-making with RL optimization. The trading and social network examples demonstrate the framework's versatility and effectiveness across different domains. Key success factors include proper prompt engineering, robust RL training, and careful workflow design.
 
 The framework's modular architecture enables easy extension to new domains while maintaining consistent patterns for LLM integration and RL optimization. Future work could explore multi-agent scenarios, more sophisticated RL algorithms, and integration with real-world data sources. 

@@ -3,7 +3,7 @@
 LoRA功能测试脚本
 ================
 
-测试SandGraph的LoRA压缩功能是否正常工作
+测试Sandbox-RL的LoRA压缩功能是否正常工作
 """
 
 import sys
@@ -26,7 +26,7 @@ def test_lora_imports():
     logger.info("测试LoRA模块导入...")
     
     try:
-        from sandgraph.core.lora_compression import (
+        from sandbox_rl.core.lora_compression import (
             LoRACompressor,
             OnlineLoRAManager,
             LoRALayer,
@@ -51,7 +51,7 @@ def test_lora_config():
     logger.info("测试LoRA配置...")
     
     try:
-        from sandgraph.core.lora_compression import (
+        from sandbox_rl.core.lora_compression import (
             LoRACompressionConfig,
             CompressionType,
             LoRAConfig,
@@ -84,7 +84,7 @@ def test_lora_compressor():
     logger.info("测试LoRA压缩器...")
     
     try:
-        from sandgraph.core.lora_compression import create_lora_compressor, CompressionType
+        from sandbox_rl.core.lora_compression import create_lora_compressor, CompressionType
         
         # 创建压缩器
         compressor = create_lora_compressor(
@@ -114,7 +114,7 @@ def test_llm_interface():
     logger.info("测试LLM接口的LoRA支持...")
     
     try:
-        from sandgraph.core.llm_interface import (
+        from sandbox_rl.core.llm_interface import (
             create_shared_llm_manager,
             LLMConfig,
             LLMBackend
@@ -162,7 +162,7 @@ def test_kv_cache_compression():
     logger.info("测试KV缓存压缩...")
     
     try:
-        from sandgraph.core.lora_compression import create_lora_compressor
+        from sandbox_rl.core.lora_compression import create_lora_compressor
         
         # 创建压缩器
         compressor = create_lora_compressor(
@@ -211,7 +211,7 @@ def test_online_manager():
     logger.info("测试在线LoRA管理器...")
     
     try:
-        from sandgraph.core.lora_compression import create_online_lora_manager
+        from sandbox_rl.core.lora_compression import create_online_lora_manager
         
         # 创建在线管理器
         manager = create_online_lora_manager(

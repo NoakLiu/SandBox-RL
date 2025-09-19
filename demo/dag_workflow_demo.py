@@ -2,7 +2,7 @@
 """
 高级DAG工作流系统演示
 
-展示SandGraph高级工作流系统的完整功能：
+展示Sandbox-RL高级工作流系统的完整功能：
 - 环路检测和拓扑排序
 - 复杂控制流（条件、循环、并行）
 - 多种停止条件
@@ -24,7 +24,7 @@ from typing import Dict, Any, List
 sys.path.insert(0, '.')
 
 try:
-    from sandgraph.core.dag_manager import (
+    from sandbox_rl.core.dag_manager import (
         DAG_Manager, create_dag_manager, ExecutionContext,
         NodeType, ExecutionStatus, StopConditionType,
         AdvancedWorkflowNode, StopCondition
@@ -33,7 +33,7 @@ try:
     SANDGRAPH_AVAILABLE = True
 except ImportError as e:
     print(f"❌ 导入失败: {e}")
-    print("请确保SandGraph已正确安装")
+    print("请确保Sandbox-RL已正确安装")
     sys.exit(1)
 
 
@@ -394,8 +394,8 @@ async def demo_error_handling():
 
 
 async def demo_sandgraph_integration():
-    """演示与SandGraph沙盒的集成"""
-    print_separator("SandGraph沙盒集成演示")
+    """演示与Sandbox-RL沙盒的集成"""
+    print_separator("Sandbox-RL沙盒集成演示")
     
     def create_game24_task(context: ExecutionContext, input_data: Any) -> Dict[str, Any]:
         sandbox = Game24Sandbox()
@@ -428,7 +428,7 @@ async def demo_sandgraph_integration():
         return f"game24_{result}"
     
     # 创建集成工作流
-    workflow = (create_dag_manager("sandgraph_integration", "SandGraph集成演示")
+    workflow = (create_dag_manager("sandgraph_integration", "Sandbox-RL集成演示")
                 .add_task_node("create_task", "创建任务", create_game24_task)
                 .add_task_node("solve_game24", "求解Game24", solve_game24)
                 .add_task_node("verify", "验证解答", verify_solution)
@@ -497,7 +497,7 @@ async def main():
         ("并行执行工作流", demo_parallel_workflow),
         ("停止条件", demo_stop_conditions),
         ("错误处理和恢复", demo_error_handling),
-        ("SandGraph沙盒集成", demo_sandgraph_integration),
+        ("Sandbox-RL沙盒集成", demo_sandgraph_integration),
         ("工作流可视化", demo_workflow_visualization),
     ]
     
@@ -539,7 +539,7 @@ async def main():
         "✅ 执行监听和状态跟踪",
         "✅ 数据流管理和状态共享",
         "✅ 工作流可视化和调试",
-        "✅ 与SandGraph沙盒无缝集成"
+        "✅ 与Sandbox-RL沙盒无缝集成"
     ]
     
     for feature in features:

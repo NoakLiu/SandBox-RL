@@ -1,6 +1,6 @@
-# SandGraph LLM模型支持
+# Sandbox-RL LLM模型支持
 
-SandGraph框架支持多种火热的大语言模型，包括GPT系列的开源替代品。本文档详细介绍支持的模型类型、特点和使用方法。
+Sandbox-RL框架支持多种火热的大语言模型，包括GPT系列的开源替代品。本文档详细介绍支持的模型类型、特点和使用方法。
 
 ## 🚀 支持的模型类型
 
@@ -13,7 +13,7 @@ SandGraph框架支持多种火热的大语言模型，包括GPT系列的开源�
 - **适用场景**: 文本生成、对话系统、创意写作
 
 ```python
-from sandgraph.core.llm_interface import create_gpt2_manager
+from sandbox_rl.core.llm_interface import create_gpt2_manager
 
 # 创建GPT-2模型管理器
 llm_manager = create_gpt2_manager("gpt2-medium", device="auto")
@@ -28,7 +28,7 @@ llm_manager = create_gpt2_manager("gpt2-medium", device="auto")
 - **适用场景**: 通用对话、推理、创意写作
 
 ```python
-from sandgraph.core.llm_interface import create_llama2_manager
+from sandbox_rl.core.llm_interface import create_llama2_manager
 
 # 创建LLaMA2模型管理器
 llm_manager = create_llama2_manager("meta-llama/Llama-2-7b-chat-hf")
@@ -41,7 +41,7 @@ llm_manager = create_llama2_manager("meta-llama/Llama-2-7b-chat-hf")
 - **适用场景**: 代码生成、代码补全、编程助手
 
 ```python
-from sandgraph.core.llm_interface import create_codellama_manager
+from sandbox_rl.core.llm_interface import create_codellama_manager
 
 # 创建CodeLLaMA模型管理器
 llm_manager = create_codellama_manager("codellama/CodeLlama-7b-Instruct-hf")
@@ -56,7 +56,7 @@ llm_manager = create_codellama_manager("codellama/CodeLlama-7b-Instruct-hf")
 - **适用场景**: 中文对话、多语言应用、长文本处理
 
 ```python
-from sandgraph.core.llm_interface import create_qwen_manager
+from sandbox_rl.core.llm_interface import create_qwen_manager
 
 # 创建Qwen模型管理器
 llm_manager = create_qwen_manager("Qwen/Qwen-7B-Chat")
@@ -74,7 +74,7 @@ llm_manager = create_qwen_manager("Qwen/Qwen-7B-Chat")
 - **适用场景**: 高级对话、复杂推理、代码生成、长文档处理、多语言应用
 
 ```python
-from sandgraph.core.llm_interface import create_qwen3_manager
+from sandbox_rl.core.llm_interface import create_qwen3_manager
 
 # 创建Qwen3模型管理器
 llm_manager = create_qwen3_manager("Qwen/Qwen3-14B-Instruct")
@@ -99,7 +99,7 @@ llm_manager = create_shared_llm_manager("Qwen/Qwen3-14B-Instruct")
 - **适用场景**: 通用对话、推理任务、创意写作
 
 ```python
-from sandgraph.core.llm_interface import create_mistral_manager
+from sandbox_rl.core.llm_interface import create_mistral_manager
 
 # 创建Mistral模型管理器
 llm_manager = create_mistral_manager("mistralai/Mistral-7B-Instruct-v0.2")
@@ -120,7 +120,7 @@ llm_manager = create_mistral_manager("mistralai/Mistral-7B-Instruct-v0.2")
 - **适用场景**: 移动应用、实时对话、资源受限环境
 
 ```python
-from sandgraph.core.llm_interface import create_gemma_manager
+from sandbox_rl.core.llm_interface import create_gemma_manager
 
 # 创建Gemma模型管理器
 llm_manager = create_gemma_manager("google/gemma-2b-it")
@@ -135,7 +135,7 @@ llm_manager = create_gemma_manager("google/gemma-2b-it")
 - **适用场景**: 本地应用、实时处理、资源受限环境
 
 ```python
-from sandgraph.core.llm_interface import create_phi_manager
+from sandbox_rl.core.llm_interface import create_phi_manager
 
 # 创建Phi模型管理器
 llm_manager = create_phi_manager("microsoft/Phi-2")
@@ -150,7 +150,7 @@ llm_manager = create_phi_manager("microsoft/Phi-2")
 - **适用场景**: 中文对话、多语言应用、客服系统
 
 ```python
-from sandgraph.core.llm_interface import create_yi_manager
+from sandbox_rl.core.llm_interface import create_yi_manager
 
 # 创建Yi模型管理器
 llm_manager = create_yi_manager("01-ai/Yi-6B-Chat")
@@ -163,7 +163,7 @@ llm_manager = create_yi_manager("01-ai/Yi-6B-Chat")
 - **适用场景**: 中文对话、文档问答、知识问答
 
 ```python
-from sandgraph.core.llm_interface import create_chatglm_manager
+from sandbox_rl.core.llm_interface import create_chatglm_manager
 
 # 创建ChatGLM模型管理器
 llm_manager = create_chatglm_manager("THUDM/chatglm3-6b")
@@ -176,7 +176,7 @@ llm_manager = create_chatglm_manager("THUDM/chatglm3-6b")
 - **适用场景**: 中文对话、知识问答、创意写作
 
 ```python
-from sandgraph.core.llm_interface import create_baichuan_manager
+from sandbox_rl.core.llm_interface import create_baichuan_manager
 
 # 创建Baichuan模型管理器
 llm_manager = create_baichuan_manager("baichuan-inc/Baichuan2-7B-Chat")
@@ -189,7 +189,7 @@ llm_manager = create_baichuan_manager("baichuan-inc/Baichuan2-7B-Chat")
 - **适用场景**: 中文对话、文档处理、知识问答
 
 ```python
-from sandgraph.core.llm_interface import create_internlm_manager
+from sandbox_rl.core.llm_interface import create_internlm_manager
 
 # 创建InternLM模型管理器
 llm_manager = create_internlm_manager("internlm/internlm-chat-7b")
@@ -204,7 +204,7 @@ llm_manager = create_internlm_manager("internlm/internlm-chat-7b")
 - **适用场景**: 代码生成、代码补全、编程教育
 
 ```python
-from sandgraph.core.llm_interface import create_starcoder_manager
+from sandbox_rl.core.llm_interface import create_starcoder_manager
 
 # 创建StarCoder模型管理器
 llm_manager = create_starcoder_manager("bigcode/starcoder2-7b")
@@ -219,7 +219,7 @@ llm_manager = create_starcoder_manager("bigcode/starcoder2-7b")
 - **适用场景**: 复杂推理、多步骤任务、高质量对话
 
 ```python
-from sandgraph.core.llm_interface import create_falcon_manager
+from sandbox_rl.core.llm_interface import create_falcon_manager
 
 # 创建Falcon模型管理器
 llm_manager = create_falcon_manager("tiiuae/falcon-7b-instruct")
@@ -230,7 +230,7 @@ llm_manager = create_falcon_manager("tiiuae/falcon-7b-instruct")
 ### 1. 基本使用
 
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
 
 # 创建模型管理器
 llm_manager = create_shared_llm_manager(
@@ -254,7 +254,7 @@ print(response.text)
 ### 2. 通过类型创建模型
 
 ```python
-from sandgraph.core.llm_interface import create_model_by_type
+from sandbox_rl.core.llm_interface import create_model_by_type
 
 # 根据类型创建模型
 llm_manager = create_model_by_type("qwen3", device="auto")
@@ -274,7 +274,7 @@ print(response.text)
 ### 3. 获取可用模型列表
 
 ```python
-from sandgraph.core.llm_interface import get_available_models
+from sandbox_rl.core.llm_interface import get_available_models
 
 # 获取所有可用模型
 models = get_available_models()

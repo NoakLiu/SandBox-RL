@@ -1,6 +1,6 @@
 # AReaL集成指南
 
-本指南详细介绍如何在SandGraphX中深度集成AReaL框架，最大化复用AReaL的轮子，提升系统性能和可扩展性。
+本指南详细介绍如何在Sandbox-RLX中深度集成AReaL框架，最大化复用AReaL的轮子，提升系统性能和可扩展性。
 
 ## 🚀 AReaL框架简介
 
@@ -30,7 +30,7 @@ pip install redis python-memcached ray dask
 ### 2. 验证安装
 
 ```python
-from sandgraph.core.areal_integration import get_areal_status
+from sandbox_rl.core.areal_integration import get_areal_status
 
 status = get_areal_status()
 print(f"AReaL Available: {status['areal_available']}")
@@ -39,14 +39,14 @@ print(f"Version: {status['version']}")
 
 ## 🔧 集成级别
 
-SandGraphX提供了三个AReaL集成级别：
+Sandbox-RLX提供了三个AReaL集成级别：
 
 ### 1. 基础集成 (BASIC)
 
 适用于简单应用场景，提供基本的缓存和指标功能。
 
 ```python
-from sandgraph.core.areal_integration import create_areal_integration, IntegrationLevel
+from sandbox_rl.core.areal_integration import create_areal_integration, IntegrationLevel
 
 # 创建基础集成
 areal_manager = create_areal_integration(
@@ -282,13 +282,13 @@ optimal_batch_size = optimizer.optimize_batch_size(performance_metrics)
 print(f"Optimal batch size: {optimal_batch_size}")
 ```
 
-## 🔄 与SandGraphX集成
+## 🔄 与Sandbox-RLX集成
 
 ### 1. 在Workflow中使用AReaL
 
 ```python
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
-from sandgraph.core.areal_integration import create_areal_integration
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
+from sandbox_rl.core.areal_integration import create_areal_integration
 
 # 创建AReaL集成管理器
 areal_manager = create_areal_integration(
@@ -336,8 +336,8 @@ workflow.add_node(NodeType.SANDBOX, "cached_processor",
 ### 2. 在RL训练中使用AReaL
 
 ```python
-from sandgraph.core.enhanced_rl_algorithms import EnhancedRLTrainer
-from sandgraph.core.areal_integration import create_areal_integration
+from sandbox_rl.core.enhanced_rl_algorithms import EnhancedRLTrainer
+from sandbox_rl.core.areal_integration import create_areal_integration
 
 # 创建AReaL集成管理器
 areal_manager = create_areal_integration(
@@ -375,8 +375,8 @@ def optimized_training_step(trajectory):
 ### 3. 在监控系统中使用AReaL
 
 ```python
-from sandgraph.core.monitoring import SocialNetworkMonitor
-from sandgraph.core.areal_integration import create_areal_integration
+from sandbox_rl.core.monitoring import SocialNetworkMonitor
+from sandbox_rl.core.areal_integration import create_areal_integration
 
 # 创建AReaL集成管理器
 areal_manager = create_areal_integration(
@@ -396,7 +396,7 @@ def enhanced_monitoring_callback(metrics_data):
     metrics.record_metric("network.engagement_rate", metrics_data.engagement_rate)
     metrics.record_metric("network.response_time", metrics_data.response_time_avg)
     
-    # 记录到SandGraphX监控系统
+    # 记录到Sandbox-RLX监控系统
     monitor.update_metrics(metrics_data)
 
 # 设置回调
@@ -730,14 +730,14 @@ python demo/enhanced_areal_integration_demo.py \
 ## 🔗 相关资源
 
 - [AReaL官方文档](https://github.com/inclusionAI/AReaL)
-- [SandGraphX API参考](api_reference.md)
+- [Sandbox-RLX API参考](api_reference.md)
 - [监控指南](monitoring_guide.md)
 - [性能优化指南](performance_optimization_guide.md)
 
 ## 🆘 常见问题
 
 ### Q: AReaL框架不可用时怎么办？
-A: SandGraphX提供了完整的备用实现，即使AReaL不可用也能正常工作。
+A: Sandbox-RLX提供了完整的备用实现，即使AReaL不可用也能正常工作。
 
 ### Q: 如何选择合适的集成级别？
 A: 根据应用场景选择：基础应用用BASIC，复杂应用用ADVANCED，企业级应用用FULL。

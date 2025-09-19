@@ -1,10 +1,10 @@
-# SandGraphX
+# Sandbox-RL
 
 <div align="center">
-  <img src="assets/logo.png" alt="SandGraphX Logo" width="200"/>
+  <img src="assets/logo.png" alt="Sandbox-RL Logo" width="200"/>
 </div>
 
-SandGraphX is an intelligent optimization framework based on Environment Subsets abstraction and Optimization Goals. It coordinates LLM decision-making and RL weight updates through SandBox Workflow Graph to achieve automated optimization of complex tasks.
+Sandbox-RL is an intelligent optimization framework based on Environment Subsets abstraction and Optimization Goals. It coordinates LLM decision-making and RL weight updates through SandBox Workflow Graph to achieve automated optimization of complex tasks with KVCache-centric system optimization.
 
 ## 🌟 Core Concepts
 
@@ -29,11 +29,64 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
 ### 4. Intelligent Decision System
 - **RL Weight Updates**: Optimize decision strategies
 - **State Management**: Track and update system states
-- **Isolated Interaction with LLM and Resources**: SandBox as workflow graph nodes are isolated from LLM (Decision Making), RL (LLM Weight Update), and Computational Resources (GPU, CPU, etc.), with SandGraphX globally managing the latter two.
+- **Isolated Interaction with LLM and Resources**: SandBox as workflow graph nodes are isolated from LLM (Decision Making), RL (LLM Weight Update), and Computational Resources (GPU, CPU, etc.), with Sandbox-RL globally managing the latter two.
+
+### 5. KVCache-Centric Optimization System
+- **Distributed KVCache Pool**: Multi-tier cache management across CPU/DRAM/SSD and GPU/VRAM
+- **Paged KVCache**: Efficient memory management with chunked prefill and decoding instances
+- **Cache-Aware Scheduling**: Intelligent prefill and decoding scheduling with load balancing
+- **Inter-node Transfer**: RDMA-based KVCache transfer for distributed optimization
+- **Optimization Goals**: Maximize cache reuse (TTFT SLO) and throughput (TBT SLO) while maintaining memory constraints
 
 <div align="center">
-  <img src="assets/archi.jpeg" alt="SandGraphX Architecture" width="800"/>
+  <img src="assets/archi.jpeg" alt="Sandbox-RL Architecture" width="800"/>
 </div>
+
+## 🏗️ KVCache-Centric System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              KVCache-Centric Optimization System                │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   Conductor     │    │   Scheduler     │    │   Scheduler     │            │
+│  │                 │    │   (Prefill)     │    │  (Decoding)     │            │
+│  └─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘            │
+│            │                      │                      │                    │
+│            ▼                      ▼                      ▼                    │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │ Prefill Instance│    │ Prefill Pool    │    │Decoding Instance│            │
+│  │                 │    │                 │    │                 │            │
+│  └─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘            │
+│            │                      │                      │                    │
+│            ▼                      ▼                      ▼                    │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │ Paged KVCache   │    │ Distributed     │    │ Paged KVCache   │            │
+│  │ GPU/VRAM        │    │ KVCache Pool    │    │ GPU/VRAM        │            │
+│  │ Local           │    │ CPU/DRAM/SSD    │    │ Local           │            │
+│  └─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘            │
+│            │                      │                      │                    │
+│            └──────────────────────┼──────────────────────┘                    │
+│                                   │                                           │
+│                                   ▼                                           │
+│  ┌─────────────────────────────────────────────────────────────────────────┐  │
+│  │                        RDMA Inter-node Transfer                        │  │
+│  │                    Distributed KVCache Pool                           │  │
+│  │                         CPU/DRAM/SSD                                  │  │
+│  └─────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                 │
+│  ┌─────────────────────────────────────────────────────────────────────────┐  │
+│  │                           Optimization Goals                           │  │
+│  │                                                                         │  │
+│  │  Prefill Stage:                    Decoding Stage:                      │  │
+│  │  • Max Cache Reuse                • Max Throughput                     │  │
+│  │  • s.t. TTFT SLO                  • s.t. TBT SLO                       │  │
+│  │  • Minimum MFU                    • KVCache < VRAM                     │  │
+│  │  • KVCache < DRAM                                                      │  │
+│  └─────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ## 🌟 Core Features
 
@@ -84,7 +137,7 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Memory-Efficient KV Cache**: Adaptive cache policies with compression
   - **Multi-threaded Processing**: Parallel rollout execution with worker pools
 - **🎯 Comprehensive Misinformation Analysis**: Advanced social network analysis with multi-agent competition
-  - **Multi-Agent Competition**: SandGraph LLM vs Rule-Based vs Human Simulation
+  - **Multi-Agent Competition**: Sandbox-RL LLM vs Rule-Based vs Human Simulation
   - **Real-time Performance Tracking**: Monitor agent performance and network dynamics
   - **Integrated Optimization**: Combine LLM frozen & adaptive update with AReaL KV cache
   - **WanDB Integration**: Comprehensive monitoring and visualization of competition results
@@ -122,7 +175,7 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
   - **Evolutionary Optimization**: Continuous improvement of task execution strategies
 - **🐦 Twitter Misinformation Simulation**: Advanced social network misinformation spread simulation with OASIS integration
   - **OASIS Core Integration**: Direct integration with OASIS agent graph and social agents
-  - **SandGraph Core Integration**: Full utilization of SandGraph Core components (LLM, LoRA, RL, Slot Management)
+  - **Sandbox-RL Core Integration**: Full utilization of Sandbox-RL Core components (LLM, LoRA, RL, Slot Management)
   - **Enhanced Belief Propagation**: Complex belief spread mechanisms with dynamic strength and influence scores
   - **Multi-Mode LLM Decision**: Support for frozen/adaptive/lora modes with asynchronous processing
   - **Real-time Monitoring**: Comprehensive metrics tracking and visualization
@@ -141,11 +194,11 @@ SandGraphX is an intelligent optimization framework based on Environment Subsets
 ## 📁 File Structure
 
 ```
-SandGraphX/
-├── sandgraph/                    # Core package directory
+Sandbox-RL/
+├── sandbox_rl/                   # Core package directory
 │   ├── core/                     # Core functional modules
 │   │   ├── workflow.py          # Basic workflow implementation
-│   │   ├── sg_workflow.py       # SandGraph workflow implementation
+│   │   ├── sg_workflow.py       # Sandbox-RL workflow implementation
 │   │   ├── dag_manager.py       # DAG graph management
 │   │   ├── llm_interface.py     # LLM interface
 │   │   ├── llm_frozen_adaptive.py # LLMs frozen & adaptive update
@@ -206,11 +259,11 @@ SandGraphX/
 
 ## 🏗️ System Architecture
 
-For detailed technical architecture documentation, see **[SandGraph Architecture Guide](docs/SandGraph_Archi.md)**.
+For detailed technical architecture documentation, see **[Sandbox-RL Architecture Guide](docs/Sandbox_RL_Archi.md)**.
 
 ```
 ┌───────────────────────────────────────────────────────┐
-│                      SandGraph Core                   │
+│                     Sandbox-RL Core                   │
 ├─────────────┬─────────────┬─────────────┬─────────────┤
 │  Workflow   │   SandBox   │    LLM      │     RL      │
 │   Engine    │  Manager    │  Manager    │  Manager    │
@@ -226,7 +279,7 @@ For detailed technical architecture documentation, see **[SandGraph Architecture
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    SandGraphX Manager                   │
+│                   Sandbox-RL Manager                    │
 ├─────────────────────────────────────────────────────────┤
 │  • User Input: Environment subset definitions and optimization goals │
 │  • Workflow: DAG graph construction and execution management         │
@@ -260,12 +313,12 @@ For detailed technical architecture documentation, see **[SandGraph Architecture
 
 ```bash
 # Create new conda environment
-conda create -n sandgraph python=3.11
-conda activate sandgraph
+conda create -n sandbox-rl python=3.11
+conda activate sandbox-rl
 
 # Clone repository
-git clone https://github.com/NoakLiu/SandGraphX.git
-cd SandGraphX
+git clone https://github.com/NoakLiu/Sandbox-RL.git
+cd Sandbox-RL
 
 # Run installation script
 chmod +x quick_install.sh
@@ -275,8 +328,8 @@ chmod +x quick_install.sh
 ### 2. Basic Usage
 
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode
 
 # Create LLM manager (default uses Mistral-7B)
 llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2")
@@ -373,7 +426,7 @@ result = await scheduler.execute_scenario(
 
 ## 🔥 LLM Model Support
 
-SandGraph supports various mainstream large language models:
+Sandbox-RL supports various mainstream large language models:
 
 | Model Type | Recommended Model | Parameter Size | Memory Requirements |
 |------------|------------------|----------------|-------------------|
@@ -412,7 +465,7 @@ SandGraph supports various mainstream large language models:
 - **Real-time Monitoring**: Comprehensive metrics tracking and visualization
 - **Intervention Analysis**: Study intervention strategies and their effectiveness
 - **Network Dynamics**: Realistic social network behavior modeling with polarization analysis
-- **SandGraph Core Integration**: Full utilization of SandGraph Core components (LLM, LoRA, RL, Slot Management)
+- **Sandbox-RL Core Integration**: Full utilization of Sandbox-RL Core components (LLM, LoRA, RL, Slot Management)
 
 ## 📄 License
 

@@ -8,11 +8,11 @@ import asyncio
 import time
 import json
 from typing import Any, Dict
-from sandgraph.core.dag_manager import DAG_Manager, create_dag_manager, ExecutionContext
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, EnhancedWorkflowNode, NodeType
-from sandgraph.core.sandbox import Sandbox
-from sandgraph.core.llm_interface import SharedLLMManager, create_shared_llm_manager
-from sandgraph.sandbox_implementations import Game24Sandbox
+from sandbox_rl.core.dag_manager import DAG_Manager, create_dag_manager, ExecutionContext
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, EnhancedWorkflowNode, NodeType
+from sandbox_rl.core.sandbox import Sandbox
+from sandbox_rl.core.llm_interface import SharedLLMManager, create_shared_llm_manager
+from sandbox_rl.sandbox_implementations import Game24Sandbox
 
 class SimpleSandbox(Sandbox):
     """简单的沙盒实现"""

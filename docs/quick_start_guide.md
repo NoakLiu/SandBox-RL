@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-This guide will help you get up and running with SandGraphX in minutes.
+This guide will help you get up and running with Sandbox-RLX in minutes.
 
 ## 🚀 Installation
 
@@ -22,8 +22,8 @@ conda activate sandgraph
 
 ```bash
 # Clone repository
-git clone https://github.com/NoakLiu/SandGraphX.git
-cd SandGraphX
+git clone https://github.com/NoakLiu/Sandbox-RLX.git
+cd Sandbox-RLX
 ```
 
 ### Step 3: Install Dependencies
@@ -52,7 +52,7 @@ pip install numpy
 ### 1. Define Environment Subsets
 
 ```python
-from sandgraph.core.sandbox import SandBox
+from sandbox_rl.core.sandbox import SandBox
 
 class MyEnvironment(SandBox):
     def __init__(self):
@@ -80,7 +80,7 @@ class MyEnvironment(SandBox):
 ### 2. Create LLM Manager
 
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
 
 # Create LLM manager (default uses Mistral-7B)
 llm_manager = create_shared_llm_manager(
@@ -100,7 +100,7 @@ llm_manager = create_shared_llm_manager(
 ### 3. Create Workflow
 
 ```python
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
 
 # Create workflow
 workflow = SG_Workflow("my_workflow", WorkflowMode.TRADITIONAL, llm_manager)
@@ -192,7 +192,7 @@ print(response.text)
 The RL framework provides reinforcement learning capabilities:
 
 ```python
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig
 
 # Create RL trainer
 rl_trainer = RLTrainer(RLConfig(algorithm="PPO"), llm_manager)
@@ -214,7 +214,7 @@ result = rl_trainer.update_policy()
 ### Basic Monitoring
 
 ```python
-from sandgraph.core.monitoring import SocialNetworkMonitor, MonitoringConfig
+from sandbox_rl.core.monitoring import SocialNetworkMonitor, MonitoringConfig
 
 # Create monitor
 monitor = SocialNetworkMonitor(

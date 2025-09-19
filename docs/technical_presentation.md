@@ -1,8 +1,8 @@
-# SandGraphX 核心技术实现讲稿
+# Sandbox-RLX 核心技术实现讲稿
 
 ## 概述
 
-SandGraphX是一个基于环境子集抽象和优化目标的智能优化框架。它通过SandBox工作流图协调LLM决策和RL权重更新，实现复杂任务的自动化优化。本次讲稿将重点介绍三个核心技术：Reward-Based Slot Management、LLM Frozen Adaptive和AReaL集成优化。
+Sandbox-RLX是一个基于环境子集抽象和优化目标的智能优化框架。它通过SandBox工作流图协调LLM决策和RL权重更新，实现复杂任务的自动化优化。本次讲稿将重点介绍三个核心技术：Reward-Based Slot Management、LLM Frozen Adaptive和AReaL集成优化。
 
 ## 1. Reward-Based Slot Management 实现原理
 
@@ -798,7 +798,7 @@ def optimize_config(self, current_stats: Dict[str, Any]) -> Dict[str, Any]:
 ### 4.1 三层架构协同
 
 ```python
-class SandGraphXIntegratedSystem:
+class Sandbox-RLXIntegratedSystem:
     def __init__(self, config: IntegratedConfig):
         # 初始化三个核心系统
         self.slot_manager = create_adaptive_frozen_slot_manager(config.slot_config)
@@ -961,4 +961,4 @@ class CoordinationOptimizer:
 - **多任务学习**: 复杂任务的高效协调和执行
 - **资源受限环境**: 在有限资源下的最优性能
 
-这个技术讲稿详细介绍了SandGraphX的三个核心技术实现，展示了如何通过系统级优化实现高性能的智能计算框架。 
+这个技术讲稿详细介绍了Sandbox-RLX的三个核心技术实现，展示了如何通过系统级优化实现高性能的智能计算框架。 

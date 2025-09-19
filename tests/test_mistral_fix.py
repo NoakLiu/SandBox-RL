@@ -9,7 +9,7 @@ import os
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import create_mistral_manager
+from sandbox_rl.core.llm_interface import create_mistral_manager
 
 
 def test_mistral():

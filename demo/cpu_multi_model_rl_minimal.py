@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CPU-only minimal multi-model RL demo using SandGraph core components.
+CPU-only minimal multi-model RL demo using Sandbox-RL core components.
 
 - Uses MockLLM backend (no GPU / external models required)
 - Creates a shared LLM manager and two logical models/agents
@@ -19,7 +19,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 # Prefer importing modules directly from core to avoid heavy package __init__ side-effects
-CORE_DIR = Path(PROJECT_ROOT) / "sandgraph" / "core"
+CORE_DIR = Path(PROJECT_ROOT) / "sandbox_rl" / "core"
 if str(CORE_DIR) not in sys.path:
     sys.path.insert(0, str(CORE_DIR))
 

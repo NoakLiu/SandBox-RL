@@ -18,8 +18,8 @@ from typing import Dict, Any, List
 # Add the parent directory to the path to import sandgraph modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.enhanced_rl_algorithms import (
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.enhanced_rl_algorithms import (
     EnhancedRLConfig, 
     EnhancedRLTrainer,
     CachePolicy,
@@ -27,8 +27,8 @@ from sandgraph.core.enhanced_rl_algorithms import (
     create_enhanced_grpo_trainer,
     create_optimized_rl_trainer
 )
-from sandgraph.core.rl_algorithms import RLAlgorithm
-from sandgraph.core.monitoring import (
+from sandbox_rl.core.rl_algorithms import RLAlgorithm
+from sandbox_rl.core.monitoring import (
     SocialNetworkMonitor, 
     MonitoringConfig, 
     SocialNetworkMetrics, 

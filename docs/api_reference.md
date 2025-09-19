@@ -1,6 +1,6 @@
 # API Reference
 
-This document provides comprehensive API documentation for SandGraphX.
+This document provides comprehensive API documentation for Sandbox-RLX.
 
 ## 📋 Table of Contents
 
@@ -20,7 +20,7 @@ This document provides comprehensive API documentation for SandGraphX.
 Main workflow class for managing DAG-based execution.
 
 ```python
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
 
 class SG_Workflow:
     def __init__(self, name: str, mode: WorkflowMode, llm_manager)
@@ -130,7 +130,7 @@ class NodeLimits:
 Factory function to create LLM manager.
 
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
 
 def create_shared_llm_manager(
     model_name: str = "mistralai/Mistral-7B-Instruct-v0.2",
@@ -192,7 +192,7 @@ class LLMResponse:
 Reinforcement learning trainer.
 
 ```python
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig
 
 class RLTrainer:
     def __init__(self, config: RLConfig, llm_manager: SharedLLMManager = None)
@@ -240,7 +240,7 @@ class RLConfig:
 Base class for environment subsets.
 
 ```python
-from sandgraph.core.sandbox import SandBox
+from sandbox_rl.core.sandbox import SandBox
 
 class SandBox:
     def __init__(self)
@@ -268,7 +268,7 @@ class SandBox:
 Monitor for social network metrics.
 
 ```python
-from sandgraph.core.monitoring import SocialNetworkMonitor, MonitoringConfig
+from sandbox_rl.core.monitoring import SocialNetworkMonitor, MonitoringConfig
 
 class SocialNetworkMonitor:
     def __init__(self, config: MonitoringConfig)
@@ -324,7 +324,7 @@ class SocialNetworkMetrics:
 Manager for LLM parameter freezing and adaptive updates.
 
 ```python
-from sandgraph.core.llm_frozen_adaptive import FrozenAdaptiveManager, UpdateStrategy
+from sandbox_rl.core.llm_frozen_adaptive import FrozenAdaptiveManager, UpdateStrategy
 
 class FrozenAdaptiveManager:
     def __init__(self)
@@ -384,7 +384,7 @@ def create_frozen_config(
 Factory function to create AReaL-style trainer.
 
 ```python
-from sandgraph.core.areal_kv_cache import create_areal_style_trainer
+from sandbox_rl.core.areal_kv_cache import create_areal_style_trainer
 
 def create_areal_style_trainer(
     kv_cache_size: int = 5000,
@@ -434,7 +434,7 @@ class AReaLStyleTrainer:
 Factory function to create enhanced PPO trainer.
 
 ```python
-from sandgraph.core.enhanced_rl_algorithms import create_enhanced_ppo_trainer
+from sandbox_rl.core.enhanced_rl_algorithms import create_enhanced_ppo_trainer
 
 def create_enhanced_ppo_trainer(
     llm_manager: SharedLLMManager,
@@ -467,8 +467,8 @@ class EnhancedPPOTrainer:
 ### Basic Workflow
 
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
 
 # Create LLM manager
 llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2")
@@ -487,7 +487,7 @@ result = workflow.execute_full_workflow()
 ### With Monitoring
 
 ```python
-from sandgraph.core.monitoring import SocialNetworkMonitor, MonitoringConfig
+from sandbox_rl.core.monitoring import SocialNetworkMonitor, MonitoringConfig
 
 # Create monitor
 monitor = SocialNetworkMonitor(
@@ -521,7 +521,7 @@ monitor.stop_monitoring()
 ### With AReaL Optimization
 
 ```python
-from sandgraph.core.areal_kv_cache import create_areal_style_trainer
+from sandbox_rl.core.areal_kv_cache import create_areal_style_trainer
 
 # Create AReaL trainer
 trainer = create_areal_style_trainer(
@@ -548,23 +548,23 @@ print(f"Policy loss: {result['losses']['policy_loss']:.4f}")
 ### Common Exceptions
 
 ```python
-class SandGraphError(Exception):
-    """Base exception for SandGraphX"""
+class Sandbox-RLError(Exception):
+    """Base exception for Sandbox-RLX"""
     pass
 
-class WorkflowError(SandGraphError):
+class WorkflowError(Sandbox-RLError):
     """Workflow-related errors"""
     pass
 
-class LLMError(SandGraphError):
+class LLMError(Sandbox-RLError):
     """LLM-related errors"""
     pass
 
-class RLError(SandGraphError):
+class RLError(Sandbox-RLError):
     """RL-related errors"""
     pass
 
-class MonitoringError(SandGraphError):
+class MonitoringError(Sandbox-RLError):
     """Monitoring-related errors"""
     pass
 ```

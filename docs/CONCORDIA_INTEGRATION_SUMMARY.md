@@ -1,8 +1,8 @@
-# Concordia Contest Integration with SandGraphX
+# Concordia Contest Integration with Sandbox-RLX
 
 ## 概述
 
-本文档总结了将Concordia Contest作为文本交互环境接入SandGraphX框架的实现。Concordia Contest是NeurIPS 2024的一个竞赛，专注于生成式社会代理的协作智能。
+本文档总结了将Concordia Contest作为文本交互环境接入Sandbox-RLX框架的实现。Concordia Contest是NeurIPS 2024的一个竞赛，专注于生成式社会代理的协作智能。
 
 ## 核心实现
 
@@ -11,7 +11,7 @@
 **文件位置**: `sandgraph/core/concordia_sandbox.py`
 
 **主要功能**:
-- 将Concordia的一步对话→环境转移→回报，封装成SandGraph的 `case → prompt → y → verify(r)` 闭环
+- 将Concordia的一步对话→环境转移→回报，封装成Sandbox-RL的 `case → prompt → y → verify(r)` 闭环
 - 支持多种场景：交易、公共物品、协商等
 - 集成协作因子和能力因子，支持不同的协作策略
 
@@ -57,7 +57,7 @@
 ### 1. 基本使用
 
 ```python
-from sandgraph.core.concordia_sandbox import (
+from sandbox_rl.core.concordia_sandbox import (
     create_trading_scenario,
     create_public_goods_scenario,
     create_negotiation_scenario
@@ -80,10 +80,10 @@ reward = sandbox.verify_score(action, case)
 ### 2. 自定义配置
 
 ```python
-from sandgraph.core.concordia_sandbox import (
+from sandbox_rl.core.concordia_sandbox import (
     ConcordiaConfig, ConcordiaScenario, ConcordiaRole
 )
-from sandgraph.core.rl_algorithms import (
+from sandbox_rl.core.rl_algorithms import (
     CooperationFactor, CooperationType
 )
 
@@ -104,7 +104,7 @@ sandbox = create_concordia_sandbox("public_goods", "contributor", config)
 ### 3. 与RL系统集成
 
 ```python
-from sandgraph.core.rl_algorithms import MultiAgentOnPolicyRL
+from sandbox_rl.core.rl_algorithms import MultiAgentOnPolicyRL
 
 # 创建多智能体RL系统
 multi_agent_rl = MultiAgentOnPolicyRL(
@@ -215,7 +215,7 @@ class CustomCooperationFactor(CooperationFactor):
 
 ## 总结
 
-Concordia Contest的集成为SandGraphX提供了：
+Concordia Contest的集成为Sandbox-RLX提供了：
 
 1. **文本交互环境**: 支持自然语言的动作和观察
 2. **协作智能**: 通过多种协作机制实现智能协作

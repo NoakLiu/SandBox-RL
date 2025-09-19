@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-OASIS vLLM Simulation with SandGraph Integration
+OASIS vLLM Simulation with Sandbox-RL Integration
 ===============================================
 
-基于OASIS核心函数的vLLM仿真，使用邻居信息统计和SandGraph sandbox
+基于OASIS核心函数的vLLM仿真，使用邻居信息统计和Sandbox-RL sandbox
 """
 
 import asyncio
@@ -121,7 +121,7 @@ class VLLMClient:
             return "I will stay neutral based on my neighbors."
 
 class Sandbox:
-    """SandGraph Sandbox"""
+    """Sandbox-RL Sandbox"""
     
     def __init__(self, belief_type: BeliefType, agents: List[AgentState]):
         self.belief_type = belief_type

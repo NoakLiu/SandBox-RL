@@ -3,7 +3,7 @@
 New RL Algorithms Demo - SAC and TD3
 ====================================
 
-This demo showcases the new SAC and TD3 algorithms in SandGraphX.
+This demo showcases the new SAC and TD3 algorithms in Sandbox-RLX.
 """
 
 import sys
@@ -17,13 +17,13 @@ from typing import Dict, Any, List
 # Add the parent directory to the path to import sandgraph modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.rl_algorithms import (
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.rl_algorithms import (
     RLAlgorithm,
     create_sac_trainer,
     create_td3_trainer
 )
-from sandgraph.core.enhanced_rl_algorithms import (
+from sandbox_rl.core.enhanced_rl_algorithms import (
     create_enhanced_sac_trainer,
     create_enhanced_td3_trainer
 )
@@ -297,7 +297,7 @@ def main():
     
     args = parser.parse_args()
     
-    print("🎯 SandGraphX New RL Algorithms Demo")
+    print("🎯 Sandbox-RLX New RL Algorithms Demo")
     print("=" * 50)
     
     if args.demo == "sac":

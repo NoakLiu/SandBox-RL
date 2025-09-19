@@ -2,7 +2,7 @@
 
 ## Overview
 
-The SandGraphX social network monitoring system provides comprehensive real-time tracking, analysis, and visualization capabilities for social network metrics. It integrates with popular monitoring tools like WanDB and TensorBoard for enhanced data analysis and visualization.
+The Sandbox-RLX social network monitoring system provides comprehensive real-time tracking, analysis, and visualization capabilities for social network metrics. It integrates with popular monitoring tools like WanDB and TensorBoard for enhanced data analysis and visualization.
 
 ## Features
 
@@ -31,7 +31,7 @@ The SandGraphX social network monitoring system provides comprehensive real-time
 ### 1. Basic Monitoring Setup
 
 ```python
-from sandgraph.core.monitoring import create_monitor, MonitoringConfig
+from sandbox_rl.core.monitoring import create_monitor, MonitoringConfig
 
 # Create monitoring configuration
 config = MonitoringConfig(
@@ -51,7 +51,7 @@ monitor.start_monitoring()
 ### 2. Collecting Metrics
 
 ```python
-from sandgraph.core.monitoring import SocialNetworkMetrics, MetricsCollector
+from sandbox_rl.core.monitoring import SocialNetworkMetrics, MetricsCollector
 
 # Method 1: Create metrics manually
 metrics = SocialNetworkMetrics(
@@ -75,7 +75,7 @@ monitor.update_metrics(metrics)
 ### 3. Creating Visualizations
 
 ```python
-from sandgraph.core.visualization import create_visualizer
+from sandbox_rl.core.visualization import create_visualizer
 
 # Create visualizer
 visualizer = create_visualizer("./visualizations")
@@ -188,7 +188,7 @@ heatmap_path = visualizer.create_heatmap(metrics_history)
 report_files = visualizer.export_visualization_report(metrics_history)
 ```
 
-## Integration with SandGraphX Workflow
+## Integration with Sandbox-RLX Workflow
 
 ### Enhanced Social Network Demo
 
@@ -210,8 +210,8 @@ python demo/enhanced_social_network_demo.py \
 Integrate monitoring into your own workflows:
 
 ```python
-from sandgraph.core.monitoring import create_monitor, SocialNetworkMetrics
-from sandgraph.core.visualization import create_visualizer
+from sandbox_rl.core.monitoring import create_monitor, SocialNetworkMetrics
+from sandbox_rl.core.visualization import create_visualizer
 
 class MySocialNetworkWorkflow:
     def __init__(self):
@@ -486,8 +486,8 @@ See `demo/monitoring_example.py` for a complete working example.
 ### Quick Start Example
 
 ```python
-from sandgraph.core.monitoring import create_monitor, SocialNetworkMetrics
-from sandgraph.core.visualization import quick_visualization
+from sandbox_rl.core.monitoring import create_monitor, SocialNetworkMetrics
+from sandbox_rl.core.visualization import quick_visualization
 
 # Setup monitoring
 monitor = create_monitor()
@@ -565,4 +565,4 @@ To extend the monitoring system:
 
 ## License
 
-This monitoring system is part of SandGraphX and follows the same MIT license. 
+This monitoring system is part of Sandbox-RLX and follows the same MIT license. 

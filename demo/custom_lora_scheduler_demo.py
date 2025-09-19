@@ -12,9 +12,9 @@ import logging
 import numpy as np
 from typing import Dict, List, Any
 
-# SandGraph Core imports
+# Sandbox-RL Core imports
 try:
-    from sandgraph.core.custom_lora_scheduler import (
+    from sandbox_rl.core.custom_lora_scheduler import (
         LoRAUpdateStrategy,
         LoRALoadingStatus,
         CustomLoRAConfig,
@@ -24,10 +24,10 @@ try:
         create_custom_lora_updater
     )
     HAS_SANDGRAPH = True
-    print("✅ SandGraph custom LoRA scheduler imported successfully")
+    print("✅ Sandbox-RL custom LoRA scheduler imported successfully")
 except ImportError as e:
     HAS_SANDGRAPH = False
-    print(f"❌ SandGraph custom LoRA scheduler not available: {e}")
+    print(f"❌ Sandbox-RL custom LoRA scheduler not available: {e}")
     print("Will use mock implementations")
 
 logging.basicConfig(level=logging.INFO)
@@ -62,7 +62,7 @@ def demonstrate_scheduling_strategies():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建LoRA配置
@@ -111,7 +111,7 @@ def demonstrate_lora_processing():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建LoRA配置
@@ -174,7 +174,7 @@ def demonstrate_lora_updating():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建LoRA配置
@@ -214,11 +214,11 @@ def demonstrate_integration_with_rl():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     try:
-        from sandgraph.core.rl_algorithms import (
+        from sandbox_rl.core.rl_algorithms import (
             CooperationType, CompetenceType,
             CooperationFactor, CompetenceFactor,
             MultiAgentOnPolicyRL

@@ -110,7 +110,7 @@ async def _simulate_step(self, step: int, llm=None):
 - 异步通信：agent间通过异步消息做inference, training
 3.2 异步推理和权重更新
 class AsyncAgentWorkflow:
-    """SandGraph Workflow - 多个独立agent的异步推理和权重更新"""
+    """Sandbox-RL Workflow - 多个独立agent的异步推理和权重更新"""
     
     def init(self, agent_graph, llm_policy, slot_manager):
         self.agent_graph = agent_graph
@@ -276,7 +276,7 @@ class AsyncAgentWorkflow:
 - 资源优化：根据任务优先级动态分配计算资源
 3.3 沙盒与LLM weight update和inference隔离
 class OASISSandbox:
-    """SandGraph Sandbox - 不同信念的agents分组管理"""
+    """Sandbox-RL Sandbox - 不同信念的agents分组管理"""
     
     def init(self, belief_type: BeliefType, agents: List[OASISAgentState]):
         self.belief_type = belief_type

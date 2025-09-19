@@ -110,7 +110,7 @@ async def test_task_creation():
     logger.info("测试任务创建...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
         from demo.oasis_task_implementation import (
             ContentGenerationTask,
             MisinformationDetectionTask,
@@ -144,7 +144,7 @@ async def test_content_generation():
     logger.info("测试内容生成任务...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
         from demo.oasis_task_implementation import ContentGenerationTask
         
         # 创建自进化LLM
@@ -193,7 +193,7 @@ async def test_misinformation_detection():
     logger.info("测试错误信息检测任务...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
         from demo.oasis_task_implementation import MisinformationDetectionTask
         
         # 创建自进化LLM
@@ -250,7 +250,7 @@ async def test_group_competition_analysis():
     logger.info("测试群体竞争分析任务...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
         from demo.oasis_task_implementation import GroupBehaviorAnalysisTask
         
         # 创建自进化LLM
@@ -313,7 +313,7 @@ async def test_task_scheduler():
     logger.info("测试任务调度器...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
         from demo.oasis_task_implementation import OasisTaskScheduler, OasisScenarioConfig
         
         # 创建配置
@@ -422,7 +422,7 @@ async def test_integration():
     logger.info("测试集成功能...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
         from demo.oasis_task_implementation import (
             OasisTaskScheduler,
             OasisScenarioConfig

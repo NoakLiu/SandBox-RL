@@ -37,7 +37,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 导入自进化Oasis模块
-from sandgraph.core.self_evolving_oasis import (
+from sandbox_rl.core.self_evolving_oasis import (
     create_self_evolving_oasis,
     run_self_evolving_oasis_demo,
     EvolutionStrategy,

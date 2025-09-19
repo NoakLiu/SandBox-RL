@@ -13,7 +13,7 @@ import numpy as np
 
 def create_gif_from_timesteps():
     """从时间步图像创建GIF动画"""
-    print("🎬 创建SandGraph动态可视化GIF动画")
+    print("🎬 创建Sandbox-RL动态可视化GIF动画")
     print("=" * 50)
     
     # 检查时间步图像目录
@@ -115,7 +115,7 @@ def create_optimized_gif():
 
 def main():
     """主函数"""
-    print("🚀 SandGraph动态可视化GIF生成器")
+    print("🚀 Sandbox-RL动态可视化GIF生成器")
     print("=" * 60)
     
     # 检查依赖

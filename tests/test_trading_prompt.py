@@ -10,7 +10,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from demo.trading_demo import LLMDecisionMaker
-from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
 
 def test_simple_trading_prompt():
     """测试简化trading prompt"""

@@ -11,9 +11,9 @@ import logging
 import json
 from typing import Dict, List, Any
 
-# SandGraph Core imports
+# Sandbox-RL Core imports
 try:
-    from sandgraph.core.rl_algorithms import (
+    from sandbox_rl.core.rl_algorithms import (
         CooperationType,
         CompetenceType,
         CooperationFactor,
@@ -24,10 +24,10 @@ try:
         MultiAgentOnPolicyRL
     )
     HAS_SANDGRAPH = True
-    print("✅ SandGraph core RL algorithms imported successfully")
+    print("✅ Sandbox-RL core RL algorithms imported successfully")
 except ImportError as e:
     HAS_SANDGRAPH = False
-    print(f"❌ SandGraph core RL algorithms not available: {e}")
+    print(f"❌ Sandbox-RL core RL algorithms not available: {e}")
     print("Will use mock implementations")
 
 logging.basicConfig(level=logging.INFO)
@@ -123,7 +123,7 @@ def run_multi_agent_demo():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过训练演示")
+        print("❌ Sandbox-RL不可用，跳过训练演示")
         return
     
     # 创建合作配置
@@ -291,7 +291,7 @@ def main():
         print("\n✅ 演示成功完成！")
     else:
         print("\n⚠️ 多智能体演示因缺少依赖而跳过")
-        print("   确保SandGraph可用以获得完整演示")
+        print("   确保Sandbox-RL可用以获得完整演示")
 
 if __name__ == "__main__":
     main()

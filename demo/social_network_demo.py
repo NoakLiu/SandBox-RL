@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SandGraph 社交网络环境演示 - 基于RL的LLM决策架构
+Sandbox-RL 社交网络环境演示 - 基于RL的LLM决策架构
 
 新的架构设计：
 1. Sandbox作为环境节点
@@ -22,13 +22,13 @@ from datetime import datetime, timedelta
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import (
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sg_workflow import (
     SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
     NodeType, NodeCondition, NodeLimits, GameState
 )
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
-from sandgraph.sandbox_implementations import SocialNetworkSandbox
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+from sandbox_rl.sandbox_implementations import SocialNetworkSandbox
 
 
 def print_section(title: str):
@@ -804,13 +804,13 @@ def run_rl_social_demo(steps: int = 5, model_name: str = "mistralai/Mistral-7B-I
 
 def main():
     """主函数"""
-    parser = argparse.ArgumentParser(description="SandGraph Social Network Demo")
+    parser = argparse.ArgumentParser(description="Sandbox-RL Social Network Demo")
     parser.add_argument("--steps", type=int, default=5, help="Number of steps to run")
     parser.add_argument("--model", type=str, default="mistralai/Mistral-7B-Instruct-v0.2", help="LLM model to use")
     
     args = parser.parse_args()
     
-    print("🔥 SandGraph Social Network Demo")
+    print("🔥 Sandbox-RL Social Network Demo")
     print("=" * 60)
     print(f"Steps: {args.steps}")
     print(f"Model: {args.model}")

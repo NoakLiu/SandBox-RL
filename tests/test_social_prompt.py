@@ -13,7 +13,7 @@ from typing import Dict, Any
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import create_gpt2_manager, create_qwen_manager
+from sandbox_rl.core.llm_interface import create_gpt2_manager, create_qwen_manager
 
 
 def print_section(title: str):

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-SandGraph OASIS API集成演示 - 基于真实OASIS API
+Sandbox-RL OASIS API集成演示 - 基于真实OASIS API
 
-集成真实的OASIS (Open Agent Social Interaction Simulations) API到SandGraph框架：
+集成真实的OASIS (Open Agent Social Interaction Simulations) API到Sandbox-RL框架：
 1. 使用真实的OASIS API进行大规模社交网络模拟
 2. 智能体行为分析和优化
 3. 社交网络动态研究
-4. 与SandGraph的RL优化框架集成
+4. 与Sandbox-RL的RL优化框架集成
 """
 
 import sys
@@ -22,12 +22,12 @@ import re
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import (
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sg_workflow import (
     SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
     NodeType, NodeCondition, NodeLimits, GameState
 )
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
 
 
 class OasisAPISandbox:
@@ -621,7 +621,7 @@ def _encode_oasis_action(action: str) -> int:
 async def run_rl_oasis_api_demo(steps: int = 5):
     """运行基于RL的LLM决策OASIS API演示"""
     
-    print("🏝️ SandGraph OASIS API Integration Demo")
+    print("🏝️ Sandbox-RL OASIS API Integration Demo")
     print("=" * 60)
     
     # 1. 创建LLM管理器
@@ -756,7 +756,7 @@ async def run_rl_oasis_api_demo(steps: int = 5):
 
 def main():
     """主函数"""
-    parser = argparse.ArgumentParser(description="SandGraph OASIS API Integration Demo")
+    parser = argparse.ArgumentParser(description="Sandbox-RL OASIS API Integration Demo")
     parser.add_argument("--steps", type=int, default=5, help="Number of steps to run")
     parser.add_argument("--test", action="store_true", help="Run tests instead of demo")
     parser.add_argument("--profile", type=str, help="Path to user profile file")
@@ -766,14 +766,14 @@ def main():
     
     if args.test:
         # 运行测试
-        print("🏝️ SandGraph OASIS API Integration Demo 测试")
+        print("🏝️ Sandbox-RL OASIS API Integration Demo 测试")
         print("=" * 80)
         
         # 这里可以添加测试函数
         print("✅ 测试功能待实现")
     else:
         # 运行演示
-        print("🏝️ SandGraph OASIS API Integration Demo")
+        print("🏝️ Sandbox-RL OASIS API Integration Demo")
         print("=" * 60)
         print(f"Steps: {args.steps}")
         print(f"Platform: {args.platform}")

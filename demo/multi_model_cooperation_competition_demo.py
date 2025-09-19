@@ -2,7 +2,7 @@
 """
 多模型合作与对抗演示
 
-这个演示展示了SandGraph的多模型调度系统，包括：
+这个演示展示了Sandbox-RL的多模型调度系统，包括：
 1. 模型间的合作机制 - 观察功能分化现象
 2. 模型间的对抗机制 - 产生"卷王"现象
 3. 动态资源分配和竞争
@@ -16,8 +16,8 @@ import logging
 from typing import Dict, List
 import json
 
-# 导入SandGraph核心组件
-from sandgraph.core import (
+# 导入Sandbox-RL核心组件
+from sandbox_rl.core import (
     MultiModelScheduler,
     ModelProfile,
     ModelRole,

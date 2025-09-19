@@ -18,18 +18,18 @@ from datetime import datetime, timedelta
 # Add the parent directory to the path to import sandgraph modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, EnhancedWorkflowNode
-from sandgraph.core.workflow import NodeType
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
-from sandgraph.core.monitoring import (
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, EnhancedWorkflowNode
+from sandbox_rl.core.workflow import NodeType
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+from sandbox_rl.core.monitoring import (
     SocialNetworkMonitor, 
     MonitoringConfig, 
     SocialNetworkMetrics, 
     MetricsCollector,
     create_monitor
 )
-from sandgraph.sandbox_implementations import SocialNetworkSandbox
+from sandbox_rl.sandbox_implementations import SocialNetworkSandbox
 
 
 class EnhancedSocialNetworkDemo:

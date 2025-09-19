@@ -19,36 +19,36 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 
-# SandGraph Core imports
+# Sandbox-RL Core imports
 try:
-    from sandgraph.core.async_architecture import (
-        VLLMClient as SandGraphVLLMClient, RewardBasedSlotManager,
+    from sandbox_rl.core.async_architecture import (
+        VLLMClient as Sandbox-RLVLLMClient, RewardBasedSlotManager,
         OASISSandbox, AsyncAgentWorkflow, LLMPolicy, AgentGraph,
         OASISCorrectSimulation, BeliefType, AgentState
     )
-    from sandgraph.core.self_evolving_oasis import (
+    from sandbox_rl.core.self_evolving_oasis import (
         create_self_evolving_oasis, EvolutionStrategy
     )
-    from sandgraph.core.areal_integration import (
+    from sandbox_rl.core.areal_integration import (
         create_areal_integration, IntegrationLevel
     )
-    from sandgraph.core.llm_frozen_adaptive import (
+    from sandbox_rl.core.llm_frozen_adaptive import (
         create_frozen_adaptive_llm, create_frozen_config, UpdateStrategy
     )
-    from sandgraph.core.lora_compression import (
+    from sandbox_rl.core.lora_compression import (
         create_lora_compressor, create_online_lora_manager, LoRAConfig
     )
-    from sandgraph.core.enhanced_rl_algorithms import (
+    from sandbox_rl.core.enhanced_rl_algorithms import (
         create_enhanced_ppo_trainer, create_enhanced_grpo_trainer
     )
-    from sandgraph.core.monitoring import (
+    from sandbox_rl.core.monitoring import (
         create_monitor, MonitoringConfig, SocialNetworkMetrics
     )
     HAS_SANDGRAPH = True
-    print("✅ SandGraph core modules imported successfully")
+    print("✅ Sandbox-RL core modules imported successfully")
 except ImportError as e:
     HAS_SANDGRAPH = False
-    print(f"❌ SandGraph core modules not available: {e}")
+    print(f"❌ Sandbox-RL core modules not available: {e}")
     print("Will use mock implementations")
 
 # Optional imports

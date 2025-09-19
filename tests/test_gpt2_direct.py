@@ -6,7 +6,7 @@
 import logging
 import torch
 import transformers
-from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
 
 # 设置日志
 logging.basicConfig(level=logging.INFO)

@@ -2,7 +2,7 @@
 
 ## 概述
 
-LLMs Frozen & Adaptive Update 模块为 SandGraph 提供了强大的大语言模型参数管理功能，支持模型参数的冻结、自适应更新、重要性分析和性能监控。
+LLMs Frozen & Adaptive Update 模块为 Sandbox-RL 提供了强大的大语言模型参数管理功能，支持模型参数的冻结、自适应更新、重要性分析和性能监控。
 
 <!-- ## 主要特性
 
@@ -43,8 +43,8 @@ LLMs Frozen & Adaptive Update 模块为 SandGraph 提供了强大的大语言模
 ### 1. 基础使用
 
 ```python
-from sandgraph.core.llm_interface import create_llm_config, create_llm
-from sandgraph.core.llm_frozen_adaptive import (
+from sandbox_rl.core.llm_interface import create_llm_config, create_llm
+from sandbox_rl.core.llm_frozen_adaptive import (
     FrozenAdaptiveLLM, create_frozen_config, UpdateStrategy
 )
 
@@ -119,7 +119,7 @@ print(f"当前学习率: {stats['current_learning_rate']:.2e}")
 ### 1. 预设配置
 
 ```python
-from sandgraph.core.llm_frozen_adaptive import get_preset_configs
+from sandbox_rl.core.llm_frozen_adaptive import get_preset_configs
 
 # 获取预设配置
 preset_configs = get_preset_configs()
@@ -136,7 +136,7 @@ frozen_llm = FrozenAdaptiveLLM(base_llm, aggressive_config)
 ### 2. 管理器模式
 
 ```python
-from sandgraph.core.llm_frozen_adaptive import create_frozen_adaptive_manager
+from sandbox_rl.core.llm_frozen_adaptive import create_frozen_adaptive_manager
 
 # 创建管理器
 manager = create_frozen_adaptive_manager()
@@ -420,4 +420,4 @@ python demo/llm_frozen_adaptive_demo.py --demo all
 
 ## 总结
 
-LLMs Frozen & Adaptive Update 模块为 SandGraph 提供了强大的模型参数管理功能，支持灵活的更新策略、智能的参数重要性分析和全面的性能监控。通过合理使用这些功能，可以有效地控制模型训练过程，提高训练效率和模型性能。 
+LLMs Frozen & Adaptive Update 模块为 Sandbox-RL 提供了强大的模型参数管理功能，支持灵活的更新策略、智能的参数重要性分析和全面的性能监控。通过合理使用这些功能，可以有效地控制模型训练过程，提高训练效率和模型性能。 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SandGraph 交互日志演示脚本
+Sandbox-RL 交互日志演示脚本
 
 展示增强的日志功能，包括：
 1. LLM思考过程记录
@@ -23,7 +23,7 @@ from demo import TrainingLogger
 
 def demonstrate_interaction_logging():
     """演示详细的交互日志功能"""
-    print("🔍 SandGraph Enhanced Interaction Logging Demo")
+    print("🔍 Sandbox-RL Enhanced Interaction Logging Demo")
     print("=" * 60)
     
     # 创建日志记录器

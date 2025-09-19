@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-SandGraph 全模型测试
+Sandbox-RL 全模型测试
 
-检测和测试SandGraph中支持的所有LLM模型，包括：
+检测和测试Sandbox-RL中支持的所有LLM模型，包括：
 - GPT系列：GPT-2
 - Qwen系列：Qwen-1.8B/7B/14B/72B
 - LLaMA系列：LLaMA2, CodeLLaMA
@@ -22,7 +22,7 @@ from typing import Dict, Any
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import (
+from sandbox_rl.core.llm_interface import (
     create_shared_llm_manager,
     create_gpt2_manager,
     create_qwen_manager,
@@ -266,7 +266,7 @@ def test_model_comparison():
 
 def main():
     """主函数"""
-    print("🔥 SandGraph 全模型测试")
+    print("🔥 Sandbox-RL 全模型测试")
     print("=" * 60)
     
     # 1. 显示可用模型

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-SandGraph OASIS社交网络模拟演示 - 基于RL的LLM决策架构
+Sandbox-RL OASIS社交网络模拟演示 - 基于RL的LLM决策架构
 
-集成OASIS (Open Agent Social Interaction Simulations) 到SandGraph框架：
+集成OASIS (Open Agent Social Interaction Simulations) 到Sandbox-RL框架：
 1. 大规模智能体社交网络模拟
 2. 信息传播和群体行为研究
 3. 社交网络动态分析
@@ -23,12 +23,12 @@ import re
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import (
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sg_workflow import (
     SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
     NodeType, NodeCondition, NodeLimits, GameState
 )
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
 
 
 class SocialActionType:
@@ -851,7 +851,7 @@ def _encode_social_action(action: str) -> int:
 def run_rl_oasis_demo(steps: int = 5):
     """运行基于RL的LLM决策OASIS社交网络演示"""
     
-    print("🏝️ SandGraph OASIS Social Network Demo")
+    print("🏝️ Sandbox-RL OASIS Social Network Demo")
     print("=" * 60)
     
     # 1. 创建LLM管理器
@@ -999,7 +999,7 @@ def run_rl_oasis_demo(steps: int = 5):
 
 def main():
     """主函数"""
-    parser = argparse.ArgumentParser(description="SandGraph OASIS Social Network Demo")
+    parser = argparse.ArgumentParser(description="Sandbox-RL OASIS Social Network Demo")
     parser.add_argument("--steps", type=int, default=5, help="Number of steps to run")
     parser.add_argument("--test", action="store_true", help="Run tests instead of demo")
     
@@ -1007,14 +1007,14 @@ def main():
     
     if args.test:
         # 运行测试
-        print("🏝️ SandGraph OASIS Social Network Demo 测试")
+        print("🏝️ Sandbox-RL OASIS Social Network Demo 测试")
         print("=" * 80)
         
         # 这里可以添加测试函数
         print("✅ 测试功能待实现")
     else:
         # 运行演示
-        print("🏝️ SandGraph OASIS Social Network Demo")
+        print("🏝️ Sandbox-RL OASIS Social Network Demo")
         print("=" * 60)
         print(f"Steps: {args.steps}")
         

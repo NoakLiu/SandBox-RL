@@ -2,7 +2,7 @@
 
 ## 概述
 
-SandGraph的LoRA热更新系统支持在8GPU分布式环境中动态更新LoRA权重，无需重启vLLM实例。系统包含以下核心组件：
+Sandbox-RL的LoRA热更新系统支持在8GPU分布式环境中动态更新LoRA权重，无需重启vLLM实例。系统包含以下核心组件：
 
 - **LoRA热更新管理器**: 监控CPFS上的checkpoint更新
 - **分布式LoRA调度器**: 集成热更新功能的完整调度系统
@@ -65,7 +65,7 @@ python demo/lora_hotswap_demo.py
 ### 创建分布式LoRA调度器
 
 ```python
-from sandgraph.core import create_distributed_lora_scheduler
+from sandbox_rl.core import create_distributed_lora_scheduler
 
 # 创建调度器
 scheduler = create_distributed_lora_scheduler(
@@ -126,7 +126,7 @@ success = await scheduler.rollback_lora(
 ### 创建RL策略
 
 ```python
-from sandgraph.core import LoRARLStrategy
+from sandbox_rl.core import LoRARLStrategy
 
 # 创建RL策略
 rl_strategy = LoRARLStrategy(scheduler)
@@ -287,7 +287,7 @@ export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
 
 ### 自定义LoRA配置
 ```python
-from sandgraph.core import LoRAHotSwapConfig
+from sandbox_rl.core import LoRAHotSwapConfig
 
 # 自定义LoRA配置
 custom_config = LoRAHotSwapConfig(

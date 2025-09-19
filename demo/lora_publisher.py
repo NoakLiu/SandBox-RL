@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-LoRA发布器 - 供SandGraph RL策略使用
+LoRA发布器 - 供Sandbox-RL RL策略使用
 
 功能：
 1. 发布新的LoRA权重到CPFS

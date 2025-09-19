@@ -1,6 +1,6 @@
-# SandGraphX Documentation
+# Sandbox-RLX Documentation
 
-Welcome to the SandGraphX documentation! This directory contains comprehensive guides and references for using SandGraphX.
+Welcome to the Sandbox-RLX documentation! This directory contains comprehensive guides and references for using Sandbox-RLX.
 
 ## 📚 Documentation Structure
 

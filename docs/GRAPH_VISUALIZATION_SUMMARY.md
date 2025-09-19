@@ -1,8 +1,8 @@
-# SandGraph Dynamic Graph Visualization System
+# Sandbox-RL Dynamic Graph Visualization System
 
 ## 概述
 
-SandGraph动态图可视化系统是一个专门为展示misinformation传播和cooperate/compete关系而设计的可视化工具。它支持实时动态可视化、日志记录和重放、统计分析等功能。
+Sandbox-RL动态图可视化系统是一个专门为展示misinformation传播和cooperate/compete关系而设计的可视化工具。它支持实时动态可视化、日志记录和重放、统计分析等功能。
 
 ## 核心特性
 
@@ -43,7 +43,7 @@ SandGraph动态图可视化系统是一个专门为展示misinformation传播和
 
 ### 1. 核心类
 
-**SandGraphVisualizer**: 主要的可视化器类
+**Sandbox-RLVisualizer**: 主要的可视化器类
 - 管理图数据结构
 - 处理节点和边的更新
 - 控制动画和可视化
@@ -82,7 +82,7 @@ self.events: List[GraphEvent]  # 事件列表
 ### 1. 基本使用
 
 ```python
-from sandgraph.core.graph_visualizer import create_sandgraph_visualizer
+from sandbox_rl.core.graph_visualizer import create_sandgraph_visualizer
 
 # 创建可视化器
 visualizer = create_sandgraph_visualizer("visualization.log")
@@ -97,7 +97,7 @@ visualizer.start_visualization()
 ### 2. 模拟交互
 
 ```python
-from sandgraph.core.graph_visualizer import InteractionType
+from sandbox_rl.core.graph_visualizer import InteractionType
 
 # 模拟不同类型的交互
 visualizer.simulate_interaction("node1", "node2", InteractionType.SHARE)
@@ -224,7 +224,7 @@ def monitor_belief():
 
 ## 总结
 
-SandGraph动态图可视化系统提供了：
+Sandbox-RL动态图可视化系统提供了：
 
 1. **直观的可视化**: 清晰展示misinformation传播和cooperate/compete关系
 2. **实时交互**: 支持实时模拟和交互

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-SandGraph 演示脚本
+Sandbox-RL 演示脚本
 
-展示 SandGraph 框架的基本功能和强化学习优化，包括：
+展示 Sandbox-RL 框架的基本功能和强化学习优化，包括：
 1. 单一LLM的参数共享机制
 2. 复杂工作流图的构建和可视化
 3. 基于强化学习的LLM优化过程
@@ -22,10 +22,10 @@ from collections import defaultdict
 # 添加项目路径以便导入
 sys.path.insert(0, '.')
 
-from sandgraph.core.workflow import WorkflowGraph, WorkflowNode, NodeType
-from sandgraph.core.rl_framework import create_rl_framework
-from sandgraph.sandbox_implementations import Game24Sandbox, SummarizeSandbox
-from sandgraph.examples import UserCaseExamples
+from sandbox_rl.core.workflow import WorkflowGraph, WorkflowNode, NodeType
+from sandbox_rl.core.rl_framework import create_rl_framework
+from sandbox_rl.sandbox_implementations import Game24Sandbox, SummarizeSandbox
+from sandbox_rl.examples import UserCaseExamples
 
 # 可视化相关导入
 try:
@@ -351,7 +351,7 @@ class DAGVisualizer:
         elif state == "after":
             self.node_colors[sandbox_id] = '#228B22'  # 森林绿色
     
-    def draw_dag(self, title: str = "SandGraph DAG Execution Flow", save_path: Optional[str] = None):
+    def draw_dag(self, title: str = "Sandbox-RL DAG Execution Flow", save_path: Optional[str] = None):
         """绘制DAG图"""
         if not VISUALIZATION_AVAILABLE or self.nx_graph is None or self.pos is None:
             return
@@ -428,7 +428,7 @@ class DAGVisualizer:
             
             nx.draw_networkx_labels(self.nx_graph, self.pos, font_size=8, font_weight='bold', ax=ax)
             
-            ax.set_title(f"SandGraph Execution Animation - Step {frame+1}/{len(execution_sequence)}", 
+            ax.set_title(f"Sandbox-RL Execution Animation - Step {frame+1}/{len(execution_sequence)}", 
                         fontsize=16, fontweight='bold')
         
         anim = FuncAnimation(fig, animate, frames=len(execution_sequence), 
@@ -1059,10 +1059,10 @@ def analyze_rl_training_results(rl_framework, training_history):
 
 def main():
     """主演示函数"""
-    print_separator("🧩 SandGraph RL增强演示", 80)
+    print_separator("🧩 Sandbox-RL RL增强演示", 80)
     print("展示基于强化学习的单一LLM优化 - 多节点参数共享架构")
     
-    training_logger.log_text("SYSTEM", "Starting SandGraph RL enhanced demo")
+    training_logger.log_text("SYSTEM", "Starting Sandbox-RL RL enhanced demo")
     
     try:
         # 1. 创建复杂的RL工作流
@@ -1089,7 +1089,7 @@ def main():
         
         if VISUALIZATION_AVAILABLE:
             # 绘制最终DAG状态
-            dag_visualizer.draw_dag("SandGraph Final Execution State", 
+            dag_visualizer.draw_dag("Sandbox-RL Final Execution State", 
                                    f"{output_dir}/final_dag_state.png")
             
             # 绘制训练指标
@@ -1186,7 +1186,7 @@ def main():
         print(f"✅ 基础工作流: {len(simple_result)} 个输出节点")
         
         # MCP协议演示
-        from sandgraph.core.mcp import MCPSandboxServer, check_mcp_availability
+        from sandbox_rl.core.mcp import MCPSandboxServer, check_mcp_availability
         mcp_info = check_mcp_availability()
         print(f"✅ MCP协议: {'可用' if mcp_info['available'] else '不可用'}")
         
@@ -1212,7 +1212,7 @@ def main():
         print(f"   ✓ Detailed Interaction Tracking: LLM thinking, sandbox states, reward calculations")
         print(f"   ✓ Performance Analysis: Training metrics charts and animation display")
         
-        training_logger.log_text("SYSTEM", "SandGraph RL enhanced demo completed")
+        training_logger.log_text("SYSTEM", "Sandbox-RL RL enhanced demo completed")
         
         return {
             "rl_framework": rl_framework,

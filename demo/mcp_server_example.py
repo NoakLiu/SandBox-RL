@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-SandGraph MCP服务器示例
+Sandbox-RL MCP服务器示例
 
 使用官方Anthropic MCP Python SDK创建的简单服务器示例，
-展示如何将SandGraph沙盒暴露为MCP工具和资源。
+展示如何将Sandbox-RL沙盒暴露为MCP工具和资源。
 
 运行方式：
 1. 通过STDIO: python mcp_server_example.py
@@ -31,15 +31,15 @@ except ImportError as e:
     MCP_AVAILABLE = False
     sys.exit(1)
 
-# 导入SandGraph组件
-from sandgraph.sandbox_implementations import Game24Sandbox, SummarizeSandbox
+# 导入Sandbox-RL组件
+from sandbox_rl.sandbox_implementations import Game24Sandbox, SummarizeSandbox
 
 # 设置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # 创建MCP服务器
-mcp_server = FastMCP("SandGraph")
+mcp_server = FastMCP("Sandbox-RL")
 
 # 创建一些示例沙盒实例
 game24_sandbox = Game24Sandbox()
@@ -146,9 +146,9 @@ def verify_summary_quality(response: str, case: Dict[str, Any], format_score: fl
 
 @mcp_server.resource("sandgraph://info")
 def get_sandgraph_info() -> str:
-    """获取SandGraph系统信息"""
+    """获取Sandbox-RL系统信息"""
     return """
-SandGraph - 基于官方MCP协议的多智能体执行框架
+Sandbox-RL - 基于官方MCP协议的多智能体执行框架
 
 可用沙盒：
 - Game24Sandbox: 数学计算挑战
@@ -216,9 +216,9 @@ def get_summary_help() -> str:
 
 @mcp_server.prompt()
 def sandgraph_workflow_guide() -> str:
-    """SandGraph工作流使用指南提示"""
+    """Sandbox-RL工作流使用指南提示"""
     return """
-你现在可以使用SandGraph的MCP工具来构建多智能体工作流。
+你现在可以使用Sandbox-RL的MCP工具来构建多智能体工作流。
 
 可用的主要工具：
 1. Game24相关工具 - 用于数学计算挑战
@@ -257,7 +257,7 @@ def debug_sandbox_issue(sandbox_type: str, error_description: str) -> str:
 
 def main():
     """主函数"""
-    parser = argparse.ArgumentParser(description="SandGraph MCP服务器")
+    parser = argparse.ArgumentParser(description="Sandbox-RL MCP服务器")
     parser.add_argument("--transport", choices=["stdio", "sse"], default="stdio",
                        help="传输协议 (默认: stdio)")
     parser.add_argument("--port", type=int, default=8080,
@@ -272,7 +272,7 @@ def main():
     # 设置日志级别
     logging.getLogger().setLevel(getattr(logging, args.log_level))
     
-    logger.info("启动SandGraph MCP服务器...")
+    logger.info("启动Sandbox-RL MCP服务器...")
     logger.info(f"传输协议: {args.transport}")
     
     if args.transport == "stdio":

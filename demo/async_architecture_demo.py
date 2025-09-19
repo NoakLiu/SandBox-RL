@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-SandGraph Async Architecture Demo
+Sandbox-RL Async Architecture Demo
 
-This demo showcases the asynchronous architecture components described in SandGraph_Archi.md,
+This demo showcases the asynchronous architecture components described in Sandbox-RL_Archi.md,
 including async LLM calls, async environment management, intelligent scheduling, and distributed architecture.
 """
 
@@ -14,7 +14,7 @@ from typing import Dict, List
 import random
 
 # Import async architecture components
-from sandgraph.core.async_architecture import (
+from sandbox_rl.core.async_architecture import (
     VLLMClient, RewardBasedSlotManager, OASISSandbox, AsyncAgentWorkflow,
     LLMPolicy, AgentGraph, OASISCorrectSimulation, AgentState, BeliefType
 )
@@ -269,14 +269,14 @@ async def demo_parallel_processing():
 
 async def main():
     """Main demo function"""
-    parser = argparse.ArgumentParser(description="SandGraph Async Architecture Demo")
+    parser = argparse.ArgumentParser(description="Sandbox-RL Async Architecture Demo")
     parser.add_argument("--demo", choices=["all", "vllm", "slot", "sandbox", "workflow", "simulation", "parallel"], 
                        default="all", help="Which demo to run")
     parser.add_argument("--steps", type=int, default=5, help="Number of simulation steps")
     
     args = parser.parse_args()
     
-    logger.info("🚀 Starting SandGraph Async Architecture Demo")
+    logger.info("🚀 Starting Sandbox-RL Async Architecture Demo")
     logger.info("=" * 50)
     
     try:

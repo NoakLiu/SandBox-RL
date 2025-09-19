@@ -1,10 +1,10 @@
-# SandGraphX
+# Sandbox-RLX
 
 <div align="center">
-  <img src="assets/logo.png" alt="SandGraphX Logo" width="200"/>
+  <img src="assets/logo.png" alt="Sandbox-RLX Logo" width="200"/>
 </div>
 
-SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化目标（Optimization Goal）的智能优化框架。它通过 SandBox Workflow Graph 来协调 LLM 决策和 并使用RL 对于LLM进行权重更新，实现复杂任务的自动化优化。
+Sandbox-RLX 是一个基于环境子集（Environment Subsets）抽象和优化目标（Optimization Goal）的智能优化框架。它通过 SandBox Workflow Graph 来协调 LLM 决策和 并使用RL 对于LLM进行权重更新，实现复杂任务的自动化优化。
 
 ## 🌟 核心概念
 
@@ -29,10 +29,10 @@ SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化�
 ### 4. 智能决策系统
 - **RL 权重更新**：优化决策策略
 - **状态管理**：追踪和更新系统状态
-- **与LLM和资源分离交互**：SandBox作为workflow graph节点与LLM(Decision Making),RL(LLM Weight Update)和Computational Resources(GPU, CPU, etc)隔绝，SandGraphX对后两者全局托管。
+- **与LLM和资源分离交互**：SandBox作为workflow graph节点与LLM(Decision Making),RL(LLM Weight Update)和Computational Resources(GPU, CPU, etc)隔绝，Sandbox-RLX对后两者全局托管。
 
 <div align="center">
-  <img src="assets/archi.jpeg" alt="SandGraphX Architecture" width="800"/>
+  <img src="assets/archi.jpeg" alt="Sandbox-RLX Architecture" width="800"/>
 </div>
 
 ## 🌟 核心特性
@@ -63,11 +63,11 @@ SandGraphX 是一个基于环境子集（Environment Subsets）抽象和优化�
 ## 📁 文件结构
 
 ```
-SandGraphX/
+Sandbox-RLX/
 ├── sandgraph/                    # 核心包目录
 │   ├── core/                     # 核心功能模块
 │   │   ├── workflow.py          # 基础工作流实现
-│   │   ├── sg_workflow.py       # SandGraph工作流实现
+│   │   ├── sg_workflow.py       # Sandbox-RL工作流实现
 │   │   ├── dag_manager.py       # DAG图管理
 │   │   ├── llm_interface.py     # LLM接口
 │   │   ├── sandbox.py           # 沙盒基础类
@@ -97,7 +97,7 @@ SandGraphX/
 
 ```
 ┌───────────────────────────────────────────────────────┐
-│                      SandGraph Core                   │
+│                      Sandbox-RL Core                   │
 ├─────────────┬─────────────┬─────────────┬─────────────┤
 │  Workflow   │   SandBox   │    LLM      │     RL      │
 │   Engine    │  Manager    │  Manager    │  Manager    │
@@ -113,7 +113,7 @@ SandGraphX/
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    SandGraphX Manager                   │
+│                    Sandbox-RLX Manager                   │
 ├─────────────────────────────────────────────────────────┤
 │  • 用户输入：环境子集定义和优化目标                          │
 │  • 工作流：DAG图构建与执行管理                              │
@@ -209,8 +209,8 @@ conda create -n sandgraph python=3.11
 conda activate sandgraph
 
 # 2. 克隆仓库
-https://github.com/NoakLiu/SandGraphX.git
-cd SandGraphX
+https://github.com/NoakLiu/Sandbox-RLX.git
+cd Sandbox-RLX
 
 # 3. 运行安装脚本
 chmod +x quick_install.sh
@@ -223,7 +223,7 @@ chmod +x quick_install.sh
 # 验证 MCP SDK
 python -c "from mcp.server.fastmcp import FastMCP; print('MCP SDK 安装成功')"
 
-# 验证 SandGraph
+# 验证 Sandbox-RL
 python -c "from sandgraph import check_mcp_availability; print(check_mcp_availability())"
 ``` -->
 
@@ -284,7 +284,7 @@ python -c "from sandgraph import check_mcp_availability; print(check_mcp_availab
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│                 SandGraphX Manager                      │
+│                 Sandbox-RLX Manager                      │
 │  ┌─────────────┬─────────────┬─────────────┬─────────┐  │
 │  │  Workflow   │   SandBox   │    LLM      │   RL    │  │
 │  │   Engine    │  Manager    │  Manager    │ Manager │  │
@@ -367,9 +367,9 @@ class RLTrainer:
 ### Core API Usage
 
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig
 
 # 1. Initialize Core Components (默认使用Mistral-7B)
 llm_manager = create_shared_llm_manager(
@@ -489,7 +489,7 @@ chmod +x install_oasis.sh
 
 ## 🔥 LLM模型支持
 
-SandGraph支持多种主流大语言模型，以下是支持的模型和基本使用方法：
+Sandbox-RL支持多种主流大语言模型，以下是支持的模型和基本使用方法：
 
 ### 支持的模型
 
@@ -505,7 +505,7 @@ SandGraph支持多种主流大语言模型，以下是支持的模型和基本�
 <!-- ### 基本使用方法
 
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
 
 # 1. 创建LLM管理器（默认使用Mistral-7B）
 llm_manager = create_shared_llm_manager(

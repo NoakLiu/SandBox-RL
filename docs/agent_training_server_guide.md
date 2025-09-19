@@ -1,4 +1,4 @@
-## Agent 训练服务端与客户端脚手架（SandGraph Core）
+## Agent 训练服务端与客户端脚手架（Sandbox-RL Core）
 
 本指南介绍新增的核心脚手架，用于将任意 Agent 接入 RL 训练，支持“服务端分发样本 → 客户端回传轨迹 → 统一更新/记录”的工作流。
 
@@ -26,9 +26,9 @@
 
 ### 最小用法（伪代码）
 ```python
-from sandgraph.core.trainer_server import TrainerServer, Sample
-from sandgraph.core.agent_client import LocalAgentClient, AgentAdapter
-from sandgraph.core.trajectory import write_jsonl
+from sandbox_rl.core.trainer_server import TrainerServer, Sample
+from sandbox_rl.core.agent_client import LocalAgentClient, AgentAdapter
+from sandbox_rl.core.trajectory import write_jsonl
 
 class MyAgent(AgentAdapter):
     def __init__(self):

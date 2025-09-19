@@ -2,7 +2,7 @@
 
 ## 概述
 
-本指南提供了完整的8GPU分布式vLLM部署方案，支持SandGraph的多模型合作与对抗系统。
+本指南提供了完整的8GPU分布式vLLM部署方案，支持Sandbox-RL的多模型合作与对抗系统。
 
 ## 系统架构
 
@@ -95,7 +95,7 @@ MODEL_PATH="/path/to/your/model"  # 修改为你的模型路径
 ### 1. 基本使用
 
 ```python
-from sandgraph.core import create_distributed_scheduler
+from sandbox_rl.core import create_distributed_scheduler
 
 # 创建分布式调度器
 scheduler = create_distributed_scheduler(
@@ -289,4 +289,4 @@ scheduler.enable_monitoring(
 4. **完整监控**：提供详细的性能和分析数据
 5. **易于扩展**：支持多机和负载均衡
 
-这个方案为SandGraph的多模型合作与对抗系统提供了强大的分布式计算能力。
+这个方案为Sandbox-RL的多模型合作与对抗系统提供了强大的分布式计算能力。

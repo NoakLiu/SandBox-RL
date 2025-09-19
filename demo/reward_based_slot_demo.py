@@ -17,11 +17,11 @@ from typing import Dict, Any, List
 # Add the parent directory to the path to import sandgraph modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.llm_interface import create_llm_config, create_llm
-from sandgraph.core.llm_frozen_adaptive import (
+from sandbox_rl.core.llm_interface import create_llm_config, create_llm
+from sandbox_rl.core.llm_frozen_adaptive import (
     FrozenAdaptiveLLM, create_frozen_config, UpdateStrategy
 )
-from sandgraph.core.reward_based_slot_manager import (
+from sandbox_rl.core.reward_based_slot_manager import (
     SlotPriority, SlotState, SlotConfig,
     create_slot_config, create_reward_based_slot_manager,
     create_adaptive_frozen_slot_manager, AdaptiveFrozenSlotManager
@@ -424,7 +424,7 @@ def main():
     
     args = parser.parse_args()
     
-    print("🎯 SandGraphX Reward-Based Slot Management Demo")
+    print("🎯 Sandbox-RLX Reward-Based Slot Management Demo")
     print("=" * 60)
     
     if args.demo == "basic" or args.demo == "all":

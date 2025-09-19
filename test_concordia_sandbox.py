@@ -12,7 +12,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from sandgraph.core.concordia_sandbox import (
+    from sandbox_rl.core.concordia_sandbox import (
         ConcordiaScenario,
         ConcordiaRole,
         ConcordiaConfig,
@@ -20,7 +20,7 @@ try:
         create_concordia_sandbox,
         create_trading_scenario
     )
-    from sandgraph.core.rl_algorithms import (
+    from sandbox_rl.core.rl_algorithms import (
         CooperationType, CompetenceType,
         CooperationFactor, CompetenceFactor
     )
@@ -94,7 +94,7 @@ try:
     
 except ImportError as e:
     print(f"❌ Import error: {e}")
-    print("Make sure you're running from the SandGraph root directory")
+    print("Make sure you're running from the Sandbox-RL root directory")
 except Exception as e:
     print(f"❌ Test error: {e}")
     import traceback

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for SandGraph Async Architecture
+Test script for Sandbox-RL Async Architecture
 
 This script tests the async architecture components to ensure they work correctly.
 """
@@ -11,7 +11,7 @@ import logging
 from typing import List
 
 # Import async architecture components
-from sandgraph.core.async_architecture import (
+from sandbox_rl.core.async_architecture import (
     RewardBasedSlotManager, OASISSandbox, AgentGraph, 
     AgentState, BeliefType
 )

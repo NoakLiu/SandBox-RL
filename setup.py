@@ -1,5 +1,5 @@
 """
-SandGraph 包安装配置
+Sandbox-RL 包安装配置
 """
 
 from setuptools import setup, find_packages
@@ -9,20 +9,20 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="sandgraph",
+    name="sandbox-rl",
     version="0.2.0",
     author="Dong Liu, Yanxuan Yu, Ying Nian Wu, Xuhong Wang",
     author_email="dong.liu.dl2367@yale.edu, yy3523@columbia.edu",
     maintainer="Dong Liu",
     maintainer_email="dong.liu.dl2367@yale.edu",
-    description="基于官方MCP协议的多智能体执行框架，集成InternBootcamp推理训练沙盒",
+    description="基于官方MCP协议的多智能体执行框架，集成InternBootcamp推理训练沙盒，支持KVCache-centric优化",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/sandgraph/sandgraph",
+    url="https://github.com/sandbox-rl/sandbox-rl",
     project_urls={
-        "Bug Tracker": "https://github.com/sandgraph/sandgraph/issues",
-        "Documentation": "https://sandgraph.readthedocs.io/",
-        "Source Code": "https://github.com/sandgraph/sandgraph",
+        "Bug Tracker": "https://github.com/sandbox-rl/sandbox-rl/issues",
+        "Documentation": "https://sandbox-rl.readthedocs.io/",
+        "Source Code": "https://github.com/sandbox-rl/sandbox-rl",
         "MCP Protocol": "https://modelcontextprotocol.io/",
         "InternBootcamp": "https://github.com/InternLM/InternBootcamp",
     },
@@ -94,16 +94,16 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "sandgraph=sandgraph.cli:main",
+            "sandbox-rl=sandbox_rl.cli:main",
         ],
     },
     include_package_data=True,
     package_data={
-        "sandgraph": ["*.txt", "*.md", "*.json"],
+        "sandbox_rl": ["*.txt", "*.md", "*.json"],
     },
     keywords=[
         "llm", "ai", "mcp", "sandbox", "workflow", "multi-agent", 
-        "reasoning", "internbootcamp", "anthropic", "claude"
+        "reasoning", "internbootcamp", "anthropic", "claude", "kvcache", "rl"
     ],
     zip_safe=False,
 ) 

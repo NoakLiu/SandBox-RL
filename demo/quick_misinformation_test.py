@@ -51,7 +51,7 @@ def simulate_agent_performance():
     agents = {
         "rules": {"spread_percentage": 25.5, "belief_impact": 0.12, "posts": 45},
         "human": {"spread_percentage": 38.2, "belief_impact": 0.18, "posts": 52},
-        "sandgraph": {"spread_percentage": 67.8, "belief_impact": 0.35, "posts": 48}
+        "sandbox_rl": {"spread_percentage": 67.8, "belief_impact": 0.35, "posts": 48}
     }
     
     return agents
@@ -99,11 +99,11 @@ def display_results(users, posts, agents, stats):
     
     print(f"\n🎉 Winner: {winner.capitalize()} Agent!")
     
-    if winner == "sandgraph":
-        print("🚀 SandGraph LLM successfully beat traditional rules and human simulation!")
+    if winner == "sandbox_rl":
+        print("🚀 Sandbox-RL LLM successfully beat traditional rules and human simulation!")
         print("✅ Demonstrates superior misinformation spread capabilities")
     else:
-        print(f"⚠️  {winner.capitalize()} agent performed better than SandGraph LLM")
+        print(f"⚠️  {winner.capitalize()} agent performed better than Sandbox-RL LLM")
     
     # 技术统计
     print(f"\n🔧 Technical Statistics:")
@@ -117,27 +117,27 @@ def display_results(users, posts, agents, stats):
     # 目标达成情况
     print(f"\n🎯 Goal Achievement:")
     total_spread = sum(agents[k]["spread_percentage"] for k in agents)
-    sandgraph_performance = agents["sandgraph"]["spread_percentage"]
+    sandgraph_performance = agents["sandbox_rl"]["spread_percentage"]
     
     print(f"  - Total Misinformation Spread: {total_spread:.1f}%")
-    print(f"  - SandGraph LLM Performance: {sandgraph_performance:.1f}%")
+    print(f"  - Sandbox-RL LLM Performance: {sandgraph_performance:.1f}%")
     
     if sandgraph_performance > 50:
-        print("  ✅ Target achieved: SandGraph LLM > 50% spread")
+        print("  ✅ Target achieved: Sandbox-RL LLM > 50% spread")
     else:
-        print("  ❌ Target not achieved: SandGraph LLM < 50% spread")
+        print("  ❌ Target not achieved: Sandbox-RL LLM < 50% spread")
     
     if sandgraph_performance > max(agents["rules"]["spread_percentage"], 
                                   agents["human"]["spread_percentage"]):
-        print("  ✅ SandGraph LLM beats both rules and human agents")
+        print("  ✅ Sandbox-RL LLM beats both rules and human agents")
     else:
-        print("  ❌ SandGraph LLM does not beat all competitors")
+        print("  ❌ Sandbox-RL LLM does not beat all competitors")
 
 def main():
     """主函数"""
     print("🚀 Quick Misinformation Test")
     print("=" * 40)
-    print("Goal: Demonstrate SandGraph LLM's superiority in misinformation spread")
+    print("Goal: Demonstrate Sandbox-RL LLM's superiority in misinformation spread")
     print("This is a simplified simulation for quick testing.")
     print("=" * 40)
     

@@ -3,7 +3,7 @@
 自进化Oasis系统测试脚本
 ======================
 
-测试SandGraph的自进化Oasis功能是否正常工作
+测试Sandbox-RL的自进化Oasis功能是否正常工作
 """
 
 import sys
@@ -26,7 +26,7 @@ def test_imports():
     logger.info("测试自进化Oasis模块导入...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import (
+        from sandbox_rl.core.self_evolving_oasis import (
             SelfEvolvingLLM,
             SelfEvolvingOasisSandbox,
             SelfEvolvingConfig,
@@ -47,7 +47,7 @@ def test_config():
     logger.info("测试配置创建...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import (
+        from sandbox_rl.core.self_evolving_oasis import (
             SelfEvolvingConfig,
             EvolutionStrategy,
             TaskType
@@ -87,7 +87,7 @@ def test_sandbox_creation():
     logger.info("测试沙盒创建...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
         
         # 创建沙盒
         sandbox = create_self_evolving_oasis(
@@ -118,7 +118,7 @@ def test_simulation_step():
     logger.info("测试模拟步骤...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
         
         # 创建沙盒
         sandbox = create_self_evolving_oasis(
@@ -164,7 +164,7 @@ def test_evolution_strategies():
     logger.info("测试不同进化策略...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
         
         strategies = ["multi_model", "adaptive_compression", "gradient_based", "meta_learning"]
         
@@ -199,7 +199,7 @@ def test_state_persistence():
     logger.info("测试状态持久化...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
         import tempfile
         import shutil
         
@@ -269,7 +269,7 @@ def test_task_processing():
     logger.info("测试任务处理...")
     
     try:
-        from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis, TaskType
+        from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis, TaskType
         
         # 创建沙盒
         sandbox = create_self_evolving_oasis(

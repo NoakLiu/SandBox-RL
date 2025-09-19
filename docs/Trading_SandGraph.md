@@ -1,8 +1,8 @@
-# Trading SandGraph 技术文档
+# Trading Sandbox-RL 技术文档
 
 ## 1. 系统概述
 
-Trading SandGraph 是一个基于图结构的智能交易系统，它通过将交易决策过程分解为多个专业节点，形成一个有向工作流，实现自动化的交易决策和执行。系统支持两种交易引擎：Trading Gym 和 Backtrader。
+Trading Sandbox-RL 是一个基于图结构的智能交易系统，它通过将交易决策过程分解为多个专业节点，形成一个有向工作流，实现自动化的交易决策和执行。系统支持两种交易引擎：Trading Gym 和 Backtrader。
 
 ### 1.1 核心特性
 
@@ -128,8 +128,8 @@ python trading_demo.py --strategy backtrader
 ### 4.3 自定义工作流
 
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode
 
 # 创建LLM管理器
 llm_manager = create_shared_llm_manager("trading_llm")

@@ -1,4 +1,4 @@
-# SandGraphX 用户案例：LLM社交网络模拟
+# Sandbox-RLX 用户案例：LLM社交网络模拟
 
 ## 用户输入
 
@@ -40,9 +40,9 @@
    - LLM 模型选择
    - 工作流配置
 
-## SandGraphX 功能（黑盒）
+## Sandbox-RLX 功能（黑盒）
 
-SandGraphX 将自动处理以下任务：
+Sandbox-RLX 将自动处理以下任务：
 
 1. **环境管理**
    - 维护社交网络状态

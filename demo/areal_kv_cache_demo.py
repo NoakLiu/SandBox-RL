@@ -26,7 +26,7 @@ from typing import Dict, Any, List
 # Add the parent directory to the path to import sandgraph modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.areal_kv_cache import (
+from sandbox_rl.core.areal_kv_cache import (
     create_areal_style_trainer,
     KVCacheConfig,
     RolloutConfig,

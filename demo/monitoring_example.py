@@ -15,14 +15,14 @@ from typing import Dict, Any
 # Add the parent directory to the path to import sandgraph modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.monitoring import (
+from sandbox_rl.core.monitoring import (
     SocialNetworkMonitor, 
     MonitoringConfig, 
     SocialNetworkMetrics, 
     MetricsCollector,
     create_monitor
 )
-from sandgraph.core.visualization import (
+from sandbox_rl.core.visualization import (
     SocialNetworkVisualizer,
     create_visualizer,
     quick_visualization

@@ -1,8 +1,8 @@
-# a general definition of SandGraphX usercase
+# a general definition of Sandbox-RLX usercase
 
-from sandgraph.core.workflow import WorkflowGraph, WorkflowNode, NodeType
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sandbox import Sandbox
+from sandbox_rl.core.workflow import WorkflowGraph, WorkflowNode, NodeType
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sandbox import Sandbox
 
 # 1. 定义你的 Sandbox
 class MySandbox(Sandbox):

@@ -12,7 +12,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from sandgraph.core.custom_lora_scheduler import (
+    from sandbox_rl.core.custom_lora_scheduler import (
         LoRAUpdateStrategy,
         LoRALoadingStatus,
         CustomLoRAConfig,
@@ -77,7 +77,7 @@ try:
     
 except ImportError as e:
     print(f"❌ Import error: {e}")
-    print("Make sure you're running from the SandGraph root directory")
+    print("Make sure you're running from the Sandbox-RL root directory")
 except Exception as e:
     print(f"❌ Test error: {e}")
     import traceback

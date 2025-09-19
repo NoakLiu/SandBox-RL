@@ -17,9 +17,9 @@ from typing import Dict, List, Any
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# SandGraph Core imports
+# Sandbox-RL Core imports
 try:
-    from sandgraph.core.on_policy_rl_framework import (
+    from sandbox_rl.core.on_policy_rl_framework import (
         CooperationType,
         CompetenceType,
         CooperationFactor,
@@ -29,10 +29,10 @@ try:
         MultiLoRAOnPolicyRL
     )
     HAS_SANDGRAPH = True
-    print("✅ SandGraph on-policy RL framework imported successfully")
+    print("✅ Sandbox-RL on-policy RL framework imported successfully")
 except ImportError as e:
     HAS_SANDGRAPH = False
-    print(f"❌ SandGraph on-policy RL framework not available: {e}")
+    print(f"❌ Sandbox-RL on-policy RL framework not available: {e}")
     print("Will use mock implementations")
 
 # Optional imports
@@ -166,7 +166,7 @@ def run_on_policy_rl_training():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph not available, skipping training demo")
+        print("❌ Sandbox-RL not available, skipping training demo")
         return
     
     # Create on-policy RL system
@@ -315,7 +315,7 @@ def demonstrate_lora_initialization():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph not available, skipping LoRA initialization demo")
+        print("❌ Sandbox-RL not available, skipping LoRA initialization demo")
         return
     
     # Example LlamaFactory configuration
@@ -397,7 +397,7 @@ def main():
         print("  - on_policy_rl_results.json")
     else:
         print("\n⚠️  Training demo skipped due to missing dependencies")
-        print("   Install torch and ensure SandGraph is available for full demo")
+        print("   Install torch and ensure Sandbox-RL is available for full demo")
 
 if __name__ == "__main__":
     main()

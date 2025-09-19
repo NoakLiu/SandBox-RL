@@ -5,7 +5,7 @@
 """
 
 import logging
-from sandgraph.core.llm_interface import (
+from sandbox_rl.core.llm_interface import (
     LLMConfig, 
     create_shared_llm_manager,
     create_gpt2_manager,

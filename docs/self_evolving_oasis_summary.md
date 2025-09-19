@@ -131,7 +131,7 @@ test_self_evolving_oasis.py         # 测试脚本
 ### 基础使用
 
 ```python
-from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
 
 # 创建自进化Oasis沙盒
 sandbox = create_self_evolving_oasis(

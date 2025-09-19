@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Qwen3 14B Integration Test for SandGraphX
+Qwen3 14B Integration Test for Sandbox-RLX
 =========================================
 
-This script tests the integration of Qwen3 14B model with SandGraphX framework.
+This script tests the integration of Qwen3 14B model with Sandbox-RLX framework.
 It demonstrates basic usage, performance testing, and various application scenarios.
 """
 
@@ -17,11 +17,11 @@ from typing import List, Dict, Any
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def test_basic_integration():
-    """Test basic integration of Qwen3 14B with SandGraphX"""
+    """Test basic integration of Qwen3 14B with Sandbox-RLX"""
     print("🧪 Testing Qwen3 14B Basic Integration...")
     
     try:
-        from sandgraph.core.llm_interface import create_shared_llm_manager
+        from sandbox_rl.core.llm_interface import create_shared_llm_manager
         
         # Create Qwen3 14B model manager
         llm_manager = create_shared_llm_manager(
@@ -64,7 +64,7 @@ def test_multiple_nodes():
     print("\n🧪 Testing Multiple Specialized Nodes...")
     
     try:
-        from sandgraph.core.llm_interface import create_shared_llm_manager
+        from sandbox_rl.core.llm_interface import create_shared_llm_manager
         
         llm_manager = create_shared_llm_manager(
             model_name="Qwen/Qwen3-14B-Instruct",
@@ -118,12 +118,12 @@ def test_multiple_nodes():
         return False
 
 def test_workflow_integration():
-    """Test Qwen3 14B integration with SandGraphX workflow"""
+    """Test Qwen3 14B integration with Sandbox-RLX workflow"""
     print("\n🧪 Testing Workflow Integration...")
     
     try:
-        from sandgraph.core.llm_interface import create_shared_llm_manager
-        from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType, EnhancedWorkflowNode, NodeCondition, NodeLimits
+        from sandbox_rl.core.llm_interface import create_shared_llm_manager
+        from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType, EnhancedWorkflowNode, NodeCondition, NodeLimits
         
         # Create LLM manager with Qwen3 14B
         llm_manager = create_shared_llm_manager(
@@ -198,7 +198,7 @@ def test_performance_benchmark():
     print("\n🧪 Testing Performance Benchmark...")
     
     try:
-        from sandgraph.core.llm_interface import create_shared_llm_manager
+        from sandbox_rl.core.llm_interface import create_shared_llm_manager
         import psutil
         
         llm_manager = create_shared_llm_manager(
@@ -267,13 +267,13 @@ def test_performance_benchmark():
 
 def main():
     """Main test function"""
-    parser = argparse.ArgumentParser(description="Test Qwen3 14B integration with SandGraphX")
+    parser = argparse.ArgumentParser(description="Test Qwen3 14B integration with Sandbox-RLX")
     parser.add_argument("--test", choices=["basic", "nodes", "workflow", "performance", "all"], 
                        default="all", help="Test to run")
     
     args = parser.parse_args()
     
-    print("🚀 Qwen3 14B Integration Test for SandGraphX")
+    print("🚀 Qwen3 14B Integration Test for Sandbox-RLX")
     print("=" * 60)
     
     tests = {

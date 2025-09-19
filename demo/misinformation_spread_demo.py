@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SandGraph 虚假信息传播演示 - 基于RL的LLM决策架构
+Sandbox-RL 虚假信息传播演示 - 基于RL的LLM决策架构
 
 模拟虚假信息在社交网络中的传播：
 1. 信息传播机制
@@ -23,12 +23,12 @@ from enum import Enum
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import (
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sg_workflow import (
     SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
     NodeType, NodeCondition, NodeLimits, GameState
 )
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
 
 
 class InformationType(Enum):
@@ -861,7 +861,7 @@ def _encode_intervention_type(action: str) -> int:
 def run_rl_misinfo_demo(steps: int = 5):
     """运行基于RL的LLM决策虚假信息干预演示"""
     
-    print("🔥 SandGraph Misinformation Spread Demo")
+    print("🔥 Sandbox-RL Misinformation Spread Demo")
     print("=" * 60)
     
     # 1. 创建LLM管理器
@@ -998,7 +998,7 @@ def run_rl_misinfo_demo(steps: int = 5):
 
 def main():
     """主函数"""
-    parser = argparse.ArgumentParser(description="SandGraph Misinformation Spread Demo")
+    parser = argparse.ArgumentParser(description="Sandbox-RL Misinformation Spread Demo")
     parser.add_argument("--steps", type=int, default=5, help="Number of steps to run")
     parser.add_argument("--test", action="store_true", help="Run tests instead of demo")
     
@@ -1006,7 +1006,7 @@ def main():
     
     if args.test:
         # 运行测试
-        print("🔥 SandGraph Misinformation Spread Demo 测试")
+        print("🔥 Sandbox-RL Misinformation Spread Demo 测试")
         print("=" * 80)
         
         success1 = test_misinformation_sandbox()
@@ -1019,7 +1019,7 @@ def main():
             print("\n💥 部分测试失败!")
     else:
         # 运行演示
-        print("🔥 SandGraph Misinformation Spread Demo")
+        print("🔥 Sandbox-RL Misinformation Spread Demo")
         print("=" * 60)
         print(f"Steps: {args.steps}")
         

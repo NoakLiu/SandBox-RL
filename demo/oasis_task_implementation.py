@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Oasis任务实现演示 - 集成SandGraphX自进化LLM
+Oasis任务实现演示 - 集成Sandbox-RLX自进化LLM
 ==========================================
 
 这个演示展示了如何使用Oasis任务定义文档中描述的任务，
-结合SandGraphX的自进化LLM功能来实现智能的社交网络模拟。
+结合Sandbox-RLX的自进化LLM功能来实现智能的社交网络模拟。
 特别针对信息传播、竞争行为和错误信息扩散等关键场景。
 """
 
@@ -29,8 +29,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# 导入SandGraphX自进化Oasis模块
-from sandgraph.core.self_evolving_oasis import (
+# 导入Sandbox-RLX自进化Oasis模块
+from sandbox_rl.core.self_evolving_oasis import (
     create_self_evolving_oasis,
     SelfEvolvingLLM,
     TaskType,

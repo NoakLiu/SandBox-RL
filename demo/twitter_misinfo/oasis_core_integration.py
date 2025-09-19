@@ -122,7 +122,7 @@ class VLLMClient:
             return "I will stay neutral based on my neighbors."
 
 class OASISSandbox:
-    """OASIS SandGraph Sandbox"""
+    """OASIS Sandbox-RL Sandbox"""
     
     def __init__(self, belief_type: BeliefType, agents: List[OASISAgentState]):
         self.belief_type = belief_type

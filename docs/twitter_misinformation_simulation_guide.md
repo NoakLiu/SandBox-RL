@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Twitter Misinformation Simulation is an advanced social network analysis framework that directly integrates OASIS core components and SandGraph Core functionality. This system provides a comprehensive platform for studying misinformation spread, belief propagation, and intervention strategies in social networks.
+The Twitter Misinformation Simulation is an advanced social network analysis framework that directly integrates OASIS core components and Sandbox-RL Core functionality. This system provides a comprehensive platform for studying misinformation spread, belief propagation, and intervention strategies in social networks.
 
 ## Key Features
 
@@ -12,7 +12,7 @@ The Twitter Misinformation Simulation is an advanced social network analysis fra
 - **AgentGraph Integration**: Leverages OASIS AgentGraph for graph structure management
 - **Automatic Fallback**: Automatically uses mock implementation when OASIS is unavailable
 
-### 2. SandGraph Core Deep Integration
+### 2. Sandbox-RL Core Deep Integration
 - **LLM Management**: Uses `create_shared_llm_manager` and `create_frozen_adaptive_llm`
 - **LoRA Compression**: Integrates `create_online_lora_manager` for model compression
 - **Reinforcement Learning**: Uses `RLTrainer` and `RLConfig` for PPO training
@@ -37,7 +37,7 @@ The Twitter Misinformation Simulation is an advanced social network analysis fra
 ```
 demo/twitter_misinfo/
 ├── run_simulation.py          # Main execution script (OASIS integrated)
-├── workflow.py               # Workflow management (SandGraph Core integrated)
+├── workflow.py               # Workflow management (Sandbox-RL Core integrated)
 ├── sandbox.py               # Sandbox environment (enhanced belief propagation)
 ├── llm_policy.py            # LLM policy (multi-mode support)
 ├── reward.py                # Reward functions
@@ -91,7 +91,7 @@ simulation = OasisTwitterMisinfoSimulation(
 - NEUTRAL: 20%
 - SWING: 10%
 
-### SandGraph Core Configuration
+### Sandbox-RL Core Configuration
 - `model_name`: LLM model name (default: "qwen-2")
 - `backend`: Backend type (default: "vllm")
 - `url`: LLM service URL (default: "http://localhost:8001/v1")
@@ -106,7 +106,7 @@ class TwitterMisinformationSandbox:
     """Enhanced Twitter misinformation spread sandbox"""
     
     def __init__(self, agent_graph, trump_ratio=0.5, seed=42):
-        # Initialize SandGraph Core components
+        # Initialize Sandbox-RL Core components
         # Support OASIS agent graph
         
     def _initialize_agent_states(self):
@@ -146,11 +146,11 @@ class LLMPolicy:
 
 ```python
 class TwitterMisinfoWorkflow:
-    """SandGraph Core integrated workflow"""
+    """Sandbox-RL Core integrated workflow"""
     
     def __init__(self, agent_graph, reward_fn=trump_dominance_reward, 
                  llm_mode='frozen', enable_monitoring=True, enable_slot_management=True):
-        # Initialize SandGraph Core components
+        # Initialize Sandbox-RL Core components
         
     def _calculate_belief_polarization(self, beliefs):
         # Calculate belief polarization degree
@@ -209,7 +209,7 @@ class SimulationMetrics:
 === OASIS Twitter Misinformation Simulation ===
 Successfully imported OASIS core components
 Using OASIS to generate 30 agents...
-Initializing SandGraph Core components...
+Initializing Sandbox-RL Core components...
 Starting 10-step simulation...
 Agent Graph Info: {'total_agents': 30, 'oasis_available': True, 'graph_type': 'OASIS Twitter Agent Graph'}
 
@@ -259,7 +259,7 @@ Processing subgraph: subgraph_biden (9 agents)
 - **SocialAgent Support**: Uses OASIS agent classes
 - **Automatic Fallback**: Automatically degrades when OASIS is unavailable
 
-### 2. SandGraph Core Comprehensive Integration
+### 2. Sandbox-RL Core Comprehensive Integration
 - **LLM Management**: Uses `create_shared_llm_manager` and `create_frozen_adaptive_llm`
 - **LoRA Compression**: Integrates `create_online_lora_manager`
 - **Reinforcement Learning**: Uses `RLTrainer` and `RLConfig`
@@ -314,9 +314,9 @@ Using mock implementation
 ```
 The system automatically uses mock implementation without affecting basic functionality.
 
-### 2. SandGraph Core Import Errors
+### 2. Sandbox-RL Core Import Errors
 ```
-Warning: SandGraph Core components not available: [error message]
+Warning: Sandbox-RL Core components not available: [error message]
 Using basic implementation
 ```
 The system uses basic implementation while preserving core functionality.
@@ -362,15 +362,15 @@ python test_integration.py
 Tests check:
 - Basic workflow functionality
 - OASIS integration status
-- SandGraph Core integration status
+- Sandbox-RL Core integration status
 - Component initialization status
 
 ## Summary
 
-This implementation provides a complete Twitter misinformation spread simulation framework that achieves powerful simulation capabilities through deep integration of OASIS core components and SandGraph Core functionality:
+This implementation provides a complete Twitter misinformation spread simulation framework that achieves powerful simulation capabilities through deep integration of OASIS core components and Sandbox-RL Core functionality:
 
 1. **OASIS Deep Integration**: Direct use of OASIS agent graph and social agents
-2. **SandGraph Core Comprehensive Integration**: Full utilization of all SandGraph Core functionality
+2. **Sandbox-RL Core Comprehensive Integration**: Full utilization of all Sandbox-RL Core functionality
 3. **Enhanced Belief Propagation Mechanism**: Support for complex belief propagation and influence mechanisms
 4. **Multi-Mode LLM Decision Making**: Support for frozen/adaptive/lora three modes
 5. **Complete Monitoring System**: Real-time tracking and visualization support

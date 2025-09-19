@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SandGraph真实LLM演示程序
+Sandbox-RL真实LLM演示程序
 
 展示如何使用真实的大语言模型：
 1. GPT-2模型（HuggingFace）
@@ -20,16 +20,16 @@ from typing import Dict, Any, List
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import (
+from sandbox_rl.core.llm_interface import (
     create_gpt2_manager, create_llama_manager, create_qwen_manager, 
     create_openai_manager, create_shared_llm_manager, LLMBackend
 )
-from sandgraph.core.rl_framework import create_rl_framework, RLAlgorithm
-from sandgraph.core.sg_workflow import (
+from sandbox_rl.core.rl_framework import create_rl_framework, RLAlgorithm
+from sandbox_rl.core.sg_workflow import (
     SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
     NodeType, NodeCondition, NodeLimits
 )
-from sandgraph.sandbox_implementations import Game24Sandbox, SummarizeSandbox
+from sandbox_rl.sandbox_implementations import Game24Sandbox, SummarizeSandbox
 
 
 def print_section(title: str):
@@ -473,7 +473,7 @@ def demonstrate_workflow_with_real_llm(available_deps: Dict[str, bool]):
 
 def main():
     """主函数"""
-    print("SandGraph真实LLM演示程序")
+    print("Sandbox-RL真实LLM演示程序")
     print("展示如何使用GPT-2、LLaMA、Qwen、OpenAI等真实大语言模型")
     
     # 检查依赖

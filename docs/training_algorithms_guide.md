@@ -1,10 +1,10 @@
 # 训练算法指南
 
-本指南详细介绍SandGraphX中的强化学习训练算法，包括PPO、GRPO等算法的原理、配置和使用方法。
+本指南详细介绍Sandbox-RLX中的强化学习训练算法，包括PPO、GRPO等算法的原理、配置和使用方法。
 
 ## 🚀 算法概述
 
-SandGraphX提供了多种强化学习算法，专门设计用于优化LLM的决策策略：
+Sandbox-RLX提供了多种强化学习算法，专门设计用于优化LLM的决策策略：
 
 - **PPO (Proximal Policy Optimization)** - 近端策略优化算法
 - **GRPO (Group Robust Policy Optimization)** - 组鲁棒策略优化算法
@@ -91,8 +91,8 @@ class RLConfig:
 #### 使用示例
 
 ```python
-from sandgraph.core.rl_algorithms import create_ppo_trainer, RLAlgorithm
-from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.rl_algorithms import create_ppo_trainer, RLAlgorithm
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
 
 # 创建LLM管理器
 llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2")
@@ -162,7 +162,7 @@ class RLConfig:
 #### 使用示例
 
 ```python
-from sandgraph.core.rl_algorithms import create_grpo_trainer
+from sandbox_rl.core.rl_algorithms import create_grpo_trainer
 
 # 创建GRPO训练器
 grpo_trainer = create_grpo_trainer(
@@ -253,7 +253,7 @@ class RLConfig:
 #### 使用示例
 
 ```python
-from sandgraph.core.rl_algorithms import create_sac_trainer
+from sandbox_rl.core.rl_algorithms import create_sac_trainer
 
 # 创建SAC训练器
 sac_trainer = create_sac_trainer(
@@ -335,7 +335,7 @@ class RLConfig:
 #### 使用示例
 
 ```python
-from sandgraph.core.rl_algorithms import create_td3_trainer
+from sandbox_rl.core.rl_algorithms import create_td3_trainer
 
 # 创建TD3训练器
 td3_trainer = create_td3_trainer(
@@ -404,7 +404,7 @@ class EnhancedRLConfig(RLConfig):
 #### 使用示例
 
 ```python
-from sandgraph.core.enhanced_rl_algorithms import (
+from sandbox_rl.core.enhanced_rl_algorithms import (
     create_enhanced_ppo_trainer,
     create_enhanced_grpo_trainer,
     create_optimized_rl_trainer,
@@ -682,8 +682,8 @@ python demo/new_rl_algorithms_demo.py --demo compare
 ### 1. 完整的训练循环
 
 ```python
-from sandgraph.core.enhanced_rl_algorithms import create_optimized_rl_trainer
-from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.enhanced_rl_algorithms import create_optimized_rl_trainer
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
 
 # 创建训练器
 llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2")
@@ -740,7 +740,7 @@ for group in user_groups:
 ### 3. SAC连续动作训练
 
 ```python
-from sandgraph.core.rl_algorithms import create_sac_trainer
+from sandbox_rl.core.rl_algorithms import create_sac_trainer
 
 # 创建SAC训练器
 sac_trainer = create_sac_trainer(
@@ -766,7 +766,7 @@ for episode in range(1000):
 ### 4. TD3确定性策略训练
 
 ```python
-from sandgraph.core.rl_algorithms import create_td3_trainer
+from sandbox_rl.core.rl_algorithms import create_td3_trainer
 
 # 创建TD3训练器
 td3_trainer = create_td3_trainer(

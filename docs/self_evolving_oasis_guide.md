@@ -40,7 +40,7 @@
 ### 任务类型定义
 
 ```python
-from sandgraph.core.self_evolving_oasis import TaskType
+from sandbox_rl.core.self_evolving_oasis import TaskType
 
 # 五种核心任务类型
 TaskType.CONTENT_GENERATION      # 内容生成
@@ -68,7 +68,7 @@ custom_task_distribution = {
 ### 1. 基础使用
 
 ```python
-from sandgraph.core.self_evolving_oasis import create_self_evolving_oasis
+from sandbox_rl.core.self_evolving_oasis import create_self_evolving_oasis
 
 # 创建自进化Oasis沙盒
 sandbox = create_self_evolving_oasis(
@@ -88,7 +88,7 @@ for step in range(10):
 ### 2. 自定义配置
 
 ```python
-from sandgraph.core.self_evolving_oasis import SelfEvolvingConfig, EvolutionStrategy
+from sandbox_rl.core.self_evolving_oasis import SelfEvolvingConfig, EvolutionStrategy
 
 # 创建自定义配置
 config = SelfEvolvingConfig(
@@ -193,7 +193,7 @@ print(f"模型池大小: {evolution_stats['model_pool_size']}")
 ### 3. 自定义任务处理
 
 ```python
-from sandgraph.core.self_evolving_oasis import TaskType
+from sandbox_rl.core.self_evolving_oasis import TaskType
 
 # 直接处理特定任务
 result = sandbox.evolving_llm.process_task(
@@ -395,7 +395,7 @@ for step in range(5):
 自进化Oasis系统完整示例
 """
 
-from sandgraph.core.self_evolving_oasis import (
+from sandbox_rl.core.self_evolving_oasis import (
     create_self_evolving_oasis,
     EvolutionStrategy,
     TaskType

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Twitter Misinformation 工作流
-集成 SandGraph Core 组件，支持 OASIS agent graph
+集成 Sandbox-RL Core 组件，支持 OASIS agent graph
 """
 
 import asyncio
@@ -10,19 +10,19 @@ from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 
-# Import SandGraph Core components
+# Import Sandbox-RL Core components
 try:
-    from sandgraph.core.llm_interface import create_shared_llm_manager
-    from sandgraph.core.llm_frozen_adaptive import create_frozen_adaptive_llm, UpdateStrategy
-    from sandgraph.core.lora_compression import create_online_lora_manager
-    from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
-    from sandgraph.core.reward_based_slot_manager import RewardBasedSlotManager, SlotConfig
-    from sandgraph.core.monitoring import MonitoringConfig, SocialNetworkMetrics
-    from sandgraph.core.sandbox import Sandbox
-    from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
+    from sandbox_rl.core.llm_interface import create_shared_llm_manager
+    from sandbox_rl.core.llm_frozen_adaptive import create_frozen_adaptive_llm, UpdateStrategy
+    from sandbox_rl.core.lora_compression import create_online_lora_manager
+    from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+    from sandbox_rl.core.reward_based_slot_manager import RewardBasedSlotManager, SlotConfig
+    from sandbox_rl.core.monitoring import MonitoringConfig, SocialNetworkMetrics
+    from sandbox_rl.core.sandbox import Sandbox
+    from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
     SANGRAPH_AVAILABLE = True
 except ImportError as e:
-    print(f"Warning: SandGraph Core components not available: {e}")
+    print(f"Warning: Sandbox-RL Core components not available: {e}")
     SANGRAPH_AVAILABLE = False
 
 from sandbox import TwitterMisinformationSandbox
@@ -65,7 +65,7 @@ class SimulationMetrics:
 class TwitterMisinfoWorkflow:
     """
     工作流图：组织沙盒、LLM、奖励、RL等节点，支持多阶段仿真、对抗、权重更新、slot reward。
-    集成 SandGraph Core 组件和 OASIS agent graph。
+    集成 Sandbox-RL Core 组件和 OASIS agent graph。
     """
     def __init__(self, agent_graph, reward_fn=trump_dominance_reward, llm_mode='frozen', 
                  enable_monitoring=True, enable_slot_management=True):
@@ -77,20 +77,20 @@ class TwitterMisinfoWorkflow:
         self.rewards = []
         self.slot_rewards = []
         
-        # SandGraph Core 组件
+        # Sandbox-RL Core 组件
         self.enable_monitoring = enable_monitoring
         self.enable_slot_management = enable_slot_management
         self.monitoring_config = None
         self.slot_manager = None
         self.simulation_metrics = []
         
-        # 初始化 SandGraph Core 组件
+        # 初始化 Sandbox-RL Core 组件
         self._initialize_sandgraph_components()
     
     def _initialize_sandgraph_components(self):
-        """初始化 SandGraph Core 组件"""
+        """初始化 Sandbox-RL Core 组件"""
         if not SANGRAPH_AVAILABLE:
-            print("SandGraph Core not available, using basic workflow")
+            print("Sandbox-RL Core not available, using basic workflow")
             return
             
         try:
@@ -112,7 +112,7 @@ class TwitterMisinfoWorkflow:
                     self.slot_manager = None
                 
         except Exception as e:
-            print(f"Error initializing SandGraph Core components: {e}")
+            print(f"Error initializing Sandbox-RL Core components: {e}")
     
     def _calculate_belief_polarization(self, beliefs):
         """计算信仰极化程度"""

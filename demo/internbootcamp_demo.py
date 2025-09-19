@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-SandGraph + InternBootcamp 集成演示
+Sandbox-RL + InternBootcamp 集成演示
 
-展示如何使用 SandGraph 框架与 InternBootcamp 的各种推理训练沙盒，
+展示如何使用 Sandbox-RL 框架与 InternBootcamp 的各种推理训练沙盒，
 包括算术谜题、视觉推理、逻辑推理、算法问题和编程挑战。
 
 运行方式：
@@ -29,7 +29,7 @@ try:
     
     # 尝试导入 InternBootcamp 相关功能
     try:
-        from sandgraph.internbootcamp_sandbox import (
+        from sandbox_rl.internbootcamp_sandbox import (
             Game24BootcampSandbox,
             ARCBootcampSandbox,
             KORBootcampSandbox, 
@@ -41,11 +41,11 @@ try:
     except ImportError:
         INTERNBOOTCAMP_SANDBOXES_AVAILABLE = False
         
-    from sandgraph.core.workflow import WorkflowGraph, WorkflowNode, NodeType
+    from sandbox_rl.core.workflow import WorkflowGraph, WorkflowNode, NodeType
     
 except ImportError as e:
-    print(f"❌ 导入SandGraph失败: {e}")
-    print("请确保已正确安装SandGraph")
+    print(f"❌ 导入Sandbox-RL失败: {e}")
+    print("请确保已正确安装Sandbox-RL")
     sys.exit(1)
 
 
@@ -58,7 +58,7 @@ def print_separator(title: str, width: int = 70):
 
 def demo_system_status():
     """演示系统状态检查"""
-    print_separator("SandGraph + InternBootcamp 系统状态")
+    print_separator("Sandbox-RL + InternBootcamp 系统状态")
     
     # 打印集成状态
     print_integration_status()
@@ -363,7 +363,7 @@ def demo_mcp_integration_preview():
     """演示MCP集成预览"""
     print_separator("MCP集成预览")
     
-    print("🌐 SandGraph + InternBootcamp 已完全集成官方MCP协议！")
+    print("🌐 Sandbox-RL + InternBootcamp 已完全集成官方MCP协议！")
     print()
     print("📡 支持的MCP功能:")
     print("   ✓ 标准化工具接口")
@@ -412,7 +412,7 @@ def demo_mcp_integration_preview():
 
 def main():
     """主演示函数"""
-    print("🚀 SandGraph + InternBootcamp 集成演示")
+    print("🚀 Sandbox-RL + InternBootcamp 集成演示")
     print("=" * 70)
     
     try:
@@ -466,7 +466,7 @@ def main():
         print("\n🔗 相关链接:")
         print("   • InternBootcamp项目: https://github.com/InternLM/InternBootcamp")
         print("   • MCP官方文档: https://modelcontextprotocol.io/")
-        print("   • SandGraph项目: https://github.com/sandgraph/sandgraph")
+        print("   • Sandbox-RL项目: https://github.com/sandbox_rl/sandgraph")
         
     except KeyboardInterrupt:
         print("\n\n⏹️ 演示被用户中断")
@@ -475,7 +475,7 @@ def main():
         import traceback
         traceback.print_exc()
     
-    print("\n👋 感谢使用 SandGraph + InternBootcamp！")
+    print("\n👋 感谢使用 Sandbox-RL + InternBootcamp！")
 
 
 if __name__ == "__main__":

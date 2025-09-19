@@ -2,7 +2,7 @@
 
 ## 概述
 
-Reward-Based Slot Management 是 SandGraphX 的核心功能之一，提供基于reward抢占的最大slot更新机制，与adaptive frozen功能深度集成。该系统能够智能地管理计算资源，根据任务的reward值动态调整优先级，实现高效的资源分配和任务调度。
+Reward-Based Slot Management 是 Sandbox-RLX 的核心功能之一，提供基于reward抢占的最大slot更新机制，与adaptive frozen功能深度集成。该系统能够智能地管理计算资源，根据任务的reward值动态调整优先级，实现高效的资源分配和任务调度。
 
 ## 主要特性
 
@@ -70,7 +70,7 @@ class SlotInfo:
 ### 1. 基础使用
 
 ```python
-from sandgraph.core.reward_based_slot_manager import (
+from sandbox_rl.core.reward_based_slot_manager import (
     SlotPriority, SlotConfig, create_slot_config, 
     create_reward_based_slot_manager
 )
@@ -104,10 +104,10 @@ print(f"Total reward: {stats['total_reward']:.3f}")
 ### 2. 与Adaptive Frozen集成
 
 ```python
-from sandgraph.core.llm_frozen_adaptive import (
+from sandbox_rl.core.llm_frozen_adaptive import (
     FrozenAdaptiveLLM, create_frozen_config
 )
-from sandgraph.core.reward_based_slot_manager import (
+from sandbox_rl.core.reward_based_slot_manager import (
     create_adaptive_frozen_slot_manager
 )
 

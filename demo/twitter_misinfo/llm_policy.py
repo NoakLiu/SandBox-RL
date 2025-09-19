@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 """
 Twitter Misinformation LLM 策略
-集成 SandGraph Core 组件，支持更复杂的决策机制
+集成 Sandbox-RL Core 组件，支持更复杂的决策机制
 """
 
 import asyncio
 import random
 from typing import Dict, List, Any, Optional
 
-# Import SandGraph Core components
+# Import Sandbox-RL Core components
 try:
-    from sandgraph.core.llm_interface import create_shared_llm_manager
-    from sandgraph.core.llm_frozen_adaptive import create_frozen_adaptive_llm, UpdateStrategy
-    from sandgraph.core.lora_compression import create_online_lora_manager
-    from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
-    from sandgraph.core.reward_based_slot_manager import RewardBasedSlotManager, SlotConfig
-    from sandgraph.core.monitoring import MonitoringConfig, SocialNetworkMetrics
-    from sandgraph.core.sandbox import Sandbox
-    from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
+    from sandbox_rl.core.llm_interface import create_shared_llm_manager
+    from sandbox_rl.core.llm_frozen_adaptive import create_frozen_adaptive_llm, UpdateStrategy
+    from sandbox_rl.core.lora_compression import create_online_lora_manager
+    from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+    from sandbox_rl.core.reward_based_slot_manager import RewardBasedSlotManager, SlotConfig
+    from sandbox_rl.core.monitoring import MonitoringConfig, SocialNetworkMetrics
+    from sandbox_rl.core.sandbox import Sandbox
+    from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
     SANGRAPH_AVAILABLE = True
 except ImportError as e:
-    print(f"Warning: SandGraph Core components not available: {e}")
+    print(f"Warning: Sandbox-RL Core components not available: {e}")
     SANGRAPH_AVAILABLE = False
 
 class LLMPolicy:
     """
-    智能决策系统：支持frozen（只用LLM）、adaptive（RL微调）、lora（LoRA权重可插拔微调）三种模式，全部调用SandGraph core。
-    集成 SandGraph Core 组件，支持更复杂的决策机制。
+    智能决策系统：支持frozen（只用LLM）、adaptive（RL微调）、lora（LoRA权重可插拔微调）三种模式，全部调用Sandbox-RL core。
+    集成 Sandbox-RL Core 组件，支持更复杂的决策机制。
     """
     def __init__(self, mode='frozen', reward_fn=None, model_name="qwen-2", backend="huggingface", 
                  url="http://localhost:8001/v1", lora_path=None, enable_monitoring=True):
@@ -35,7 +35,7 @@ class LLMPolicy:
         self.lora_path = lora_path
         self.enable_monitoring = enable_monitoring
         
-        # SandGraph Core 组件
+        # Sandbox-RL Core 组件
         self.llm_manager = None
         self.frozen_adaptive_llm = None
         self.lora_manager = None
@@ -47,9 +47,9 @@ class LLMPolicy:
         self._initialize_components(model_name, backend, url)
     
     def _initialize_components(self, model_name, backend, url):
-        """初始化 SandGraph Core 组件"""
+        """初始化 Sandbox-RL Core 组件"""
         if not SANGRAPH_AVAILABLE:
-            print("SandGraph Core not available, using basic LLM policy")
+            print("Sandbox-RL Core not available, using basic LLM policy")
             return
             
         try:
@@ -118,7 +118,7 @@ class LLMPolicy:
                     self.monitoring_config = None
                 
         except Exception as e:
-            print(f"Error initializing SandGraph Core components: {e}")
+            print(f"Error initializing Sandbox-RL Core components: {e}")
             print("Using fallback LLM policy")
     
     def _generate_enhanced_prompt(self, agent_id: int, prompt: str, state: Dict[str, Any]) -> str:

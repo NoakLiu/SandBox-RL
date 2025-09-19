@@ -13,8 +13,8 @@ import logging
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.llm_interface import create_llm_config, create_llm, LLMBackend
-from sandgraph.core.llm_frozen_adaptive import (
+from sandbox_rl.core.llm_interface import create_llm_config, create_llm, LLMBackend
+from sandbox_rl.core.llm_frozen_adaptive import (
     FrozenAdaptiveLLM, create_frozen_config, UpdateStrategy
 )
 

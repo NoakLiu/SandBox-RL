@@ -21,7 +21,7 @@ from typing import Dict, Any
 # 添加项目根目录到路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.distributed_lora_scheduler import (
+from sandbox_rl.core.distributed_lora_scheduler import (
     create_distributed_lora_scheduler,
     LoRARLStrategy,
     LoRAUpdateEvent

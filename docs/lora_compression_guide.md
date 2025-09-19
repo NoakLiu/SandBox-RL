@@ -2,7 +2,7 @@
 
 ## 概述
 
-SandGraph的LoRA（Low-Rank Adaptation）压缩模块提供了强大的模型参数压缩和KV缓存压缩功能，支持在线模型扩展和多模型兼容。
+Sandbox-RL的LoRA（Low-Rank Adaptation）压缩模块提供了强大的模型参数压缩和KV缓存压缩功能，支持在线模型扩展和多模型兼容。
 
 ## 主要功能
 
@@ -37,7 +37,7 @@ pip install torch transformers accelerate
 ### 基础使用
 
 ```python
-from sandgraph.core import create_shared_llm_manager
+from sandbox_rl.core import create_shared_llm_manager
 
 # 创建带LoRA的LLM管理器
 llm_manager = create_shared_llm_manager(
@@ -86,7 +86,7 @@ llm_manager.unload_model()
 ### 1. 自定义LoRA配置
 
 ```python
-from sandgraph.core import create_lora_compressor, CompressionType
+from sandbox_rl.core import create_lora_compressor, CompressionType
 
 # 创建自定义LoRA压缩器
 compressor = create_lora_compressor(
@@ -107,7 +107,7 @@ compressor = create_lora_compressor(
 ### 2. KV缓存压缩
 
 ```python
-from sandgraph.core import create_lora_compressor
+from sandbox_rl.core import create_lora_compressor
 import torch
 
 # 创建KV缓存压缩器
@@ -143,7 +143,7 @@ print(f"节省内存: {stats['memory_saved'] / 1024 / 1024:.2f} MB")
 ### 3. 在线适配
 
 ```python
-from sandgraph.core import create_online_lora_manager
+from sandbox_rl.core import create_online_lora_manager
 
 # 创建在线LoRA管理器
 manager = create_online_lora_manager(
@@ -178,7 +178,7 @@ print(f"性能指标: {metrics}")
 ### 4. 多模型支持
 
 ```python
-from sandgraph.core import create_shared_llm_manager
+from sandbox_rl.core import create_shared_llm_manager
 
 # 支持多种模型
 models = [
@@ -238,7 +238,7 @@ for model_type, manager in managers.items():
 ### 预定义配置
 
 ```python
-from sandgraph.core import get_lora_config
+from sandbox_rl.core import get_lora_config
 
 # 获取预定义配置
 configs = {
@@ -397,4 +397,4 @@ python -m sandgraph.core.lora_example
 
 ## 总结
 
-SandGraph的LoRA压缩功能提供了强大的模型压缩和优化能力，支持多种模型架构和在线适配。通过合理配置和使用，可以显著减少内存使用，提高推理效率，支持更多模型的同时运行。 
+Sandbox-RL的LoRA压缩功能提供了强大的模型压缩和优化能力，支持多种模型架构和在线适配。通过合理配置和使用，可以显著减少内存使用，提高推理效率，支持更多模型的同时运行。 

@@ -3,14 +3,14 @@
 Comprehensive Misinformation Spread Demo
 =======================================
 
-This demo showcases SandGraph LLM's ability to beat traditional rules and human users
+This demo showcases Sandbox-RL LLM's ability to beat traditional rules and human users
 in misinformation spread scenarios. It integrates:
 1. WanDB monitoring for real-time tracking
 2. AReaL KV cache optimization for efficient RL training
 3. LLMs frozen & adaptive update with 3 different LLM weights
-4. Multi-agent competition (SandGraph LLM vs Rules vs Human)
+4. Multi-agent competition (Sandbox-RL LLM vs Rules vs Human)
 
-The goal is to demonstrate that SandGraph LLM can achieve higher misinformation spread
+The goal is to demonstrate that Sandbox-RL LLM can achieve higher misinformation spread
 over large percentages of the social network graph compared to traditional approaches.
 """
 
@@ -30,11 +30,11 @@ import math
 # Add the parent directory to the path to import sandgraph modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.llm_frozen_adaptive import FrozenAdaptiveManager, UpdateStrategy, create_frozen_config
-from sandgraph.core.areal_kv_cache import create_areal_style_trainer
-from sandgraph.core.monitoring import SocialNetworkMonitor, MonitoringConfig, SocialNetworkMetrics
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType, EnhancedWorkflowNode, NodeCondition, NodeLimits
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_frozen_adaptive import FrozenAdaptiveManager, UpdateStrategy, create_frozen_config
+from sandbox_rl.core.areal_kv_cache import create_areal_style_trainer
+from sandbox_rl.core.monitoring import SocialNetworkMonitor, MonitoringConfig, SocialNetworkMetrics
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType, EnhancedWorkflowNode, NodeCondition, NodeLimits
 
 
 @dataclass
@@ -409,8 +409,8 @@ class HumanSimulatedAgent:
         return random.random() < min(0.9, max(0.1, total_prob))
 
 
-class SandGraphLLMAgent:
-    """SandGraph LLM代理"""
+class Sandbox-RLLLMAgent:
+    """Sandbox-RL LLM代理"""
     
     def __init__(self, network: MisinformationSocialNetwork, llm_manager, 
                  frozen_adaptive_manager: FrozenAdaptiveManager,
@@ -419,7 +419,7 @@ class SandGraphLLMAgent:
         self.llm_manager = llm_manager
         self.frozen_adaptive_manager = frozen_adaptive_manager
         self.areal_trainer = areal_trainer
-        self.name = "SandGraph LLM Agent"
+        self.name = "Sandbox-RL LLM Agent"
         self.strategy = "ai_optimized"
         
         # 创建workflow
@@ -437,7 +437,7 @@ class SandGraphLLMAgent:
     
     def _setup_workflow(self):
         """设置workflow"""
-        from sandgraph.core.sg_workflow import EnhancedWorkflowNode, NodeCondition, NodeLimits
+        from sandbox_rl.core.sg_workflow import EnhancedWorkflowNode, NodeCondition, NodeLimits
         
         # 注册节点到LLM管理器
         self.llm_manager.register_node("content_generator", {"temperature": 0.8})
@@ -511,7 +511,7 @@ class SandGraphLLMAgent:
         self.workflow.add_edge("optimizer", "network_state")
     
     def generate_post(self, user_id: int) -> str:
-        """使用SandGraph LLM生成帖子"""
+        """使用Sandbox-RL LLM生成帖子"""
         try:
             # 获取网络状态
             network_state = self.network.get_network_state()
@@ -562,7 +562,7 @@ class SandGraphLLMAgent:
             return content
             
         except Exception as e:
-            print(f"Error generating post with SandGraph LLM: {e}")
+            print(f"Error generating post with Sandbox-RL LLM: {e}")
             return self._generate_fallback_content(user_id)
     
     def _generate_fallback_content(self, user_id: int) -> str:
@@ -575,7 +575,7 @@ class SandGraphLLMAgent:
             return "Interesting new study suggests alternative approaches to health. What do you think? 🤔"
     
     def decide_spread(self, post_id: str, user_id: int) -> bool:
-        """使用SandGraph LLM决定是否传播"""
+        """使用Sandbox-RL LLM决定是否传播"""
         try:
             self.performance_stats["total_attempts"] += 1
             
@@ -627,7 +627,7 @@ class SandGraphLLMAgent:
             return should_spread
             
         except Exception as e:
-            print(f"Error in SandGraph LLM decision: {e}")
+            print(f"Error in Sandbox-RL LLM decision: {e}")
             # Fallback to simple rule
             return random.random() < 0.6
 
@@ -674,7 +674,7 @@ class ComprehensiveMisinformationDemo:
         self.agents = {
             "rules": RuleBasedAgent(self.network),
             "human": HumanSimulatedAgent(self.network),
-            "sandgraph": SandGraphLLMAgent(
+            "sandbox_rl": Sandbox-RLLLMAgent(
                 self.network, 
                 self.llm_manager, 
                 self.frozen_adaptive_manager,
@@ -686,7 +686,7 @@ class ComprehensiveMisinformationDemo:
         self.competition_stats = {
             "rules": {"spread_percentage": 0.0, "belief_impact": 0.0, "posts": 0},
             "human": {"spread_percentage": 0.0, "belief_impact": 0.0, "posts": 0},
-            "sandgraph": {"spread_percentage": 0.0, "belief_impact": 0.0, "posts": 0}
+            "sandbox_rl": {"spread_percentage": 0.0, "belief_impact": 0.0, "posts": 0}
         }
         
         print("🚀 Comprehensive Misinformation Demo initialized")
@@ -785,7 +785,7 @@ class ComprehensiveMisinformationDemo:
         print(f"    🔄 Updating LLM weights (step {step})...")
         
         # 根据性能选择不同的更新策略
-        sandgraph_performance = self.competition_stats["sandgraph"]["spread_percentage"]
+        sandgraph_performance = self.competition_stats["sandbox_rl"]["spread_percentage"]
         
         if sandgraph_performance > 60:
             # 高性能：使用SELECTIVE策略
@@ -858,8 +858,8 @@ class ComprehensiveMisinformationDemo:
         """检查是否达到竞争目标"""
         network_state = self.network.get_network_state()
         
-        # 目标：SandGraph LLM达到超过50%的misinformation传播
-        sandgraph_performance = self.competition_stats["sandgraph"]["spread_percentage"]
+        # 目标：Sandbox-RL LLM达到超过50%的misinformation传播
+        sandgraph_performance = self.competition_stats["sandbox_rl"]["spread_percentage"]
         
         return (network_state["misinformation_spread_percentage"] > 50 and 
                 sandgraph_performance > 30)
@@ -891,11 +891,11 @@ class ComprehensiveMisinformationDemo:
         
         print(f"\n🎉 Winner: {winner.capitalize()} Agent!")
         
-        if winner == "sandgraph":
-            print("🚀 SandGraph LLM successfully beat traditional rules and human simulation!")
+        if winner == "sandbox_rl":
+            print("🚀 Sandbox-RL LLM successfully beat traditional rules and human simulation!")
             print("✅ Demonstrates superior misinformation spread capabilities")
         else:
-            print(f"⚠️  {winner.capitalize()} agent performed better than SandGraph LLM")
+            print(f"⚠️  {winner.capitalize()} agent performed better than Sandbox-RL LLM")
         
         # AReaL和LLM Frozen & Adaptive统计
         print(f"\n🔧 Technical Statistics:")
@@ -944,7 +944,7 @@ def main():
     
     print("🚀 Comprehensive Misinformation Spread Demo")
     print("=" * 60)
-    print(f"Goal: SandGraph LLM beats rules and human users in misinformation spread")
+    print(f"Goal: Sandbox-RL LLM beats rules and human users in misinformation spread")
     print(f"Steps: {args.steps}")
     print(f"Network Size: {args.num_users} users")
     print(f"Model: {args.model_name}")

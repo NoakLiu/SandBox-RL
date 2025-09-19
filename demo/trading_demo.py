@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SandGraph 交易环境演示 - 基于RL的LLM决策架构
+Sandbox-RL 交易环境演示 - 基于RL的LLM决策架构
 
 新的架构设计：
 1. Sandbox作为环境节点
@@ -22,13 +22,13 @@ import re
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.sg_workflow import (
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.sg_workflow import (
     SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
     NodeType, NodeCondition, NodeLimits, GameState
 )
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
-from sandgraph.sandbox_implementations import TradingSandbox
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+from sandbox_rl.sandbox_implementations import TradingSandbox
 
 
 def print_section(title: str):

@@ -1,6 +1,6 @@
 # Examples Guide
 
-This guide provides detailed explanations and usage examples for all SandGraphX demos and features.
+This guide provides detailed explanations and usage examples for all Sandbox-RLX demos and features.
 
 ## 📋 Table of Contents
 
@@ -139,7 +139,7 @@ python demo/misinformation_spread_demo.py --steps 5
 **Purpose**: Multi-agent competition in misinformation spread with integrated optimization.
 
 **Input**: Social network data, multi-agent competition, integrated optimization  
-**Process**: SandGraph LLM vs Rules vs Human simulation → Real-time monitoring → Integrated optimization → Performance comparison  
+**Process**: Sandbox-RL LLM vs Rules vs Human simulation → Real-time monitoring → Integrated optimization → Performance comparison  
 **Output**: Competition results, network dynamics, belief impact analysis, comprehensive metrics
 
 ```bash
@@ -166,14 +166,14 @@ python demo/comprehensive_misinformation_demo.py \
 ```
 
 **Key Features**:
-- **Multi-Agent Competition**: SandGraph LLM competes against rule-based and human-simulated agents
+- **Multi-Agent Competition**: Sandbox-RL LLM competes against rule-based and human-simulated agents
 - **Integrated Optimization**: Combines LLM frozen & adaptive update with AReaL KV cache optimization
 - **Real-time Monitoring**: WanDB and TensorBoard integration for comprehensive tracking
 - **Network Dynamics**: Realistic social network behavior with belief impact modeling
 - **Performance Analysis**: Detailed comparison of agent performance in misinformation spread
 
 **Expected Results**:
-- SandGraph LLM should achieve higher misinformation spread percentage (>50%)
+- Sandbox-RL LLM should achieve higher misinformation spread percentage (>50%)
 - Superior belief impact compared to traditional approaches
 - Real-time performance tracking and visualization
 - Comprehensive analysis of network dynamics and agent behavior
@@ -281,7 +281,7 @@ python demo/monitoring_example.py
 
 ### 12. Async Architecture Demo
 
-**Purpose**: Demonstrates the asynchronous architecture components described in SandGraph_Archi.md.
+**Purpose**: Demonstrates the asynchronous architecture components described in Sandbox-RL_Archi.md.
 
 **Input**: Agent configurations, LLM policies, slot management settings  
 **Process**: Async LLM calls → Parallel agent processing → Reward-based resource allocation → Distributed workflow execution  
@@ -316,14 +316,14 @@ python demo/async_architecture_demo.py --demo parallel
 
 ### 13. Complete Integration Example
 
-This example shows how to integrate all SandGraphX features:
+This example shows how to integrate all Sandbox-RLX features:
 
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.llm_frozen_adaptive import FrozenAdaptiveManager
-from sandgraph.core.areal_kv_cache import create_areal_style_trainer
-from sandgraph.core.monitoring import SocialNetworkMonitor, MonitoringConfig
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_frozen_adaptive import FrozenAdaptiveManager
+from sandbox_rl.core.areal_kv_cache import create_areal_style_trainer
+from sandbox_rl.core.monitoring import SocialNetworkMonitor, MonitoringConfig
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode
 
 # 1. Initialize LLM Manager
 llm_manager = create_shared_llm_manager("mistralai/Mistral-7B-Instruct-v0.2")

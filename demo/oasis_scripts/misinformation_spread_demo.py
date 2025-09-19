@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-from sandgraph.sandbox_implementations import MisinformationSpreadSandbox
-from sandgraph.core.workflow import WorkflowGraph, WorkflowNode, NodeType
+from sandbox_rl.sandbox_implementations import MisinformationSpreadSandbox
+from sandbox_rl.core.workflow import WorkflowGraph, WorkflowNode, NodeType
 
 # === 1. 初始化 vLLM (OASIS) ===
 from camel.models import ModelFactory

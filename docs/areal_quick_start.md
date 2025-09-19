@@ -1,10 +1,10 @@
 # AReaL集成快速开始
 
-本指南帮助您快速开始使用SandGraphX的AReaL集成功能，最大化复用AReaL的轮子。
+本指南帮助您快速开始使用Sandbox-RLX的AReaL集成功能，最大化复用AReaL的轮子。
 
 ## 🚀 什么是AReaL集成？
 
-AReaL集成让SandGraphX能够深度复用AReaL框架的核心功能：
+AReaL集成让Sandbox-RLX能够深度复用AReaL框架的核心功能：
 
 - **高级缓存系统** - 提升数据访问性能
 - **分布式处理** - 支持大规模任务处理
@@ -27,7 +27,7 @@ pip install numpy torch psutil
 ### 2. 基础使用
 
 ```python
-from sandgraph.core.areal_integration import create_areal_integration, IntegrationLevel
+from sandbox_rl.core.areal_integration import create_areal_integration, IntegrationLevel
 
 # 创建基础集成
 areal_manager = create_areal_integration(
@@ -232,7 +232,7 @@ python demo/enhanced_areal_integration_demo.py --demo all
 ## 🆘 常见问题
 
 ### Q: AReaL框架不可用时怎么办？
-A: SandGraphX提供了完整的备用实现，即使AReaL不可用也能正常工作。
+A: Sandbox-RLX提供了完整的备用实现，即使AReaL不可用也能正常工作。
 
 ### Q: 如何选择合适的集成级别？
 A: 根据应用场景选择：基础应用用BASIC，复杂应用用ADVANCED，企业级应用用FULL。

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced AReaL Integration Demo for SandGraphX
+Enhanced AReaL Integration Demo for Sandbox-RLX
 =============================================
 
 This demo showcases deep integration with the AReaL framework, reusing its core components:
@@ -27,7 +27,7 @@ from datetime import datetime, timedelta
 # Add the parent directory to the path to import sandgraph modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.areal_integration import (
+from sandbox_rl.core.areal_integration import (
     create_areal_integration,
     IntegrationLevel,
     get_areal_status
@@ -500,7 +500,7 @@ def main():
     
     args = parser.parse_args()
     
-    print("🚀 Enhanced AReaL Integration Demo for SandGraphX")
+    print("🚀 Enhanced AReaL Integration Demo for Sandbox-RLX")
     print("=" * 60)
     print(f"Demo: {args.demo}")
     print(f"Cache Size: {args.cache_size}")

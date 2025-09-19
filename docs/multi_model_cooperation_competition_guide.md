@@ -2,7 +2,7 @@
 
 ## 概述
 
-SandGraph的多模型合作与对抗系统是一个创新的调度框架，能够同时管理多个LLM模型，实现模型间的合作与竞争机制。该系统基于以下核心思想：
+Sandbox-RL的多模型合作与对抗系统是一个创新的调度框架，能够同时管理多个LLM模型，实现模型间的合作与竞争机制。该系统基于以下核心思想：
 
 1. **对抗机制**：产生"卷王"现象，模型之间竞争资源
 2. **合作机制**：观察模型功能分化现象，模型之间协作完成任务
@@ -54,7 +54,7 @@ SandGraph的多模型合作与对抗系统是一个创新的调度框架，能�
 ### 1. 创建调度器
 
 ```python
-from sandgraph.core import create_multi_model_scheduler
+from sandbox_rl.core import create_multi_model_scheduler
 
 # 创建混合模式调度器
 scheduler = create_multi_model_scheduler(
@@ -78,7 +78,7 @@ cooperative_scheduler = create_cooperative_scheduler(
 ### 2. 注册模型
 
 ```python
-from sandgraph.core import ModelRole, BaseLLM
+from sandbox_rl.core import ModelRole, BaseLLM
 
 # 创建模型实例
 model1 = YourLLMModel()
@@ -115,7 +115,7 @@ scheduler.register_model(
 ### 3. 定义任务
 
 ```python
-from sandgraph.core import TaskDefinition
+from sandbox_rl.core import TaskDefinition
 
 # 合作任务
 cooperation_task = TaskDefinition(
@@ -311,11 +311,11 @@ for model_id, profile in scheduler.model_profiles.items():
 
 ## 总结
 
-多模型合作与对抗系统为SandGraph提供了强大的模型调度能力，通过合作和竞争机制，能够：
+多模型合作与对抗系统为Sandbox-RL提供了强大的模型调度能力，通过合作和竞争机制，能够：
 
 1. **促进功能分化**: 模型在协作中发展专业化能力
 2. **产生卷王现象**: 在竞争中形成优胜劣汰
 3. **优化资源利用**: 通过动态分配提高效率
 4. **提升系统性能**: 结合合作和竞争的优势
 
-这个系统为多智能体研究和实际应用提供了丰富的可能性，是SandGraph框架的重要组成部分。
+这个系统为多智能体研究和实际应用提供了丰富的可能性，是Sandbox-RL框架的重要组成部分。

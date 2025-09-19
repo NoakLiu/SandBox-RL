@@ -12,14 +12,14 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from sandgraph.core.graph_visualizer import (
+    from sandbox_rl.core.graph_visualizer import (
         NodeType,
         EdgeType,
         InteractionType,
         GraphNode,
         GraphEdge,
         GraphEvent,
-        SandGraphVisualizer,
+        Sandbox-RLVisualizer,
         create_sandgraph_visualizer
     )
     print("✅ Successfully imported graph visualizer modules")
@@ -139,7 +139,7 @@ try:
     
 except ImportError as e:
     print(f"❌ Import error: {e}")
-    print("Make sure you're running from the SandGraph root directory")
+    print("Make sure you're running from the Sandbox-RL root directory")
 except Exception as e:
     print(f"❌ Test error: {e}")
     import traceback

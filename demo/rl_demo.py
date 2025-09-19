@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SandGraph强化学习演示
+Sandbox-RL强化学习演示
 
 展示如何使用强化学习框架优化LLM，包括：
 1. 参数共享的多LLM节点管理
@@ -18,15 +18,15 @@ from typing import Dict, Any
 # 添加项目路径以便导入
 sys.path.insert(0, '.')
 
-from sandgraph.core.rl_framework import (
+from sandbox_rl.core.rl_framework import (
     create_rl_framework, 
     SharedLLMManager, 
     Experience, 
     RewardType
 )
-from sandgraph.core.workflow import WorkflowGraph, WorkflowNode, NodeType
-from sandgraph.sandbox_implementations import Game24Sandbox
-from sandgraph.core.llm_interface import SharedLLMManager, create_shared_llm_manager
+from sandbox_rl.core.workflow import WorkflowGraph, WorkflowNode, NodeType
+from sandbox_rl.sandbox_implementations import Game24Sandbox
+from sandbox_rl.core.llm_interface import SharedLLMManager, create_shared_llm_manager
 
 
 def print_separator(title: str, width: int = 60):
@@ -366,7 +366,7 @@ def demo_multi_agent_collaboration():
 
 def main():
     """主演示函数"""
-    print_separator("🤖 SandGraph强化学习框架演示", 80)
+    print_separator("🤖 Sandbox-RL强化学习框架演示", 80)
     print("展示基于强化学习的LLM优化，包括参数共享和多智能体协作")
     
     try:

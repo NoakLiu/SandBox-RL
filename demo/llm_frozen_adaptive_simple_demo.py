@@ -22,10 +22,10 @@ from typing import Dict, List, Any, Optional
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sandgraph.core.llm_interface import (
+from sandbox_rl.core.llm_interface import (
     create_llm_config, create_llm, MockLLM, LLMConfig, LLMBackend
 )
-from sandgraph.core.llm_frozen_adaptive import (
+from sandbox_rl.core.llm_frozen_adaptive import (
     FrozenAdaptiveLLM, FrozenAdaptiveManager, FrozenConfig,
     UpdateStrategy, ParameterImportance, create_frozen_config,
     create_frozen_adaptive_llm, create_frozen_adaptive_manager,

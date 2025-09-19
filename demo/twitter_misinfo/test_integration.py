@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Twitter Misinformation 集成测试脚本
-测试 OASIS 核心组件和 SandGraph Core 的集成
+测试 OASIS 核心组件和 Sandbox-RL Core 的集成
 """
 
 import asyncio
@@ -112,32 +112,32 @@ async def test_oasis_integration():
         return False
 
 async def test_sandgraph_integration():
-    """测试 SandGraph Core 集成"""
-    print("\n=== 测试 SandGraph Core 集成 ===")
+    """测试 Sandbox-RL Core 集成"""
+    print("\n=== 测试 Sandbox-RL Core 集成 ===")
     
     try:
-        # 尝试导入 SandGraph Core 组件
-        from sandgraph.core.llm_interface import create_shared_llm_manager
-        from sandgraph.core.llm_frozen_adaptive import create_frozen_adaptive_llm, UpdateStrategy
-        from sandgraph.core.lora_compression import create_online_lora_manager
-        from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
-        from sandgraph.core.reward_based_slot_manager import RewardBasedSlotManager, SlotConfig
-        from sandgraph.core.monitoring import MonitoringConfig, SocialNetworkMetrics
-        from sandgraph.core.sandbox import Sandbox
-        from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
+        # 尝试导入 Sandbox-RL Core 组件
+        from sandbox_rl.core.llm_interface import create_shared_llm_manager
+        from sandbox_rl.core.llm_frozen_adaptive import create_frozen_adaptive_llm, UpdateStrategy
+        from sandbox_rl.core.lora_compression import create_online_lora_manager
+        from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+        from sandbox_rl.core.reward_based_slot_manager import RewardBasedSlotManager, SlotConfig
+        from sandbox_rl.core.monitoring import MonitoringConfig, SocialNetworkMetrics
+        from sandbox_rl.core.sandbox import Sandbox
+        from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
         
-        print("成功导入 SandGraph Core 组件")
+        print("成功导入 Sandbox-RL Core 组件")
         
         # 测试组件初始化
-        print("测试 SandGraph Core 组件初始化...")
+        print("测试 Sandbox-RL Core 组件初始化...")
         
         # 这里只是测试导入，不实际初始化（需要 LLM 服务）
-        print("SandGraph Core 集成测试通过（跳过实际初始化）")
+        print("Sandbox-RL Core 集成测试通过（跳过实际初始化）")
         
         return True
         
     except ImportError as e:
-        print(f"SandGraph Core 组件不可用: {e}")
+        print(f"Sandbox-RL Core 组件不可用: {e}")
         print("使用基础实现")
         return False
 
@@ -151,14 +151,14 @@ async def main():
     # 测试 OASIS 集成
     oasis_success = await test_oasis_integration()
     
-    # 测试 SandGraph Core 集成
+    # 测试 Sandbox-RL Core 集成
     sandgraph_success = await test_sandgraph_integration()
     
     # 总结
     print("\n=== 测试总结 ===")
     print(f"基本工作流: {'✓' if basic_success else '✗'}")
     print(f"OASIS 集成: {'✓' if oasis_success else '✗'}")
-    print(f"SandGraph Core 集成: {'✓' if sandgraph_success else '✗'}")
+    print(f"Sandbox-RL Core 集成: {'✓' if sandgraph_success else '✗'}")
     
     if basic_success:
         print("\n✅ 基本功能测试通过！")

@@ -10,7 +10,7 @@ import time
 # Add the sandgraph directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'sandgraph'))
 
-from sandgraph.core.reward_based_slot_manager import (
+from sandbox_rl.core.reward_based_slot_manager import (
     SlotPriority, SlotConfig, create_slot_config, 
     create_reward_based_slot_manager
 )

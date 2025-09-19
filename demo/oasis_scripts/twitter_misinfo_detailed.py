@@ -21,15 +21,15 @@ from dataclasses import dataclass, field
 from enum import Enum
 import matplotlib.pyplot as plt
 
-# === 1. 导入 SandGraph Core 组件 ===
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.llm_frozen_adaptive import create_frozen_adaptive_llm, UpdateStrategy
-from sandgraph.core.lora_compression import create_online_lora_manager
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
-from sandgraph.core.reward_based_slot_manager import RewardBasedSlotManager, SlotConfig
-from sandgraph.core.monitoring import MonitoringConfig, SocialNetworkMetrics
-from sandgraph.core.sandbox import Sandbox
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
+# === 1. 导入 Sandbox-RL Core 组件 ===
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_frozen_adaptive import create_frozen_adaptive_llm, UpdateStrategy
+from sandbox_rl.core.lora_compression import create_online_lora_manager
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+from sandbox_rl.core.reward_based_slot_manager import RewardBasedSlotManager, SlotConfig
+from sandbox_rl.core.monitoring import MonitoringConfig, SocialNetworkMetrics
+from sandbox_rl.core.sandbox import Sandbox
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
 
 # === 2. 导入 OASIS 组件 ===
 try:
@@ -434,7 +434,7 @@ class TwitterMisinfoDetailedSimulation:
         
     def _initialize_components(self):
         """初始化各个组件"""
-        print("初始化 SandGraph Core 组件...")
+        print("初始化 Sandbox-RL Core 组件...")
         
         # 1. 初始化 LLM Manager
         self.llm_manager = create_shared_llm_manager(

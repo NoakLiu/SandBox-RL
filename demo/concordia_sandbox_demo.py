@@ -2,7 +2,7 @@
 """
 Concordia Contest Sandbox Demo
 
-演示Concordia Contest沙盒在SandGraphX中的使用
+演示Concordia Contest沙盒在Sandbox-RLX中的使用
 """
 
 import os
@@ -11,9 +11,9 @@ import json
 import logging
 from typing import Dict, List, Any
 
-# SandGraph Core imports
+# Sandbox-RL Core imports
 try:
-    from sandgraph.core.concordia_sandbox import (
+    from sandbox_rl.core.concordia_sandbox import (
         ConcordiaScenario,
         ConcordiaRole,
         ConcordiaConfig,
@@ -23,15 +23,15 @@ try:
         create_public_goods_scenario,
         create_negotiation_scenario
     )
-    from sandgraph.core.rl_algorithms import (
+    from sandbox_rl.core.rl_algorithms import (
         CooperationType, CompetenceType,
         CooperationFactor, CompetenceFactor
     )
     HAS_SANDGRAPH = True
-    print("✅ SandGraph Concordia sandbox imported successfully")
+    print("✅ Sandbox-RL Concordia sandbox imported successfully")
 except ImportError as e:
     HAS_SANDGRAPH = False
-    print(f"❌ SandGraph Concordia sandbox not available: {e}")
+    print(f"❌ Sandbox-RL Concordia sandbox not available: {e}")
     print("Will use mock implementations")
 
 logging.basicConfig(level=logging.INFO)
@@ -44,7 +44,7 @@ def demonstrate_trading_scenario():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建交易场景
@@ -109,7 +109,7 @@ def demonstrate_public_goods_scenario():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建公共物品场景
@@ -185,7 +185,7 @@ def demonstrate_negotiation_scenario():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建协商场景
@@ -260,7 +260,7 @@ def demonstrate_multi_scenario_comparison():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建不同场景
@@ -320,11 +320,11 @@ def demonstrate_integration_with_rl():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     try:
-        from sandgraph.core.rl_algorithms import MultiAgentOnPolicyRL
+        from sandbox_rl.core.rl_algorithms import MultiAgentOnPolicyRL
         
         # 创建多个角色的沙盒
         sandboxes = {}

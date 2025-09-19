@@ -1,5 +1,5 @@
 def test_paper_aligned_exports():
-    import sandgraph.core as core
+    import sandbox_rl.core as core
 
     # Workflow executor alias
     assert hasattr(core, "WorkflowGraphExecutor")

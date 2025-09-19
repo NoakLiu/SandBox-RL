@@ -1,8 +1,8 @@
-from sandgraph.core.sandbox import Sandbox
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, EnhancedWorkflowNode
-from sandgraph.core.workflow import NodeType
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+from sandbox_rl.core.sandbox import Sandbox
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, EnhancedWorkflowNode
+from sandbox_rl.core.workflow import NodeType
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
 from typing import Dict, Any, List, Optional, Tuple
 import random
 import json

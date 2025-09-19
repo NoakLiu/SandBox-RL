@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SandGraph Dynamic Visualization Demo
+Sandbox-RL Dynamic Visualization Demo
 
 动态图可视化演示，展示misinformation传播和cooperate/compete关系
 """
@@ -11,10 +11,10 @@ import json
 import logging
 from typing import Dict, List, Any
 
-# SandGraph Core imports
+# Sandbox-RL Core imports
 try:
-    from sandgraph.core.graph_visualizer import (
-        SandGraphVisualizer,
+    from sandbox_rl.core.graph_visualizer import (
+        Sandbox-RLVisualizer,
         NodeType,
         EdgeType,
         InteractionType,
@@ -22,10 +22,10 @@ try:
         create_misinfo_visualization_demo
     )
     HAS_SANDGRAPH = True
-    print("✅ SandGraph graph visualizer imported successfully")
+    print("✅ Sandbox-RL graph visualizer imported successfully")
 except ImportError as e:
     HAS_SANDGRAPH = False
-    print(f"❌ SandGraph graph visualizer not available: {e}")
+    print(f"❌ Sandbox-RL graph visualizer not available: {e}")
     print("Will use mock implementations")
 
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +38,7 @@ def demonstrate_basic_visualization():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建可视化器
@@ -92,7 +92,7 @@ def demonstrate_interactive_scenario():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建可视化器
@@ -142,7 +142,7 @@ def demonstrate_log_replay():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建第一个可视化器并生成日志
@@ -187,7 +187,7 @@ def demonstrate_statistics_analysis():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建可视化器
@@ -261,7 +261,7 @@ def demonstrate_export_capabilities():
     print("=" * 50)
     
     if not HAS_SANDGRAPH:
-        print("❌ SandGraph不可用，跳过演示")
+        print("❌ Sandbox-RL不可用，跳过演示")
         return
     
     # 创建可视化器
@@ -323,7 +323,7 @@ def demonstrate_export_capabilities():
 
 def main():
     """主演示函数"""
-    print("🚀 SandGraph动态图可视化演示")
+    print("🚀 Sandbox-RL动态图可视化演示")
     print("=" * 60)
     print("本演示展示:")
     print("- 动态图可视化系统")

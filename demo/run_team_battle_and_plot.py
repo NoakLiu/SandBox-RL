@@ -8,7 +8,7 @@ PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-CORE_DIR = Path(PROJECT_ROOT) / "sandgraph" / "core"
+CORE_DIR = Path(PROJECT_ROOT) / "sandbox_rl" / "core"
 if str(CORE_DIR) not in sys.path:
     sys.path.insert(0, str(CORE_DIR))
 

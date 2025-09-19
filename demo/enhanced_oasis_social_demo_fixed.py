@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced SandGraph OASIS社交网络模拟演示 - 修复版本
+Enhanced Sandbox-RL OASIS社交网络模拟演示 - 修复版本
 ==================================================
 
 修复了以下问题：
@@ -9,7 +9,7 @@ Enhanced SandGraph OASIS社交网络模拟演示 - 修复版本
 3. 用户连接初始化问题
 4. 监控系统集成问题
 
-集成OASIS (Open Agent Social Interaction Simulations) 到SandGraph框架：
+集成OASIS (Open Agent Social Interaction Simulations) 到Sandbox-RL框架：
 1. 大规模智能体社交网络模拟
 2. 信息传播和群体行为研究
 3. 社交网络动态分析
@@ -30,9 +30,9 @@ from datetime import datetime, timedelta
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
-from sandgraph.core.monitoring import (
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.rl_algorithms import RLTrainer, RLConfig, RLAlgorithm
+from sandbox_rl.core.monitoring import (
     SocialNetworkMonitor, 
     MonitoringConfig, 
     SocialNetworkMetrics, 

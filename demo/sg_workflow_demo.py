@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SandGraph增强演示程序
+Sandbox-RL增强演示程序
 
 展示两种工作流模式：
 1. 传统模式：LLM和Sandbox节点混合
@@ -18,14 +18,14 @@ from typing import Dict, Any, List
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from sandgraph.core.llm_interface import create_shared_llm_manager
-from sandgraph.core.rl_algorithms import RLAlgorithm, create_ppo_trainer, create_grpo_trainer
-from sandgraph.core.rl_framework import create_rl_framework, create_enhanced_rl_framework
-from sandgraph.core.sg_workflow import (
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.rl_algorithms import RLAlgorithm, create_ppo_trainer, create_grpo_trainer
+from sandbox_rl.core.rl_framework import create_rl_framework, create_enhanced_rl_framework
+from sandbox_rl.core.sg_workflow import (
     SG_Workflow, WorkflowMode, EnhancedWorkflowNode,
     NodeType, NodeCondition, NodeLimits, GameState
 )
-from sandgraph.sandbox_implementations import Game24Sandbox, SummarizeSandbox
+from sandbox_rl.sandbox_implementations import Game24Sandbox, SummarizeSandbox
 
 
 def print_section(title: str):
@@ -1301,7 +1301,7 @@ def demonstrate_dynamic_game():
 
 def main():
     """主函数"""
-    print("SandGraph动态游戏系统")
+    print("Sandbox-RL动态游戏系统")
     print("展示基于LLM的自主分析和决策")
     
     try:

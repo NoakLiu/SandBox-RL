@@ -1,6 +1,6 @@
 # Qwen3 14B 使用指南
 
-本指南详细介绍如何在SandGraphX中使用Qwen3 14B模型，这是阿里云最新发布的高性能大语言模型。
+本指南详细介绍如何在Sandbox-RLX中使用Qwen3 14B模型，这是阿里云最新发布的高性能大语言模型。
 
 ## 🚀 Qwen3 14B 简介
 
@@ -51,12 +51,12 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 ```
 
-## 🔧 在SandGraphX中使用Qwen3 14B
+## 🔧 在Sandbox-RLX中使用Qwen3 14B
 
 ### 1. 基本使用
 
 ```python
-from sandgraph.core.llm_interface import create_shared_llm_manager
+from sandbox_rl.core.llm_interface import create_shared_llm_manager
 
 # 创建Qwen3 14B模型管理器
 llm_manager = create_shared_llm_manager(
@@ -111,7 +111,7 @@ llm_manager.register_node("translator", {
 ### 3. 在Workflow中使用
 
 ```python
-from sandgraph.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
+from sandbox_rl.core.sg_workflow import SG_Workflow, WorkflowMode, NodeType
 
 # 创建使用Qwen3 14B的workflow
 workflow = SG_Workflow("qwen3_workflow", WorkflowMode.TRADITIONAL, llm_manager)
@@ -378,7 +378,7 @@ def safe_generate(prompt, max_retries=3):
 - [Qwen3官方文档](https://qwen.readthedocs.io/)
 - [Hugging Face模型页面](https://huggingface.co/Qwen/Qwen3-14B-Instruct)
 - [Transformers文档](https://huggingface.co/docs/transformers)
-- [SandGraphX API参考](../api_reference.md)
+- [Sandbox-RLX API参考](../api_reference.md)
 
 ## 🆘 常见问题
 
