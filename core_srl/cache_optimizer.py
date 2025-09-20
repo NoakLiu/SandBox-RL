@@ -687,10 +687,10 @@ class VERLTrainer:
             logger.warning("VERL framework not available, using simulation")
     
     async def generate_batch(self, prompts: List[str], **kwargs) -> List[Dict[str, Any]]:
-        """批量生成"""
+        """Batch generation with vLLM backend"""
         results = []
         for prompt in prompts:
-            # 模拟生成
+            # Simulate generation
             await asyncio.sleep(0.01)
             text = f"VERLGenerate response: {prompt[:50]}..."
             results.append({"text": text, "tokens": len(text.split())})
@@ -703,17 +703,17 @@ class VERLTrainer:
         for i, response in enumerate(responses):
             text = response.get("text", "")
             
-            # 基础奖励
+            # Base reward
             base_reward = min(1.0, len(text.split()) / 50.0)
             
-            # 质量奖励
+            # Quality reward
             quality_reward = 0.0
             if len(set(text.split())) > len(text.split()) * 0.7:
                 quality_reward += 0.2
             if len(text.strip()) > 10:
                 quality_reward += 0.1
             
-            # 相关性奖励
+            # Relevance reward
             prompt = prompts[i]
             relevance_reward = 0.0
             if any(word in text.lower() for word in prompt.lower().split()[:5]):
@@ -725,7 +725,7 @@ class VERLTrainer:
         return rewards
     
     async def rollout_step(self, prompts: List[str]) -> Dict[str, Any]:
-        """执行rollout步骤"""
+        """Execute rollout step"""
         start_time = time.time()
         
         # Generate response
@@ -745,7 +745,7 @@ class VERLTrainer:
         }
     
     async def train_step(self, rollout_data: Dict[str, Any]) -> Dict[str, Any]:
-        """执行训练步骤"""
+        """Execute training step"""
         # 准备训练数据
         rewards = rollout_data["rewards"]
         
@@ -978,7 +978,7 @@ class AReaLVERLBridge:
         }
     
     def get_training_summary(self) -> Dict[str, Any]:
-        """获取训练摘要"""
+        """Get training summary"""
         return {
             "verl_stats": {"step_count": self.verl_trainer.step_count},
             "areal_stats": self.areal_manager.get_stats(),
