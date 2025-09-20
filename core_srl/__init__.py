@@ -1,20 +1,29 @@
 #!/usr/bin/env python3
 """
-Core SRL - Simplified Reinforcement Learning Core
-=================================================
+Core SRL - Multi-Model Reinforcement Learning Core
+==================================================
 
-Unified core module for multi-model reinforcement learning with modern LLMs.
-Focuses on practical multi-model training scenarios with state-of-the-art models.
+Advanced multi-model RL framework for training multiple LLMs with cooperative-competitive dynamics.
+Emphasizes weight updates, parameter sharing, and distributed training with modern models.
 
-Main Components:
-- LLM Manager: Modern LLM interfaces (Qwen3, GPT-4, Claude, etc.)
-- RL Framework: PPO, GRPO, and multi-agent RL algorithms
-- LoRA System: Efficient parameter adaptation and hot-swapping
-- Scheduler: Resource management and task orchestration
-- Cache Optimizer: KV cache management and VERL/AReaL integration
-- Monitoring: Real-time metrics and visualization
-- Workflow Engine: DAG execution and training pipelines
-- Environments: Multi-model training scenarios
+Multi-Model Training Focus:
+- Simultaneous training of 4-8 modern LLMs (Qwen3-14B, GPT-4o, Claude-3.5)
+- Cooperative-competitive RL with dynamic weight updates
+- Real-time parameter synchronization and adaptation
+- Distributed LoRA management across GPU clusters
+
+System Architecture:
+- VERL Integration: Efficient RL training with vLLM backend
+- AReaL Framework: Advanced caching and resource optimization  
+- KVCache-Centric: Optimized memory management for multi-model scenarios
+- Core Cooperative-Competitive RL: Novel algorithm for multi-agent learning
+
+Key Features:
+- LLMs weight updates during training
+- Multi-model parameter sharing strategies
+- Adaptive LoRA rank adjustment
+- Real-time performance monitoring
+- Checkpoint management and recovery
 """
 
 # LLM Manager - Modern LLM interfaces
