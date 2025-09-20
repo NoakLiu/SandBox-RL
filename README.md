@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Core SRL Logo](assets/logo.png)
+<img src="assets/logo.png" alt="Core SRL Logo" width="200">
 
 **Advanced Multi-Model RL Framework for Training Modern LLMs**
 

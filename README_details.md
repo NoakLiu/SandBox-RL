@@ -1,1 +1,0 @@
-This is the detailed technical documentation for OASIS + Sandbox-RL. For a quick start and high-level overview, see README.md. 
