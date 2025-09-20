@@ -47,11 +47,11 @@ except ImportError:
 
 
 class LLMBackend(Enum):
-    """LLM后端类型"""
-    MOCK = "mock"
+    """LLM Backend Types"""
     HUGGINGFACE = "huggingface"
     OPENAI_API = "openai_api"
     VLLM = "vllm"
+    ANTHROPIC = "anthropic"
 
 
 class UpdateStrategy(Enum):
@@ -72,9 +72,9 @@ class ParameterImportance(Enum):
 
 @dataclass
 class LLMConfig:
-    """统一LLM配置"""
-    backend: LLMBackend = LLMBackend.MOCK
-    model_name: str = "mock_llm"
+    """Unified LLM Configuration"""
+    backend: LLMBackend = LLMBackend.HUGGINGFACE
+    model_name: str = "Qwen/Qwen2.5-14B-Instruct"
     device: str = "auto"
     max_length: int = 512
     temperature: float = 0.7
@@ -259,81 +259,81 @@ class BaseLLM(ABC):
         pass
 
 
-class MockLLM(BaseLLM):
-    """模拟LLM实现"""
+class AnthropicLLM(BaseLLM):
+    """Anthropic Claude API implementation"""
     
     def __init__(self, config: LLMConfig):
         super().__init__(config)
-        self.parameters = {
-            "embedding_weights": [0.1] * 1000,
-            "attention_weights": [0.2] * 500,
-            "output_weights": [0.3] * 200
-        }
-        
-        self.reasoning_templates = {
-            "mathematical": "数学推理：分析问题 → 建立方程 → 求解 → 验证",
-            "logical": "逻辑推理：前提分析 → 规则应用 → 结论推导 → 一致性检查",
-            "strategic": "策略推理：目标分析 → 选项评估 → 风险评估 → 最优选择",
-            "creative": "创造性推理：问题理解 → 发散思考 → 方案生成 → 可行性评估"
-        }
+        self._setup_client()
+    
+    def _setup_client(self):
+        """Setup Anthropic client"""
+        try:
+            import anthropic
+            self.anthropic = anthropic
+            
+            api_key = self.config.api_key or os.getenv("ANTHROPIC_API_KEY")
+            if api_key:
+                self.client = anthropic.Anthropic(api_key=api_key)
+                self.model_loaded = True
+        except ImportError:
+            logger.error("Missing Anthropic dependency: pip install anthropic")
+            raise
     
     def generate(self, prompt: str, **kwargs) -> LLMResponse:
-        """生成响应"""
+        """Generate response via Anthropic API"""
         with self.lock:
             self.generation_count += 1
             
-            temperature = kwargs.get("temperature", self.config.temperature)
-            
-            # 基于prompt内容选择推理类型
-            if "数学" in prompt or "计算" in prompt:
-                reasoning = self.reasoning_templates["mathematical"]
-                response_text = f"基于数学推理，我分析了问题并得出结论。温度参数: {temperature}"
-                confidence = 0.8 + (self.update_count * 0.01)
-            elif "策略" in prompt or "规划" in prompt:
-                reasoning = self.reasoning_templates["strategic"]
-                response_text = f"通过策略分析，我制定了最优方案。参数更新次数: {self.update_count}"
-                confidence = 0.7 + (self.update_count * 0.015)
-            elif "创新" in prompt or "创造" in prompt:
-                reasoning = self.reasoning_templates["creative"]
-                response_text = f"运用创造性思维，我提出了新的解决方案。"
-                confidence = 0.6 + (self.update_count * 0.02)
-            else:
-                reasoning = self.reasoning_templates["logical"]
-                response_text = f"通过逻辑推理，我得出了合理的结论。生成次数: {self.generation_count}"
-                confidence = 0.75 + (self.update_count * 0.012)
-            
-            confidence = min(0.95, confidence)
-            
-            return LLMResponse(
-                text=response_text,
-                confidence=confidence,
-                reasoning=reasoning,
-                metadata={
-                    "backend": self.backend.value,
-                    "generation_count": self.generation_count,
-                    "update_count": self.update_count,
-                    "temperature": temperature
-                }
-            )
+            try:
+                temperature = kwargs.get("temperature", self.config.temperature)
+                max_tokens = kwargs.get("max_tokens", min(self.config.max_length, 4096))
+                
+                start_time = time.time()
+                response = self.client.messages.create(
+                    model=self.model_name,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                
+                generation_time = time.time() - start_time
+                response_text = response.content[0].text
+                
+                return LLMResponse(
+                    text=response_text,
+                    confidence=0.9,  # Claude typically high quality
+                    reasoning=f"Generated using Anthropic {self.model_name}",
+                    metadata={
+                        "backend": self.backend.value,
+                        "generation_count": self.generation_count,
+                        "generation_time": generation_time,
+                        "model": self.model_name,
+                        "usage": response.usage.dict() if hasattr(response, 'usage') else None
+                    }
+                )
+                
+            except Exception as e:
+                logger.error(f"Anthropic API call failed: {e}")
+                return LLMResponse(
+                    text=f"API call failed: {str(e)}",
+                    confidence=0.0,
+                    reasoning="Anthropic API error",
+                    metadata={"error": str(e)}
+                )
     
     def get_parameters(self) -> Dict[str, Any]:
-        """获取模型参数"""
-        with self.lock:
-            return {
-                "parameters": self.parameters.copy(),
-                "generation_count": self.generation_count,
-                "update_count": self.update_count,
-                "model_name": self.model_name,
-                "backend": self.backend.value
-            }
+        """Get Anthropic model parameter info"""
+        return {
+            "model_name": self.model_name,
+            "backend": self.backend.value,
+            "generation_count": self.generation_count,
+            "api_available": hasattr(self, 'client')
+        }
     
     def _execute_parameter_update(self, updated_params: Dict[str, Any], learning_rate: float):
-        """执行Mock模型的参数更新"""
-        for param_name, gradient in updated_params.items():
-            if param_name in self.parameters:
-                if isinstance(gradient, (list, tuple)):
-                    for i in range(min(len(self.parameters[param_name]), len(gradient))):
-                        self.parameters[param_name][i] -= learning_rate * gradient[i]
+        """Anthropic models don't support parameter updates"""
+        logger.warning("Anthropic API models don't support parameter updates")
 
 
 class HuggingFaceLLM(BaseLLM):
@@ -644,58 +644,97 @@ def create_llm_config(backend: Union[str, LLMBackend] = "mock", model_name: str 
 
 
 def create_llm(config: LLMConfig) -> BaseLLM:
-    """根据配置创建LLM实例"""
-    if config.backend == LLMBackend.MOCK:
-        return MockLLM(config)
-    elif config.backend == LLMBackend.HUGGINGFACE:
+    """Create LLM instance based on configuration"""
+    if config.backend == LLMBackend.HUGGINGFACE:
         return HuggingFaceLLM(config)
     elif config.backend == LLMBackend.OPENAI_API:
         return OpenAILLM(config)
+    elif config.backend == LLMBackend.ANTHROPIC:
+        return AnthropicLLM(config)
     else:
-        raise ValueError(f"不支持的LLM后端: {config.backend}")
+        raise ValueError(f"Unsupported LLM backend: {config.backend}")
 
 
-def create_shared_llm_manager(model_name: str = "mock_llm", backend: Union[str, LLMBackend] = "mock", **kwargs) -> SharedLLMManager:
-    """创建共享LLM管理器"""
+def create_shared_llm_manager(model_name: str = "Qwen/Qwen2.5-14B-Instruct", backend: Union[str, LLMBackend] = "huggingface", **kwargs) -> SharedLLMManager:
+    """Create shared LLM manager with modern models"""
     config = create_llm_config(backend=backend, model_name=model_name, **kwargs)
     llm = create_llm(config)
     return SharedLLMManager(llm)
 
 
-# 预定义模型管理器
-def create_qwen_manager(model_name: str = "Qwen/Qwen-1_8B-Chat", device: str = "auto") -> SharedLLMManager:
-    """创建Qwen模型管理器"""
+# Modern model managers
+def create_qwen3_manager(model_name: str = "Qwen/Qwen2.5-14B-Instruct", device: str = "auto") -> SharedLLMManager:
+    """Create Qwen3 model manager with latest models"""
     config = create_llm_config(
         backend="huggingface",
         model_name=model_name,
         device=device,
-        max_length=1024,
+        max_length=32768,  # Qwen3 supports long context
         temperature=0.7
     )
     llm = create_llm(config)
     return SharedLLMManager(llm)
 
 
-def create_gpt2_manager(model_size: str = "gpt2", device: str = "auto") -> SharedLLMManager:
-    """创建GPT-2模型管理器"""
+def create_qwen_coder_manager(model_name: str = "Qwen/Qwen2.5-Coder-14B-Instruct", device: str = "auto") -> SharedLLMManager:
+    """Create Qwen Coder model manager for code tasks"""
+    config = create_llm_config(
+        backend="huggingface", 
+        model_name=model_name,
+        device=device,
+        max_length=16384,
+        temperature=0.3  # Lower temperature for code
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_qwen_math_manager(model_name: str = "Qwen/Qwen2.5-Math-14B-Instruct", device: str = "auto") -> SharedLLMManager:
+    """Create Qwen Math model manager for mathematical reasoning"""
     config = create_llm_config(
         backend="huggingface",
-        model_name=model_size,
+        model_name=model_name, 
         device=device,
-        max_length=512,
-        temperature=0.7
+        max_length=8192,
+        temperature=0.2  # Low temperature for math
     )
     llm = create_llm(config)
     return SharedLLMManager(llm)
 
 
-def create_openai_manager(model_name: str = "gpt-3.5-turbo", api_key: Optional[str] = None) -> SharedLLMManager:
-    """创建OpenAI API模型管理器"""
+def create_openai_manager(model_name: str = "gpt-4o", api_key: Optional[str] = None) -> SharedLLMManager:
+    """Create OpenAI API model manager with latest models"""
     config = create_llm_config(
         backend="openai_api",
         model_name=model_name,
         api_key=api_key,
-        max_length=1024,
+        max_length=128000,  # GPT-4o supports very long context
+        temperature=0.7
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_claude_manager(model_name: str = "claude-3-5-sonnet-20241022", api_key: Optional[str] = None) -> SharedLLMManager:
+    """Create Claude model manager with latest models"""
+    config = create_llm_config(
+        backend="anthropic",
+        model_name=model_name,
+        api_key=api_key,
+        max_length=200000,  # Claude 3.5 supports very long context
+        temperature=0.7
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
+
+
+def create_llama3_manager(model_name: str = "meta-llama/Llama-3.1-8B-Instruct", device: str = "auto") -> SharedLLMManager:
+    """Create Llama 3.1 model manager"""
+    config = create_llm_config(
+        backend="huggingface",
+        model_name=model_name,
+        device=device,
+        max_length=131072,  # Llama 3.1 long context
         temperature=0.7
     )
     llm = create_llm(config)
@@ -703,10 +742,34 @@ def create_openai_manager(model_name: str = "gpt-3.5-turbo", api_key: Optional[s
 
 
 def get_available_models() -> Dict[str, List[str]]:
-    """获取可用的模型列表"""
+    """Get available modern model list"""
     return {
-        "mock": ["mock_llm"],
-        "gpt2": ["gpt2", "gpt2-medium", "gpt2-large"],
-        "qwen": ["Qwen/Qwen-1_8B-Chat", "Qwen/Qwen-7B-Chat"],
-        "openai": ["gpt-3.5-turbo", "gpt-4"]
+        "qwen3": [
+            "Qwen/Qwen2.5-14B-Instruct",
+            "Qwen/Qwen2.5-32B-Instruct", 
+            "Qwen/Qwen2.5-72B-Instruct",
+            "Qwen/Qwen2.5-Coder-14B-Instruct",
+            "Qwen/Qwen2.5-Math-14B-Instruct"
+        ],
+        "openai": [
+            "gpt-4o",
+            "gpt-4o-mini", 
+            "gpt-4-turbo",
+            "o1-preview",
+            "o1-mini"
+        ],
+        "anthropic": [
+            "claude-3-5-sonnet-20241022",
+            "claude-3-5-haiku-20241022", 
+            "claude-3-opus-20240229"
+        ],
+        "llama3": [
+            "meta-llama/Llama-3.1-8B-Instruct",
+            "meta-llama/Llama-3.1-70B-Instruct",
+            "meta-llama/Llama-3.1-405B-Instruct"
+        ],
+        "deepseek": [
+            "deepseek-ai/deepseek-coder-33b-instruct",
+            "deepseek-ai/deepseek-math-7b-instruct"
+        ]
     }
