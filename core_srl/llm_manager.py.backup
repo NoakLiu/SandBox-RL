@@ -247,55 +247,9 @@ class BaseLLM(ABC):
         return True
     
     def _apply_gradient_update(self, param_name: str, gradient: Any, learning_rate: float) -> Any:
-        """Apply gradient update with advanced optimization techniques"""
-        if not NUMPY_AVAILABLE:
-            logger.warning("NumPy not available, using simplified gradient update")
-            return gradient
-        
-        # Convert gradient to numpy array if needed
-        if hasattr(gradient, 'cpu'):
-            gradient_np = gradient.cpu().numpy()
-        elif hasattr(gradient, 'numpy'):
-            gradient_np = gradient.numpy()
-        else:
-            gradient_np = np.array(gradient)
-        
-        # Apply gradient clipping to prevent exploding gradients
-        gradient_norm = np.linalg.norm(gradient_np)
-        max_gradient_norm = 1.0
-        
-        if gradient_norm > max_gradient_norm:
-            gradient_np = gradient_np * (max_gradient_norm / gradient_norm)
-            logger.debug(f"Clipped gradient for {param_name}: {gradient_norm:.4f} -> {max_gradient_norm}")
-        
-        # Apply momentum if available (simplified momentum buffer)
-        momentum_decay = 0.9
-        if not hasattr(self, '_momentum_buffer'):
-            self._momentum_buffer = {}
-        
-        if param_name not in self._momentum_buffer:
-            self._momentum_buffer[param_name] = np.zeros_like(gradient_np)
-        
-        # Update momentum buffer
-        self._momentum_buffer[param_name] = (
-            momentum_decay * self._momentum_buffer[param_name] + 
-            (1 - momentum_decay) * gradient_np
-        )
-        
-        # Apply learning rate decay based on update count
-        effective_lr = learning_rate * (0.95 ** (self.update_count // 100))
-        
-        # Compute final parameter update
-        param_update = effective_lr * self._momentum_buffer[param_name]
-        
-        # Add small amount of noise for regularization
-        noise_scale = 1e-6
-        noise = np.random.normal(0, noise_scale, param_update.shape)
-        param_update += noise
-        
-        logger.debug(f"Applied gradient update for {param_name}: lr={effective_lr:.6f}, norm={np.linalg.norm(param_update):.6f}")
-        
-        return param_update
+        """应用梯度更新"""
+        # 简化的梯度更新逻辑
+        return gradient  # 实际实现中需要更复杂的逻辑
     
     def _execute_parameter_update(self, updated_params: Dict[str, Any], learning_rate: float):
         """执行参数更新"""
@@ -304,6 +258,82 @@ class BaseLLM(ABC):
 
 
 class AnthropicLLM(BaseLLM):
+    """Anthropic Claude API implementation"""
+    
+    def __init__(self, config: LLMConfig):
+        super().__init__(config)
+        self._setup_client()
+    
+    def _setup_client(self):
+        """Setup Anthropic client"""
+        try:
+            import anthropic
+            self.anthropic = anthropic
+            
+            api_key = self.config.api_key or os.getenv("ANTHROPIC_API_KEY")
+            if api_key:
+                self.client = anthropic.Anthropic(api_key=api_key)
+                self.model_loaded = True
+        except ImportError:
+            logger.error("Missing Anthropic dependency: pip install anthropic")
+            raise
+    
+    def generate(self, prompt: str, **kwargs) -> LLMResponse:
+        """Generate response via Anthropic API"""
+        with self.lock:
+            self.generation_count += 1
+            
+            try:
+                temperature = kwargs.get("temperature", self.config.temperature)
+                max_tokens = kwargs.get("max_tokens", min(self.config.max_length, 4096))
+                
+                start_time = time.time()
+                response = self.client.messages.create(
+                    model=self.model_name,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                
+                generation_time = time.time() - start_time
+                response_text = response.content[0].text
+                
+                return LLMResponse(
+                    text=response_text,
+                    confidence=0.9,  # Claude typically high quality
+                    reasoning=f"Generated using Anthropic {self.model_name}",
+                    metadata={
+                        "backend": self.backend.value,
+                        "generation_count": self.generation_count,
+                        "generation_time": generation_time,
+                        "model": self.model_name,
+                        "usage": response.usage.dict() if hasattr(response, 'usage') else None
+                    }
+                )
+                
+            except Exception as e:
+                logger.error(f"Anthropic API call failed: {e}")
+                return LLMResponse(
+                    text=f"API call failed: {str(e)}",
+                    confidence=0.0,
+                    reasoning="Anthropic API error",
+                    metadata={"error": str(e)}
+                )
+    
+    def get_parameters(self) -> Dict[str, Any]:
+        """Get Anthropic model parameter info"""
+        return {
+            "model_name": self.model_name,
+            "backend": self.backend.value,
+            "generation_count": self.generation_count,
+            "api_available": hasattr(self, 'client')
+        }
+    
+    def _execute_parameter_update(self, updated_params: Dict[str, Any], learning_rate: float):
+        """Anthropic models don't support parameter updates"""
+        logger.warning("Anthropic API models don't support parameter updates")
+
+
 class HuggingFaceLLM(BaseLLM):
     """HuggingFace模型实现"""
     
@@ -443,6 +473,84 @@ class HuggingFaceLLM(BaseLLM):
 
 
 class OpenAILLM(BaseLLM):
+    """OpenAI API实现"""
+    
+    def __init__(self, config: LLMConfig):
+        super().__init__(config)
+        self._setup_client()
+    
+    def _setup_client(self):
+        """设置OpenAI客户端"""
+        try:
+            import openai
+            self.openai = openai
+            
+            api_key = self.config.api_key or os.getenv("OPENAI_API_KEY")
+            if api_key:
+                self.client = openai.OpenAI(api_key=api_key, base_url=self.config.api_base)
+                self.model_loaded = True
+        except ImportError:
+            logger.error("缺少OpenAI依赖，请安装: pip install openai")
+            raise
+    
+    def generate(self, prompt: str, **kwargs) -> LLMResponse:
+        """通过OpenAI API生成响应"""
+        with self.lock:
+            self.generation_count += 1
+            
+            try:
+                temperature = kwargs.get("temperature", self.config.temperature)
+                max_tokens = kwargs.get("max_tokens", min(self.config.max_length, 4096))
+                
+                start_time = time.time()
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    top_p=self.config.top_p
+                )
+                
+                generation_time = time.time() - start_time
+                response_text = response.choices[0].message.content
+                finish_reason = response.choices[0].finish_reason
+                confidence = 0.9 if finish_reason == "stop" else 0.7
+                
+                return LLMResponse(
+                    text=response_text,
+                    confidence=confidence,
+                    reasoning=f"通过OpenAI API调用{self.model_name}模型生成",
+                    metadata={
+                        "backend": self.backend.value,
+                        "generation_count": self.generation_count,
+                        "generation_time": generation_time,
+                        "finish_reason": finish_reason
+                    }
+                )
+                
+            except Exception as e:
+                logger.error(f"OpenAI API调用失败: {e}")
+                return LLMResponse(
+                    text=f"API调用失败: {str(e)}",
+                    confidence=0.0,
+                    reasoning="OpenAI API调用出现错误",
+                    metadata={"error": str(e)}
+                )
+    
+    def get_parameters(self) -> Dict[str, Any]:
+        """获取OpenAI模型参数信息"""
+        return {
+            "model_name": self.model_name,
+            "backend": self.backend.value,
+            "generation_count": self.generation_count,
+            "api_available": hasattr(self, 'client')
+        }
+    
+    def _execute_parameter_update(self, updated_params: Dict[str, Any], learning_rate: float):
+        """OpenAI模型不支持参数更新"""
+        logger.warning("OpenAI API模式不支持参数更新")
+
+
 class SharedLLMManager:
     """共享LLM管理器"""
     
@@ -497,9 +605,18 @@ class SharedLLMManager:
             return response
     
     def update_shared_parameters(self, gradients: Dict[str, Any], learning_rate: float = 1e-4) -> Dict[str, Any]:
-        """Update shared LLM parameters - all supported models are open-weight"""
+        """Update shared LLM parameters - only supports open-weight models"""
         with self.lock:
-            # All supported models are open-weight and support parameter updates
+            # Check if this is an open-weight model
+            if self.llm.backend in [LLMBackend.OPENAI_API, LLMBackend.ANTHROPIC]:
+                return {
+                    "status": "skipped",
+                    "reason": "API models do not support weight updates",
+                    "model": self.llm.model_name,
+                    "backend": self.llm.backend.value
+                }
+            
+            # Only update open-weight models (HuggingFace)
             if hasattr(self.llm, 'update_parameters'):
                 self.llm.update_parameters(gradients, learning_rate)
                 self.total_updates += 1
@@ -542,14 +659,15 @@ def create_llm_config(backend: Union[str, LLMBackend] = "mock", model_name: str 
 
 
 def create_llm(config: LLMConfig) -> BaseLLM:
-    """Create LLM instance based on configuration - only open-weight models"""
+    """Create LLM instance based on configuration"""
     if config.backend == LLMBackend.HUGGINGFACE:
         return HuggingFaceLLM(config)
-    elif config.backend == LLMBackend.VLLM:
-        # For now, use HuggingFace as VLLM backend
-        return HuggingFaceLLM(config)
+    elif config.backend == LLMBackend.OPENAI_API:
+        return OpenAILLM(config)
+    elif config.backend == LLMBackend.ANTHROPIC:
+        return AnthropicLLM(config)
     else:
-        raise ValueError(f"Unsupported LLM backend: {config.backend}. Only HUGGINGFACE and VLLM are supported.")
+        raise ValueError(f"Unsupported LLM backend: {config.backend}")
 
 
 def create_shared_llm_manager(model_name: str = "Qwen/Qwen2.5-14B-Instruct", backend: Union[str, LLMBackend] = "huggingface", **kwargs) -> SharedLLMManager:
@@ -599,8 +717,30 @@ def create_qwen_math_manager(model_name: str = "Qwen/Qwen2.5-Math-14B-Instruct",
     return SharedLLMManager(llm)
 
 
+def create_openai_manager(model_name: str = "gpt-4o", api_key: Optional[str] = None) -> SharedLLMManager:
+    """Create OpenAI API model manager with latest models"""
+    config = create_llm_config(
+        backend="openai_api",
+        model_name=model_name,
+        api_key=api_key,
+        max_length=128000,  # GPT-4o supports very long context
+        temperature=0.7
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
 
 
+def create_claude_manager(model_name: str = "claude-3-5-sonnet-20241022", api_key: Optional[str] = None) -> SharedLLMManager:
+    """Create Claude model manager with latest models"""
+    config = create_llm_config(
+        backend="anthropic",
+        model_name=model_name,
+        api_key=api_key,
+        max_length=200000,  # Claude 3.5 supports very long context
+        temperature=0.7
+    )
+    llm = create_llm(config)
+    return SharedLLMManager(llm)
 
 
 def create_llama3_manager(model_name: str = "meta-llama/Llama-3.1-8B-Instruct", device: str = "auto") -> SharedLLMManager:
