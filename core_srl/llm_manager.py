@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Unified LLM Manager - 统一LLM管理器
-=================================
+Unified LLM Manager
+==================
 
-集成所有LLM相关功能：
-1. 统一LLM接口（Mock, HuggingFace, OpenAI）
-2. 共享LLM管理器
-3. 冻结自适应更新
-4. LoRA集成和压缩
-5. KV缓存优化
+Integrated LLM management functionality:
+1. Unified LLM interface (HuggingFace, vLLM)
+2. Shared LLM manager for multi-model coordination
+3. Adaptive parameter updates with freezing strategies
+4. LoRA integration and compression
+5. KV cache optimization for efficient inference
 """
 
 import logging
