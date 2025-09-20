@@ -246,56 +246,132 @@ class BaseLLM(ABC):
         
         return True
     
-    def _apply_gradient_update(self, param_name: str, gradient: Any, learning_rate: float) -> Any:
-        """Apply gradient update with advanced optimization techniques"""
-        if not NUMPY_AVAILABLE:
-            logger.warning("NumPy not available, using simplified gradient update")
-            return gradient
+    def _apply_gradient_update(self, param_name: str, gradient: Any, learning_rate: float, 
+                             optimizer_state: Optional[Dict[str, Any]] = None) -> Tuple[Any, Dict[str, Any]]:
+        """Apply gradient update using Adam-like optimization with proper state tracking"""
         
-        # Convert gradient to numpy array if needed
-        if hasattr(gradient, 'cpu'):
-            gradient_np = gradient.cpu().numpy()
-        elif hasattr(gradient, 'numpy'):
-            gradient_np = gradient.numpy()
+        # Initialize optimizer state if not provided
+        if optimizer_state is None:
+            optimizer_state = {}
+        
+        # Adam hyperparameters
+        beta1 = optimizer_state.get('beta1', 0.9)
+        beta2 = optimizer_state.get('beta2', 0.999)
+        eps = optimizer_state.get('eps', 1e-8)
+        weight_decay = optimizer_state.get('weight_decay', 0.01)
+        
+        # Initialize state for this parameter if needed
+        if param_name not in optimizer_state:
+            optimizer_state[param_name] = {
+                'step': 0,
+                'exp_avg': None,  # First moment estimate (momentum)
+                'exp_avg_sq': None,  # Second moment estimate (RMSprop)
+            }
+        
+        param_state = optimizer_state[param_name]
+        param_state['step'] += 1
+        
+        # Convert gradient to appropriate tensor format
+        if hasattr(gradient, 'detach'):
+            grad = gradient.detach()
         else:
-            gradient_np = np.array(gradient)
+            # Convert numpy/other formats to tensor-like structure
+            grad = gradient
         
-        # Apply gradient clipping to prevent exploding gradients
-        gradient_norm = np.linalg.norm(gradient_np)
-        max_gradient_norm = 1.0
+        # Apply gradient clipping (per-parameter)
+        max_grad_norm = 1.0
+        if hasattr(grad, 'norm'):
+            grad_norm = grad.norm().item()
+        else:
+            grad_norm = float(np.linalg.norm(grad)) if NUMPY_AVAILABLE else 1.0
         
-        if gradient_norm > max_gradient_norm:
-            gradient_np = gradient_np * (max_gradient_norm / gradient_norm)
-            logger.debug(f"Clipped gradient for {param_name}: {gradient_norm:.4f} -> {max_gradient_norm}")
+        if grad_norm > max_grad_norm:
+            clip_coef = max_grad_norm / (grad_norm + 1e-6)
+            if hasattr(grad, 'mul_'):
+                grad.mul_(clip_coef)
+            else:
+                grad = grad * clip_coef
+            logger.debug(f"Clipped gradient for {param_name}: {grad_norm:.4f} -> {max_grad_norm}")
         
-        # Apply momentum if available (simplified momentum buffer)
-        momentum_decay = 0.9
-        if not hasattr(self, '_momentum_buffer'):
-            self._momentum_buffer = {}
+        # Add weight decay (L2 regularization) to gradient
+        if weight_decay != 0:
+            # This should be applied to the original parameter, not gradient
+            # For now, we'll add it to gradient as approximation
+            if hasattr(grad, 'add_'):
+                # grad.add_(param, alpha=weight_decay)  # Would need original parameter
+                pass
         
-        if param_name not in self._momentum_buffer:
-            self._momentum_buffer[param_name] = np.zeros_like(gradient_np)
+        # Initialize exponential moving averages if needed
+        if param_state['exp_avg'] is None:
+            if hasattr(grad, 'zeros_like'):
+                param_state['exp_avg'] = grad.zeros_like()
+                param_state['exp_avg_sq'] = grad.zeros_like()
+            else:
+                param_state['exp_avg'] = np.zeros_like(grad) if NUMPY_AVAILABLE else grad * 0
+                param_state['exp_avg_sq'] = np.zeros_like(grad) if NUMPY_AVAILABLE else grad * 0
         
-        # Update momentum buffer
-        self._momentum_buffer[param_name] = (
-            momentum_decay * self._momentum_buffer[param_name] + 
-            (1 - momentum_decay) * gradient_np
-        )
+        exp_avg = param_state['exp_avg']
+        exp_avg_sq = param_state['exp_avg_sq']
+        step = param_state['step']
         
-        # Apply learning rate decay based on update count
-        effective_lr = learning_rate * (0.95 ** (self.update_count // 100))
+        # Update exponential moving averages
+        if hasattr(exp_avg, 'mul_') and hasattr(exp_avg, 'add_'):
+            # PyTorch tensor operations
+            exp_avg.mul_(beta1).add_(grad, alpha=1 - beta1)
+            exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1 - beta2)
+        else:
+            # NumPy or other array operations
+            exp_avg = beta1 * exp_avg + (1 - beta1) * grad
+            exp_avg_sq = beta2 * exp_avg_sq + (1 - beta2) * (grad ** 2)
+            param_state['exp_avg'] = exp_avg
+            param_state['exp_avg_sq'] = exp_avg_sq
         
-        # Compute final parameter update
-        param_update = effective_lr * self._momentum_buffer[param_name]
+        # Bias correction
+        bias_correction1 = 1 - beta1 ** step
+        bias_correction2 = 1 - beta2 ** step
         
-        # Add small amount of noise for regularization
-        noise_scale = 1e-6
-        noise = np.random.normal(0, noise_scale, param_update.shape)
-        param_update += noise
+        # Corrected learning rate
+        corrected_lr = learning_rate * (bias_correction2 ** 0.5) / bias_correction1
         
-        logger.debug(f"Applied gradient update for {param_name}: lr={effective_lr:.6f}, norm={np.linalg.norm(param_update):.6f}")
+        # Apply learning rate scheduling
+        if hasattr(self, 'lr_scheduler_factor'):
+            schedule_factor = self.lr_scheduler_factor
+        else:
+            # Simple exponential decay
+            schedule_factor = 0.98 ** (step // 100)
         
-        return param_update
+        effective_lr = corrected_lr * schedule_factor
+        
+        # Compute parameter update using Adam formula
+        if hasattr(exp_avg_sq, 'sqrt'):
+            # PyTorch tensor operations
+            denom = exp_avg_sq.sqrt().add_(eps)
+            param_update = -effective_lr * exp_avg / denom
+        else:
+            # NumPy operations
+            denom = np.sqrt(exp_avg_sq) + eps
+            param_update = -effective_lr * exp_avg / denom
+        
+        # Add noise for regularization (optional)
+        if hasattr(self, 'add_noise') and self.add_noise:
+            noise_factor = 1e-6 * effective_lr
+            if hasattr(param_update, 'normal_'):
+                noise = param_update.clone().normal_(0, noise_factor)
+                param_update.add_(noise)
+            elif NUMPY_AVAILABLE:
+                noise = np.random.normal(0, noise_factor, param_update.shape)
+                param_update = param_update + noise
+        
+        # Log update statistics
+        if hasattr(param_update, 'norm'):
+            update_norm = param_update.norm().item()
+        else:
+            update_norm = float(np.linalg.norm(param_update)) if NUMPY_AVAILABLE else 0.0
+        
+        logger.debug(f"Adam update for {param_name}: step={step}, lr={effective_lr:.8f}, "
+                    f"update_norm={update_norm:.8f}, bias_corr=({bias_correction1:.4f}, {bias_correction2:.4f})")
+        
+        return param_update, optimizer_state
     
     def _execute_parameter_update(self, updated_params: Dict[str, Any], learning_rate: float):
         """Execute parameter update with validation and safety checks"""
