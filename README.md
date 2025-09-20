@@ -1,4 +1,4 @@
-# Core SRL - Multi-Model Reinforcement Learning
+# SandBox RL - Multi-Model Reinforcement Learning
 
 <div align="center">
 
