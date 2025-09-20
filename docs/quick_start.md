@@ -354,11 +354,13 @@ config.enable_areal = True
 config.num_gpus = 4  # Use more GPUs
 ```
 
-**API Rate Limits:**
+**Model Loading Issues:**
 ```python
-# Solution: Add delays for API models
-import asyncio
-await asyncio.sleep(0.1)  # 100ms delay
+# Solution: Clear cache and retry
+import torch
+torch.cuda.empty_cache()
+# Or use smaller model variant
+config.model_names = {"qwen3": "Qwen/Qwen2.5-7B-Instruct"}
 ```
 
 **Import Error:**

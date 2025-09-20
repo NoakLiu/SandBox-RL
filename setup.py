@@ -84,10 +84,6 @@ setup(
             "verl>=0.1.0",
             "areal>=0.1.0",
         ],
-        "api": [
-            "openai>=1.0.0",
-            "anthropic>=0.3.0",
-        ],
         "visualization": [
             "dash>=2.10.0",
             "kaleido>=0.2.1",
@@ -108,8 +104,6 @@ setup(
             # All optional dependencies
             "verl>=0.1.0",
             "areal>=0.1.0", 
-            "openai>=1.0.0",
-            "anthropic>=0.3.0",
             "dash>=2.10.0",
             "kaleido>=0.2.1",
             "ray>=2.0.0",
