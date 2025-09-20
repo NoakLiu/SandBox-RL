@@ -49,7 +49,7 @@ except ImportError:
 
 
 class NodeType(Enum):
-    """节点类型"""
+    """Node type"""
     AGENT = "agent"
     MISINFO_SOURCE = "misinfo_source"
     FACT_CHECKER = "fact_checker"
@@ -68,7 +68,7 @@ class EdgeType(Enum):
 
 
 class InteractionType(Enum):
-    """交互类型"""
+    """Interaction type"""
     SHARE = "share"
     LIKE = "like"
     COMMENT = "comment"
@@ -496,7 +496,7 @@ class GraphVisualizer:
         if not source_node or not target_node:
             return
         
-        # 根据交互类型更新belief
+        # 根据Interaction type更新belief
         if interaction_type == InteractionType.SHARE:
             belief_transfer = source_node.belief * source_node.influence * 0.1
             target_node.belief = min(1.0, target_node.belief + belief_transfer)
@@ -662,7 +662,7 @@ class GraphVisualizer:
             "average_belief": 0.0
         }
         
-        # 统计节点类型
+        # 统计Node type
         for node in self.nodes.values():
             stats["node_types"][node.node_type.value] += 1
         

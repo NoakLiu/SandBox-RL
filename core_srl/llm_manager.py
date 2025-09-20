@@ -53,7 +53,7 @@ class LLMBackend(Enum):
 
 
 class UpdateStrategy(Enum):
-    """参数更新策略"""
+    """Parameter update strategy"""
     FROZEN = "frozen"
     ADAPTIVE = "adaptive"
     SELECTIVE = "selective"
@@ -61,7 +61,7 @@ class UpdateStrategy(Enum):
 
 
 class ParameterImportance(Enum):
-    """参数重要性级别"""
+    """Parameter importance级别"""
     CRITICAL = "critical"
     IMPORTANT = "important"
     MODERATE = "moderate"
@@ -99,7 +99,7 @@ class LLMConfig:
 
 @dataclass
 class LLMResponse:
-    """LLM响应结果"""
+    """LLM Response结果"""
     text: str
     confidence: float = 0.0
     reasoning: str = ""
@@ -172,7 +172,7 @@ class BaseLLM(ABC):
     
     @abstractmethod
     def generate(self, prompt: str, **kwargs) -> LLMResponse:
-        """生成响应"""
+        """Generate response"""
         pass
     
     @abstractmethod
@@ -183,7 +183,7 @@ class BaseLLM(ABC):
     def update_parameters(self, gradients: Dict[str, Any], learning_rate: float = 1e-4) -> None:
         """更新模型参数（带冻结自适应逻辑）"""
         with self.lock:
-            # 分析参数重要性
+            # 分析Parameter importance
             importance_scores = self._analyze_parameter_importance(gradients)
             
             # 更新学习率
@@ -201,7 +201,7 @@ class BaseLLM(ABC):
             self.update_count += 1
     
     def _analyze_parameter_importance(self, gradients: Dict[str, Any]) -> Dict[str, ParameterImportance]:
-        """分析参数重要性"""
+        """分析Parameter importance"""
         importance_scores = {}
         for name, grad in gradients.items():
             # 计算梯度范数
@@ -478,7 +478,7 @@ class BaseLLM(ABC):
 
 class AnthropicLLM(BaseLLM):
 class HuggingFaceLLM(BaseLLM):
-    """HuggingFace模型实现"""
+    """HuggingFace model implementation"""
     
     def __init__(self, config: LLMConfig):
         super().__init__(config)
@@ -487,7 +487,7 @@ class HuggingFaceLLM(BaseLLM):
         self._check_dependencies()
     
     def _check_dependencies(self):
-        """检查依赖"""
+        """Check dependencies"""
         try:
             import torch
             import transformers
@@ -498,7 +498,7 @@ class HuggingFaceLLM(BaseLLM):
             raise
     
     def generate(self, prompt: str, **kwargs) -> LLMResponse:
-        """生成响应"""
+        """Generate response"""
         if not self.model_loaded:
             self._load_model()
         
@@ -514,7 +514,7 @@ class HuggingFaceLLM(BaseLLM):
                 inputs = self.tokenizer.encode(prompt, return_tensors="pt", truncation=True, max_length=1024)
                 inputs = inputs.to(self.device)
                 
-                # 生成响应
+                # Generate response
                 start_time = time.time()
                 with self.torch.no_grad():
                     outputs = self.model.generate(
@@ -550,7 +550,7 @@ class HuggingFaceLLM(BaseLLM):
                 )
                 
             except Exception as e:
-                logger.error(f"生成响应失败: {e}")
+                logger.error(f"Generate response失败: {e}")
                 return LLMResponse(
                     text=f"生成失败: {str(e)}",
                     confidence=0.0,
@@ -899,7 +899,7 @@ class HuggingFaceLLM(BaseLLM):
 
 class OpenAILLM(BaseLLM):
 class SharedLLMManager:
-    """共享LLM管理器"""
+    """Shared LLM manager"""
     
     def __init__(self, llm: BaseLLM):
         self.llm = llm
@@ -910,7 +910,7 @@ class SharedLLMManager:
         self.total_updates = 0
     
     def register_node(self, node_id: str, node_config: Optional[Dict[str, Any]] = None):
-        """注册节点"""
+        """Register node"""
         if node_config is None:
             node_config = {}
         
@@ -927,7 +927,7 @@ class SharedLLMManager:
             logger.info(f"注册LLM节点: {node_id}")
     
     def generate_for_node(self, node_id: str, prompt: str, **kwargs) -> LLMResponse:
-        """为特定节点生成响应"""
+        """为特定节点Generate response"""
         with self.lock:
             if node_id not in self.registered_nodes:
                 raise ValueError(f"节点 {node_id} 未注册")
@@ -973,7 +973,7 @@ class SharedLLMManager:
                 }
     
     def get_global_stats(self) -> Dict[str, Any]:
-        """获取全局统计信息"""
+        """Get global statistics"""
         with self.lock:
             llm_params = self.llm.get_parameters()
             
@@ -990,7 +990,7 @@ class SharedLLMManager:
 
 # 工厂函数
 def create_llm_config(backend: Union[str, LLMBackend] = "mock", model_name: str = "mock_llm", **kwargs) -> LLMConfig:
-    """创建LLM配置"""
+    """创建LLM Configuration"""
     if isinstance(backend, str):
         backend = LLMBackend(backend)
     return LLMConfig(backend=backend, model_name=model_name, **kwargs)

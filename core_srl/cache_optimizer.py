@@ -664,7 +664,7 @@ class VERLTrainer:
         for prompt in prompts:
             # 模拟生成
             await asyncio.sleep(0.01)
-            text = f"VERL生成响应: {prompt[:50]}..."
+            text = f"VERLGenerate response: {prompt[:50]}..."
             results.append({"text": text, "tokens": len(text.split())})
         
         return results
@@ -700,7 +700,7 @@ class VERLTrainer:
         """执行rollout步骤"""
         start_time = time.time()
         
-        # 生成响应
+        # Generate response
         responses = await self.generate_batch(prompts)
         
         # 计算奖励
@@ -763,12 +763,12 @@ class DecoupledPPOTrainer:
             "clip_ratio": 0.2
         }
         
-        # 轨迹缓冲区
+        # Trajectory缓冲区
         self.trajectories = []
         self.max_trajectories = 1000
     
     def add_trajectory(self, trajectory: List[Dict[str, Any]]):
-        """添加轨迹"""
+        """添加Trajectory"""
         self.trajectories.append(trajectory)
         
         if len(self.trajectories) > self.max_trajectories:

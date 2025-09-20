@@ -651,7 +651,7 @@ class LoRARLStrategy:
 
 
 class DistributedLoRAScheduler:
-    """分布式LoRA调度器"""
+    """Distributed LoRA scheduler"""
     
     def __init__(self, base_port: int = 8001, num_gpus: int = 8, model_name: str = "qwen-2"):
         self.base_port = base_port
@@ -695,12 +695,12 @@ class DistributedLoRAScheduler:
     async def start(self):
         """启动调度器"""
         await self.hotswap_manager.start()
-        logger.info("分布式LoRA调度器已启动")
+        logger.info("Distributed LoRA scheduler已启动")
     
     async def stop(self):
         """停止调度器"""
         await self.hotswap_manager.stop()
-        logger.info("分布式LoRA调度器已停止")
+        logger.info("Distributed LoRA scheduler已停止")
     
     async def submit_rl_update(self, lora_id: int, reward: float, new_weights: Dict[str, Any]) -> str:
         """提交RL驱动的更新"""
@@ -747,7 +747,7 @@ def create_hotswap_manager(lora_configs: Dict[int, LoRAConfig],
 
 def create_distributed_lora_scheduler(base_port: int = 8001, num_gpus: int = 8, 
                                      model_name: str = "qwen-2") -> DistributedLoRAScheduler:
-    """创建分布式LoRA调度器"""
+    """创建Distributed LoRA scheduler"""
     return DistributedLoRAScheduler(base_port, num_gpus, model_name)
 
 

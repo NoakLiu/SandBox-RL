@@ -148,5 +148,5 @@ MIT License
 ---
 
 <div align="center">
-<b>Core SRL v2.0.0 - Multi-Model RL Training Made Simple</b>
+<b>Core SRL v2.0.0 - Multi-Model RL Training Made Efficient</b>
 </div>

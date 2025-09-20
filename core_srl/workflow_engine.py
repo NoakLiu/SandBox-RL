@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Unified Workflow Engine - 统一工作流引擎
+Unified Workflow Engine - Unified Workflow Engine
 ======================================
 
-集成所有工作流和执行相关功能：
-1. DAG工作流管理
-2. 节点执行和调度
-3. 异步任务处理
-4. 轨迹数据管理
-5. 训练服务器架构
+Integrated workflow and execution functionality：
+1. DAG workflow management
+2. Node execution and scheduling
+3. Asynchronous task processing
+4. Trajectory data management
+5. Training server architecture
 """
 
 import asyncio
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class NodeType(Enum):
-    """节点类型"""
+    """Node type"""
     INPUT = "input"
     SANDBOX = "sandbox"
     LLM = "llm"
@@ -41,7 +41,7 @@ class NodeType(Enum):
 
 
 class ExecutionStatus(Enum):
-    """执行状态"""
+    """Execution status"""
     PENDING = "pending"
     RUNNING = "running"
     SUCCESS = "success"
@@ -51,7 +51,7 @@ class ExecutionStatus(Enum):
 
 
 class StopConditionType(Enum):
-    """停止条件类型"""
+    """Stop condition type"""
     MAX_ITERATIONS = "max_iterations"
     CONDITION_MET = "condition_met"
     ERROR_THRESHOLD = "error_threshold"
@@ -61,7 +61,7 @@ class StopConditionType(Enum):
 
 @dataclass
 class TrajectoryStep:
-    """轨迹步骤"""
+    """Trajectory step"""
     state: Dict[str, Any]
     action: Any
     reward: float
@@ -71,7 +71,7 @@ class TrajectoryStep:
 
 @dataclass
 class Trajectory:
-    """轨迹"""
+    """Trajectory"""
     agent_id: str
     episode_id: str
     steps: List[TrajectoryStep] = field(default_factory=list)
@@ -98,7 +98,7 @@ class Trajectory:
 
 @dataclass
 class Sample:
-    """训练样本"""
+    """训练Sample"""
     sample_id: str
     payload: Dict[str, Any]
 
@@ -187,7 +187,7 @@ class WorkflowNode:
     loop_condition: Optional[Callable] = None
     max_loop_iterations: int = 100
     
-    # 执行状态
+    # Execution status
     status: ExecutionStatus = ExecutionStatus.PENDING
     start_time: Optional[float] = None
     end_time: Optional[float] = None
@@ -197,7 +197,7 @@ class WorkflowNode:
 
 
 class TrainerServer:
-    """训练服务器"""
+    """Training server"""
     
     def __init__(self, maxsize: int = 1024):
         self.samples = queue.Queue(maxsize=maxsize)
@@ -205,12 +205,12 @@ class TrainerServer:
         self.is_running = False
     
     def put_samples(self, batch: List[Sample]):
-        """添加样本批次"""
+        """添加Sample批次"""
         for sample in batch:
             self.samples.put(sample, timeout=5)
     
     def get_sample(self, timeout: float = 5.0) -> Optional[Sample]:
-        """获取样本"""
+        """获取Sample"""
         try:
             return self.samples.get(timeout=timeout)
         except queue.Empty:
@@ -265,7 +265,7 @@ class LocalAgentClient:
         obs = sample.payload
         action_dict = self.adapter.act(obs)
         
-        # 创建最小轨迹
+        # 创建最小Trajectory
         step = TrajectoryStep(state=obs, action=action_dict, reward=0.0, done=True, info={})
         traj = Trajectory(agent_id=self.agent_id, episode_id=sample.sample_id, steps=[step])
         
@@ -375,7 +375,7 @@ class WorkflowEngine:
             if node.status != ExecutionStatus.PENDING:
                 continue
             
-            # 检查依赖
+            # Check dependencies
             dependencies_ready = all(
                 self.nodes[dep_id].status in [ExecutionStatus.SUCCESS, ExecutionStatus.SKIPPED]
                 for dep_id in node.dependencies
@@ -397,7 +397,7 @@ class WorkflowEngine:
             # 获取输入数据
             input_data = self._get_node_input_data(node_id, context)
             
-            # 根据节点类型执行
+            # 根据Node type执行
             if node.node_type == NodeType.CONDITION:
                 result = await self._execute_condition_node(node, context, input_data)
             elif node.node_type == NodeType.LOOP:
@@ -828,7 +828,7 @@ def create_workflow_engine(workflow_id: str, name: str = "") -> WorkflowBuilder:
 
 
 def create_trainer_server(maxsize: int = 1024) -> TrainerServer:
-    """创建训练服务器"""
+    """创建Training server"""
     return TrainerServer(maxsize)
 
 
@@ -848,14 +848,14 @@ def create_rl_engine(algorithm: str = "ppo", learning_rate: float = 2e-4) -> RLE
 
 
 def write_trajectories_to_jsonl(trajectories: List[Trajectory], file_path: str):
-    """写入轨迹到JSONL文件"""
+    """写入Trajectory到JSONL文件"""
     with open(file_path, 'a', encoding='utf-8') as f:
         for traj in trajectories:
             f.write(json.dumps(traj.to_dict(), ensure_ascii=False) + '\n')
 
 
 def read_trajectories_from_jsonl(file_path: str) -> List[Trajectory]:
-    """从JSONL文件读取轨迹"""
+    """从JSONL文件读取Trajectory"""
     trajectories = []
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -863,9 +863,9 @@ def read_trajectories_from_jsonl(file_path: str) -> List[Trajectory]:
                 data = json.loads(line)
                 trajectories.append(Trajectory.from_dict(data))
     except FileNotFoundError:
-        logger.warning(f"轨迹文件不存在: {file_path}")
+        logger.warning(f"Trajectory文件不存在: {file_path}")
     except Exception as e:
-        logger.error(f"读取轨迹文件失败: {e}")
+        logger.error(f"读取Trajectory文件失败: {e}")
     
     return trajectories
 

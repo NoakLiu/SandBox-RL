@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Unified Scheduler - 统一调度器
+Unified Scheduler - Unified Scheduler
 =============================
 
-集成所有调度和资源管理功能：
-1. 多模型调度器
-2. 分布式资源管理
-3. 任务调度和编排
-4. 异步架构支持
-5. 奖励基础的slot管理
+Integrated scheduling and resource management functionality：
+1. Multi-model scheduler
+2. Distributed resource management
+3. Task scheduling and orchestration
+4. Asynchronous architecture support
+5. Reward-based slot management
 """
 
 import asyncio
@@ -32,7 +32,7 @@ except ImportError:
 
 
 class ModelRole(Enum):
-    """模型角色"""
+    """Model role"""
     GENERALIST = "generalist"
     SPECIALIST = "specialist"
     COORDINATOR = "coordinator"
@@ -41,14 +41,14 @@ class ModelRole(Enum):
 
 
 class InteractionType(Enum):
-    """交互类型"""
+    """Interaction type"""
     COOPERATION = "cooperation"
     COMPETITION = "competition"
     NEUTRAL = "neutral"
 
 
 class TaskPriority(Enum):
-    """任务优先级"""
+    """Task priority"""
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -67,7 +67,7 @@ class SlotState(Enum):
 
 @dataclass
 class ModelProfile:
-    """模型档案"""
+    """Model profile"""
     model_id: str
     gpu_id: int
     port: int
@@ -91,7 +91,7 @@ class ModelProfile:
 
 @dataclass
 class TaskDefinition:
-    """任务定义"""
+    """Task definition"""
     task_id: str
     task_type: str
     complexity: float
@@ -493,7 +493,7 @@ class InteractionOrchestrator:
     
     def determine_interaction_type(self, model_profiles: List[ModelProfile], 
                                  task: TaskDefinition) -> InteractionType:
-        """确定交互类型"""
+        """确定Interaction type"""
         if task.collaboration_required:
             return InteractionType.COOPERATION
         
@@ -552,7 +552,7 @@ class InteractionOrchestrator:
 
 
 class UnifiedScheduler:
-    """统一调度器"""
+    """Unified Scheduler"""
     
     def __init__(self, base_port: int = 8001, num_gpus: int = 8, model_name: str = "qwen-2",
                  max_concurrent_tasks: int = 20, max_slots: int = 10):
@@ -568,7 +568,7 @@ class UnifiedScheduler:
         self.capability_analyzer = CapabilityAnalyzer()
         self.interaction_orchestrator = InteractionOrchestrator()
         
-        # 模型档案
+        # Model profile
         self.model_profiles = {}
         
         # 任务管理
@@ -587,7 +587,7 @@ class UnifiedScheduler:
         # 并发控制
         self.semaphore = asyncio.Semaphore(max_concurrent_tasks)
         
-        logger.info(f"统一调度器初始化完成: {num_gpus}个GPU")
+        logger.info(f"Unified Scheduler初始化完成: {num_gpus}个GPU")
     
     def register_model(self, model_id: str, gpu_id: int, 
                       role: ModelRole = ModelRole.GENERALIST,
@@ -637,7 +637,7 @@ class UnifiedScheduler:
         if not valid_models:
             raise ValueError("没有有效的模型")
         
-        # 确定交互类型
+        # 确定Interaction type
         model_profiles = [self.model_profiles[mid] for mid in valid_models]
         interaction_type = self.interaction_orchestrator.determine_interaction_type(model_profiles, task)
         
@@ -679,7 +679,7 @@ class UnifiedScheduler:
         else:
             self.stats['neutral_tasks'] += 1
         
-        logger.info(f"提交任务 {task.task_id}，交互类型: {interaction_type.value}")
+        logger.info(f"提交任务 {task.task_id}，Interaction type: {interaction_type.value}")
         return task.task_id
     
     async def _execute_task(self, task: TaskDefinition, model_ids: List[str],
@@ -1049,13 +1049,13 @@ class UnifiedScheduler:
                 except Exception as e:
                     logger.error(f"等待任务完成时出错: {e}")
         
-        logger.info("统一调度器已关闭")
+        logger.info("Unified Scheduler已关闭")
 
 
 # 工厂函数
 def create_unified_scheduler(base_port: int = 8001, num_gpus: int = 8, 
                            model_name: str = "qwen-2") -> UnifiedScheduler:
-    """创建统一调度器"""
+    """创建Unified Scheduler"""
     return UnifiedScheduler(base_port, num_gpus, model_name)
 
 
@@ -1094,7 +1094,7 @@ def create_competitive_scheduler(base_port: int = 8001, num_gpus: int = 8) -> Un
 def create_task_definition(task_id: str, task_type: str, complexity: float = 0.5,
                           required_capabilities: Optional[List[str]] = None,
                           priority: TaskPriority = TaskPriority.MEDIUM) -> TaskDefinition:
-    """创建任务定义"""
+    """创建Task definition"""
     if required_capabilities is None:
         required_capabilities = ['reasoning', 'efficiency']
     

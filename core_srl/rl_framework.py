@@ -6,7 +6,7 @@ Unified RL Framework - 统一强化学习框架
 集成所有RL相关功能：
 1. 多种RL算法（PPO, GRPO, SAC, TD3）
 2. 合作竞争机制
-3. 轨迹管理和经验回放
+3. Trajectory管理和经验回放
 4. 多智能体系统
 5. 基准测试环境
 """
@@ -107,7 +107,7 @@ class RLConfig:
 
 @dataclass
 class TrajectoryStep:
-    """轨迹步骤"""
+    """Trajectory step"""
     state: Dict[str, Any]
     action: str
     reward: float
@@ -184,7 +184,7 @@ class RLAlgorithmBase(ABC):
         pass
     
     def add_trajectory_step(self, step: TrajectoryStep):
-        """添加轨迹步骤"""
+        """添加Trajectory step"""
         with self.lock:
             self.trajectories.append(step)
     
@@ -260,7 +260,7 @@ class PPOAlgorithm(RLAlgorithmBase):
         # 更新LLM参数
         update_result = llm_manager.update_shared_parameters(gradients, self.config.learning_rate)
         
-        # 清理旧轨迹
+        # 清理旧Trajectory
         self.trajectories = self.trajectories[-self.config.batch_size:]
         
         return {
@@ -278,7 +278,7 @@ class GRPOAlgorithm(RLAlgorithmBase):
         self.group_trajectories = defaultdict(list)
     
     def add_trajectory_step(self, step: TrajectoryStep, group_id: str = "default"):
-        """添加轨迹步骤到组"""
+        """添加Trajectory step到组"""
         with self.lock:
             self.group_trajectories[group_id].append(step)
             self.trajectories.append(step)
@@ -605,7 +605,7 @@ class EnvConfig:
 
 
 class CoopCompeteEnv:
-    """合作竞争环境"""
+    """合作Competition environment"""
     
     def __init__(self, cooperation_level: float, difficulty: float, cfg: EnvConfig = EnvConfig()):
         self.cooperation_level = max(0.0, min(1.0, cooperation_level))
