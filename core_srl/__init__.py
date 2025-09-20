@@ -42,7 +42,6 @@ from .llm_manager import (
     create_llm,
     create_shared_llm_manager,
     create_qwen_manager,
-    create_openai_manager,
     get_available_models
 )
 
