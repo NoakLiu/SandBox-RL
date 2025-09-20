@@ -240,7 +240,7 @@ class AgentAdapter(Protocol):
     """智能体适配器协议"""
     
     def act(self, observation: Dict[str, Any]) -> Dict[str, Any]:
-        """执行动作"""
+        """执行Action"""
         ...
     
     def learn(self, trajectory: Trajectory) -> None:

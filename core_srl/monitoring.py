@@ -3,10 +3,10 @@
 Unified Monitoring & Visualization - 统一监控可视化
 =================================================
 
-集成所有监控和可视化功能：
-1. 社交网络指标监控
+集成所有Monitoring and visualization功能：
+1. Social network metrics监控
 2. 动态图可视化
-3. 性能指标收集
+3. Performance metrics收集
 4. 实时数据展示
 5. 报告生成和导出
 """
@@ -79,7 +79,7 @@ class InteractionType(Enum):
 
 @dataclass
 class SocialNetworkMetrics:
-    """社交网络指标"""
+    """Social network metrics"""
     # 用户指标
     total_users: int = 0
     active_users: int = 0
@@ -110,7 +110,7 @@ class SocialNetworkMetrics:
     avg_influence_score: float = 0.0
     viral_spread_rate: float = 0.0
     
-    # 性能指标
+    # Performance metrics
     response_time_avg: float = 0.0
     error_rate: float = 0.0
     system_uptime: float = 0.0
@@ -163,7 +163,7 @@ class GraphEvent:
 
 @dataclass
 class MonitoringConfig:
-    """监控配置"""
+    """Monitoring configuration"""
     enable_file_logging: bool = True
     enable_console_logging: bool = True
     log_file_path: str = "./logs/metrics.json"
@@ -719,7 +719,7 @@ class PerformanceMonitor:
         logger.info("性能监控已停止")
     
     def _collect_performance_metrics(self) -> Dict[str, Any]:
-        """收集性能指标"""
+        """收集Performance metrics"""
         try:
             import psutil
             
@@ -793,7 +793,7 @@ class PerformanceMonitor:
 
 
 class UnifiedMonitor:
-    """统一监控器"""
+    """Unified monitor"""
     
     def __init__(self, config: Optional[MonitoringConfig] = None):
         self.config = config or MonitoringConfig()
@@ -806,7 +806,7 @@ class UnifiedMonitor:
         # 状态管理
         self.is_running = False
         
-        logger.info("统一监控器初始化完成")
+        logger.info("Unified monitor初始化完成")
     
     def start(self):
         """启动监控"""
@@ -819,7 +819,7 @@ class UnifiedMonitor:
         self.metrics_collector.start_monitoring()
         self.performance_monitor.start_monitoring()
         
-        logger.info("统一监控器已启动")
+        logger.info("Unified monitor已启动")
     
     def stop(self):
         """停止监控"""
@@ -833,14 +833,14 @@ class UnifiedMonitor:
         self.performance_monitor.stop_monitoring()
         self.graph_visualizer.stop_visualization()
         
-        logger.info("统一监控器已停止")
+        logger.info("Unified monitor已停止")
     
     def update_metrics(self, metrics: SocialNetworkMetrics):
         """更新指标"""
         self.metrics_collector.update_metrics(metrics)
     
     def create_visualization_scenario(self, num_agents: int = 10):
-        """创建可视化场景"""
+        """创建Visualization scenario"""
         self.graph_visualizer.create_misinfo_scenario(num_agents)
     
     def start_graph_visualization(self):
@@ -892,7 +892,7 @@ class UnifiedMonitor:
 # 工厂函数
 def create_monitoring_config(log_file_path: str = "./logs/metrics.json",
                            sampling_interval: float = 1.0) -> MonitoringConfig:
-    """创建监控配置"""
+    """创建Monitoring configuration"""
     return MonitoringConfig(
         log_file_path=log_file_path,
         metrics_sampling_interval=sampling_interval
@@ -900,7 +900,7 @@ def create_monitoring_config(log_file_path: str = "./logs/metrics.json",
 
 
 def create_unified_monitor(config: Optional[MonitoringConfig] = None) -> UnifiedMonitor:
-    """创建统一监控器"""
+    """创建Unified monitor"""
     return UnifiedMonitor(config)
 
 
@@ -916,7 +916,7 @@ def create_performance_monitor(sampling_interval: float = 1.0) -> PerformanceMon
 
 def create_social_network_metrics(total_users: int = 0, active_users: int = 0, 
                                  engagement_rate: float = 0.0, **kwargs) -> SocialNetworkMetrics:
-    """创建社交网络指标"""
+    """创建Social network metrics"""
     return SocialNetworkMetrics(
         total_users=total_users,
         active_users=active_users,
@@ -933,7 +933,7 @@ def quick_monitoring_demo(num_agents: int = 10, duration: int = 30):
         # 启动监控
         monitor.start()
         
-        # 创建可视化场景
+        # 创建Visualization scenario
         monitor.create_visualization_scenario(num_agents)
         
         # 模拟一些指标更新

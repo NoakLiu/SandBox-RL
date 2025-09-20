@@ -6,7 +6,7 @@ Unified RL Framework - 统一强化学习框架
 集成所有RL相关功能：
 1. 多种RL算法（PPO, GRPO, SAC, TD3）
 2. 合作竞争机制
-3. Trajectory管理和经验回放
+3. Trajectory管理和Experience回放
 4. 多智能体系统
 5. 基准测试环境
 """
@@ -35,7 +35,7 @@ except ImportError:
 
 
 class RLAlgorithm(Enum):
-    """强化学习算法类型"""
+    """Reinforcement learning algorithm类型"""
     PPO = "ppo"
     GRPO = "grpo"
     SAC = "sac"
@@ -135,7 +135,7 @@ class TrajectoryStep:
 
 
 class ExperienceBuffer:
-    """经验回放缓冲区"""
+    """Experience回放缓冲区"""
     
     def __init__(self, max_size: int = 10000):
         self.max_size = max_size
@@ -143,7 +143,7 @@ class ExperienceBuffer:
         self.lock = threading.Lock()
     
     def add(self, step: TrajectoryStep):
-        """添加经验"""
+        """添加Experience"""
         with self.lock:
             self.buffer.append(step)
     
@@ -155,7 +155,7 @@ class ExperienceBuffer:
             return random.sample(list(self.buffer), batch_size)
     
     def get_recent(self, n: int) -> List[TrajectoryStep]:
-        """获取最近的经验"""
+        """获取最近的Experience"""
         with self.lock:
             return list(self.buffer)[-n:]
     
@@ -374,11 +374,11 @@ class OnPolicyRLAgent:
         self.cooperation_history = []
     
     def get_action(self, state: Dict[str, Any], cooperation_context: Optional[Dict[str, Any]] = None) -> Tuple[str, float, float]:
-        """获取动作"""
-        # 基于能力调整动作选择
+        """获取Action"""
+        # 基于能力调整Action选择
         capability_bonus = self.current_capability * 0.1
         
-        # 简化的动作选择
+        # 简化的Action选择
         if random.random() < 0.5 + capability_bonus:
             action = "cooperate"
             log_prob = math.log(0.5 + capability_bonus)
@@ -401,7 +401,7 @@ class OnPolicyRLAgent:
         capability_change = learning_rate * (reward - 0.5)  # 假设0.5为基线
         self.current_capability += adaptation_speed * capability_change
         
-        # 应用经验衰减
+        # 应用Experience衰减
         self.current_capability *= self.config.competence_factor.experience_decay
         
         # 限制能力范围
@@ -413,7 +413,7 @@ class OnPolicyRLAgent:
             self.current_capability += 0.1 * team_bonus
     
     def store_experience(self, step: TrajectoryStep):
-        """存储经验"""
+        """存储Experience"""
         self.experience_buffer.add(step)
     
     def get_cooperation_context(self, team_members: List[str], team_states: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
@@ -477,7 +477,7 @@ class MultiAgentOnPolicyRL:
         # 获取合作上下文
         cooperation_context = self._get_cooperation_context(agent_id, state)
         
-        # 获取动作
+        # 获取Action
         action, log_prob, value = agent.get_action(state, cooperation_context)
         
         return action, log_prob, value
@@ -505,7 +505,7 @@ class MultiAgentOnPolicyRL:
         
         agent = self.agents[agent_id]
         
-        # 存储经验
+        # 存储Experience
         agent.store_experience(step)
         
         # 更新能力
@@ -529,7 +529,7 @@ class MultiAgentOnPolicyRL:
 
 
 class RLTrainer:
-    """统一的RL训练器"""
+    """统一的RL trainer"""
     
     def __init__(self, config: RLConfig, llm_manager):
         self.config = config
@@ -552,7 +552,7 @@ class RLTrainer:
     
     def add_experience(self, state: Dict[str, Any], action: str, reward: float, 
                       done: bool, group_id: str = "default"):
-        """添加经验"""
+        """添加Experience"""
         # 估算价值和对数概率
         value = reward + random.uniform(-0.1, 0.1)
         log_prob = math.log(0.5 + random.uniform(-0.1, 0.1))
@@ -597,7 +597,7 @@ class RLTrainer:
 # 基准测试环境
 @dataclass
 class EnvConfig:
-    """环境配置"""
+    """Environment configuration"""
     base_scale: float = 1.0
     noise_std: float = 0.05
     coop_weight: float = 0.25
@@ -683,7 +683,7 @@ class OurMethodPolicy:
         return a, logp
     
     def observe_opponent(self, opp_action: int):
-        """观察对手动作"""
+        """观察对手Action"""
         self.opp_coop_est = self.momentum * self.opp_coop_est + (1 - self.momentum) * (1 if opp_action == 1 else 0)
     
     def update(self, trajectories: List[Tuple[int, float, float]], env: CoopCompeteEnv):
@@ -816,13 +816,13 @@ def run_benchmark(runs: int = 5, episodes: int = 200, horizon: int = 32,
 
 # 工厂函数
 def create_ppo_trainer(llm_manager, learning_rate: float = 3e-4) -> RLTrainer:
-    """创建PPO训练器"""
+    """Create PPO trainer"""
     config = RLConfig(algorithm=RLAlgorithm.PPO, learning_rate=learning_rate)
     return RLTrainer(config, llm_manager)
 
 
 def create_grpo_trainer(llm_manager, learning_rate: float = 3e-4, robustness_coef: float = 0.1) -> RLTrainer:
-    """创建GRPO训练器"""
+    """Create GRPO trainer"""
     config = RLConfig(
         algorithm=RLAlgorithm.GRPO,
         learning_rate=learning_rate,

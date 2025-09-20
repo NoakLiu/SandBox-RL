@@ -639,7 +639,7 @@ class FallbackMetricsCollector:
 
 
 class VERLTrainer:
-    """VERL训练器集成"""
+    """VERL trainer集成"""
     
     def __init__(self, model_name: str = "microsoft/DialoGPT-medium", 
                  batch_size: int = 8, learning_rate: float = 1e-5):
@@ -972,7 +972,7 @@ def create_areal_integration(cache_size: int = 10000, max_memory_gb: float = 8.0
 
 
 def create_verl_trainer(model_name: str = "microsoft/DialoGPT-medium") -> VERLTrainer:
-    """创建VERL训练器"""
+    """创建VERL trainer"""
     return VERLTrainer(model_name)
 
 

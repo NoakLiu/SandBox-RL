@@ -49,7 +49,7 @@ except ImportError:
 
 
 class LoRAUpdateStrategy(Enum):
-    """LoRA更新策略"""
+    """LoRA update strategy"""
     ROUND_ROBIN = "round_robin"
     WEIGHTED_RANDOM = "weighted_random"
     PERFORMANCE_BASED = "performance_based"
@@ -75,7 +75,7 @@ class CompressionType(Enum):
 
 @dataclass
 class LoRAConfig:
-    """统一LoRA配置"""
+    """统一LoRA configuration"""
     lora_id: int
     name: str
     rank: int = 16
@@ -165,7 +165,7 @@ if TORCH_AVAILABLE:
 
 
 class LoRAManager:
-    """统一LoRA管理器"""
+    """统一LoRA manager"""
     
     def __init__(self, configs: Dict[int, LoRAConfig], strategy: LoRAUpdateStrategy = LoRAUpdateStrategy.ADAPTIVE):
         self.configs = configs
@@ -185,7 +185,7 @@ class LoRAManager:
         # 初始化
         self._initialize_adapters()
         
-        logger.info(f"LoRA管理器初始化完成: {len(configs)}个LoRA")
+        logger.info(f"LoRA manager初始化完成: {len(configs)}个LoRA")
     
     def _initialize_adapters(self):
         """初始化适配器"""
@@ -607,7 +607,7 @@ class LoRARLStrategy:
             # 发布更新
             timestamp = self.publisher.publish_lora(lora_id, checkpoint_dir, update_metadata)
             
-            # 更新LoRA配置
+            # 更新LoRA configuration
             config = self.lora_manager.configs[lora_id]
             config.total_reward += reward
             config.update_count += 1
@@ -658,7 +658,7 @@ class DistributedLoRAScheduler:
         self.num_gpus = num_gpus
         self.model_name = model_name
         
-        # 初始化LoRA配置
+        # 初始化LoRA configuration
         self.lora_configs = self._initialize_lora_configs()
         
         # 初始化组件
@@ -677,7 +677,7 @@ class DistributedLoRAScheduler:
         }
     
     def _initialize_lora_configs(self) -> Dict[int, LoRAConfig]:
-        """初始化LoRA配置"""
+        """初始化LoRA configuration"""
         configs = {}
         
         for i in range(self.num_gpus):
@@ -729,13 +729,13 @@ class DistributedLoRAScheduler:
 
 # 工厂函数
 def create_lora_config(lora_id: int, name: str, rank: int = 16, alpha: float = 32.0, **kwargs) -> LoRAConfig:
-    """创建LoRA配置"""
+    """创建LoRA configuration"""
     return LoRAConfig(lora_id=lora_id, name=name, rank=rank, alpha=alpha, **kwargs)
 
 
 def create_lora_manager(configs: Dict[int, LoRAConfig], 
                        strategy: LoRAUpdateStrategy = LoRAUpdateStrategy.ADAPTIVE) -> LoRAManager:
-    """创建LoRA管理器"""
+    """创建LoRA manager"""
     return LoRAManager(configs, strategy)
 
 
@@ -768,7 +768,7 @@ def get_lora_presets() -> Dict[str, Dict[str, Any]]:
 
 
 def create_8gpu_lora_configs(base_port: int = 8001, preset: str = "medium") -> Dict[int, LoRAConfig]:
-    """创建8GPU LoRA配置"""
+    """创建8GPU LoRA configuration"""
     preset_config = get_lora_presets().get(preset, get_lora_presets()["medium"])
     configs = {}
     

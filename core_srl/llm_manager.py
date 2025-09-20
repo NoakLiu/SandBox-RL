@@ -61,7 +61,7 @@ class UpdateStrategy(Enum):
 
 
 class ParameterImportance(Enum):
-    """Parameter importance级别"""
+    """Parameter importance levels"""
     CRITICAL = "critical"
     IMPORTANT = "important"
     MODERATE = "moderate"
@@ -79,17 +79,17 @@ class LLMConfig:
     top_p: float = 0.9
     top_k: int = 50
     
-    # API配置
+    # API configuration
     api_key: Optional[str] = None
     api_base: Optional[str] = None
     
-    # LoRA配置
+    # LoRA configuration
     enable_lora: bool = False
     lora_rank: int = 8
     lora_alpha: float = 16.0
     lora_dropout: float = 0.1
     
-    # 冻结自适应配置
+    # Frozen adaptive configuration
     update_strategy: UpdateStrategy = UpdateStrategy.ADAPTIVE
     frozen_layers: List[str] = field(default_factory=list)
     adaptive_learning_rate: bool = True
@@ -99,7 +99,7 @@ class LLMConfig:
 
 @dataclass
 class LLMResponse:
-    """LLM Response结果"""
+    """LLM Response result"""
     text: str
     confidence: float = 0.0
     reasoning: str = ""
@@ -108,7 +108,7 @@ class LLMResponse:
 
 @dataclass
 class ParameterInfo:
-    """参数信息"""
+    """Parameter information"""
     name: str
     importance: ParameterImportance
     frozen: bool = False
@@ -119,7 +119,7 @@ class ParameterInfo:
 
 
 class AdaptiveLearningRate:
-    """自适应学习率管理器"""
+    """Adaptive learning rate manager"""
     
     def __init__(self, initial_lr: float = 1e-4, min_lr: float = 1e-6, max_lr: float = 1e-3):
         self.initial_lr = initial_lr
@@ -129,7 +129,7 @@ class AdaptiveLearningRate:
         self.performance_history = deque(maxlen=100)
     
     def update(self, performance_metric: float) -> float:
-        """根据性能指标更新学习率"""
+        """Update learning rate based on performance metrics"""
         self.performance_history.append(performance_metric)
         
         if len(self.performance_history) < 10:
