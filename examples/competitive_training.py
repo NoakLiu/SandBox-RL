@@ -34,11 +34,11 @@ async def competitive_training_example():
     trainer = create_competitive_multimodel_trainer(num_models=4)
     
     # Configure for intense competition
-    trainer.config.model_types = ["qwen3", "openai", "claude", "llama3"]
+    trainer.config.model_types = ["qwen3", "qwen_coder", "qwen_math", "llama3"]
     trainer.config.model_names = {
         "qwen3": "Qwen/Qwen2.5-14B-Instruct",
-        "openai": "gpt-4o-mini",
-        "claude": "claude-3-5-haiku-20241022", 
+        "qwen_coder": "Qwen/Qwen2.5-Coder-14B-Instruct",
+        "qwen_math": "Qwen/Qwen2.5-Math-14B-Instruct",
         "llama3": "meta-llama/Llama-3.1-8B-Instruct"
     }
     trainer.config.competition_intensity = 0.8  # High competition
