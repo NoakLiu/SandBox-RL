@@ -12,7 +12,7 @@ Get up and running with multi-model RL training in 5 minutes.
 
 ```bash
 # Clone and install
-git clone https://github.com/your-repo/core-srl.git
+git clone https://github.com/NoakLiu/core-srl.git
 cd core-srl
 pip install -r requirements.txt
 
