@@ -390,7 +390,7 @@ class RolloutController:
             else:
                 result = self._standard_generation(task)
             
-            # 计算奖励
+            # Calculate reward
             reward = self._compute_reward(result)
             
             # 检查数据陈旧性
@@ -407,11 +407,11 @@ class RolloutController:
                 }
                 self.stats["completed_tasks"] += 1
             
-            # 更新统计
+            # Update statistics
             completion_time = time.time() - start_time
             self._update_completion_stats(completion_time)
             
-            # 调用回调
+            # Call callback
             if task.callback:
                 task.callback(task)
             
@@ -419,34 +419,34 @@ class RolloutController:
             task.status = RolloutStatus.FAILED
             task.error = str(e)
             self.stats["failed_tasks"] += 1
-            logger.error(f"任务 {task.task_id} 失败: {e}")
+            logger.error(f"Task.*failed: {e}")
     
     def _generate_cache_id(self, task: RolloutTask) -> str:
-        """生成缓存ID"""
+        """Generate cache ID"""
         data = f"{task.prompt}_{task.max_tokens}_{task.temperature}"
         return hashlib.md5(data.encode()).hexdigest()
     
     def _streaming_generation(self, task: RolloutTask, cached_kv: CachedKVState) -> str:
-        """流式生成"""
+        """Streaming generation"""
         time.sleep(self.config.reward_computation_delay)
-        return f"流式生成结果: {task.task_id} (使用缓存)"
+        return f"Streaming generation结果: {task.task_id} (Using cache)"
     
     def _standard_generation(self, task: RolloutTask) -> str:
-        """标准生成"""
+        """Standard generation"""
         time.sleep(0.1)
-        return f"标准生成结果: {task.task_id}"
+        return f"Standard generation结果: {task.task_id}"
     
     def _compute_reward(self, generation: str) -> float:
-        """计算奖励"""
+        """Calculate reward"""
         return len(generation) / 100.0
     
     def _is_data_stale(self, task: RolloutTask) -> bool:
-        """检查数据是否陈旧"""
+        """Check if data is stale"""
         age = (datetime.now() - task.created_at).total_seconds()
         return age > (1.0 / self.config.staleness_threshold)
     
     def _update_completion_stats(self, completion_time: float):
-        """更新完成统计"""
+        """Update completion statistics"""
         total_completed = self.stats["completed_tasks"]
         if total_completed > 0:
             current_avg = self.stats["avg_completion_time"]
@@ -670,7 +670,7 @@ class VERLTrainer:
         return results
     
     def compute_rewards(self, responses: List[Dict[str, Any]], prompts: List[str]) -> List[float]:
-        """计算奖励"""
+        """Calculate reward"""
         rewards = []
         for i, response in enumerate(responses):
             text = response.get("text", "")
@@ -703,7 +703,7 @@ class VERLTrainer:
         # Generate response
         responses = await self.generate_batch(prompts)
         
-        # 计算奖励
+        # Calculate reward
         rewards = self.compute_rewards(responses, prompts)
         
         rollout_time = time.time() - start_time
@@ -894,7 +894,7 @@ class AReaLVERLBridge:
             cached_data = cache.get(cache_id) if cache else None
             
             if cached_data:
-                logger.debug(f"使用缓存数据: step {step}")
+                logger.debug(f"Using cache数据: step {step}")
                 rollout_data = await self._cached_rollout(prompts, cached_data)
             else:
                 rollout_data = await self.verl_trainer.rollout_step(prompts)
@@ -935,7 +935,7 @@ class AReaLVERLBridge:
         }
     
     async def _cached_rollout(self, prompts: List[str], cached_data: Any) -> Dict[str, Any]:
-        """使用缓存数据进行rollout"""
+        """Using cache数据进行rollout"""
         responses = []
         for prompt in prompts:
             response = {"text": f"缓存响应: {prompt[:50]}...", "tokens": 20}
