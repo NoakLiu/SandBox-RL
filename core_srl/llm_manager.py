@@ -47,11 +47,9 @@ except ImportError:
 
 
 class LLMBackend(Enum):
-    """LLM Backend Types"""
+    """LLM Backend Types - only open-weight models"""
     HUGGINGFACE = "huggingface"
-    OPENAI_API = "openai_api"
     VLLM = "vllm"
-    ANTHROPIC = "anthropic"
 
 
 class UpdateStrategy(Enum):

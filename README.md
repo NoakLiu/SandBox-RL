@@ -20,7 +20,7 @@ Core SRL enables **simultaneous training of multiple modern LLMs** using reinfor
 - **Multi-Model Training**: Simultaneous RL training of 4-8 modern LLMs
 - **Live Weight Updates**: Real-time parameter synchronization during training  
 - **Cooperative-Competitive RL**: Novel algorithm balancing cooperation and competition
-- **Modern Model Support**: Qwen3-14B, GPT-4o, Claude-3.5, Llama-3.1
+- **Modern Model Support**: Qwen3-14B, Llama-3.1, and other open-weight models
 - **VERL/AReaL Integration**: Efficient training with advanced caching
 - **Checkpoint Management**: Automatic saving and recovery
 
@@ -34,7 +34,7 @@ Core SRL enables **simultaneous training of multiple modern LLMs** using reinfor
 ├─────────────────────────────────────────────────────────────────┤
 │  Multi-Model Trainer                                           │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐│
-│  │   Qwen3-14B │ │   GPT-4o    │ │  Claude-3.5 │ │ Llama-3.1   ││
+│  │   Qwen3-14B │ │   Qwen-Math │ │ Qwen-Coder  │ │ Llama-3.1   ││
 │  │   + LoRA    │ │   + LoRA    │ │   + LoRA    │ │   + LoRA    ││
 │  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘│
 │         │               │               │               │        │
@@ -79,7 +79,7 @@ from core_srl import MultiModelTrainer, MultiModelConfig, TrainingMode
 
 config = MultiModelConfig(
     num_models=6,
-    model_types=["qwen3", "openai", "claude"],
+    model_types=["qwen3", "qwen_coder", "llama3"],
     training_mode=TrainingMode.MIXED,
     max_episodes=1000,
     checkpoint_dir="./my_checkpoints"
@@ -106,10 +106,10 @@ trainer.load_checkpoint(checkpoints[0])
 
 ```python
 MODERN_MODELS = {
-    "qwen3": "Qwen/Qwen2.5-14B-Instruct",     # Latest Qwen
-    "openai": "gpt-4o",                        # Latest GPT
-    "claude": "claude-3-5-sonnet-20241022",   # Latest Claude  
-    "llama3": "meta-llama/Llama-3.1-8B-Instruct"  # Latest Llama
+    "qwen3": "Qwen/Qwen2.5-14B-Instruct",           # Latest Qwen
+    "qwen_coder": "Qwen/Qwen2.5-Coder-14B-Instruct", # Code specialized
+    "qwen_math": "Qwen/Qwen2.5-Math-14B-Instruct",   # Math specialized
+    "llama3": "meta-llama/Llama-3.1-8B-Instruct"     # Latest Llama
 }
 ```
 
