@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Unified Cache & Optimizer - 统一缓存优化器
-==========================================
+Unified Cache & Optimizer
+=========================
 
-集成所有缓存和优化功能：
-1. KV缓存管理和压缩
-2. AReaL框架集成
-3. VERL训练优化
-4. 自适应缓存策略
-5. 性能监控和指标收集
+Integrated caching and optimization functionality based on real implementations:
+1. KV cache management and compression
+2. AReaL framework integration for advanced caching
+3. VERL training optimization with distributed inference
+4. Adaptive caching strategies with performance monitoring
+5. Performance monitoring and metrics collection
 """
 
 import asyncio

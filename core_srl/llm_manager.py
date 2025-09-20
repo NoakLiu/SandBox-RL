@@ -135,12 +135,12 @@ class AdaptiveLearningRate:
         if len(self.performance_history) < 10:
             return self.current_lr
         
-        # 计算性能趋势
+        # Calculate performance trend
         recent_performance = list(self.performance_history)[-10:]
         diffs = [recent_performance[i] - recent_performance[i-1] for i in range(1, len(recent_performance))]
         performance_trend = sum(diffs) / len(diffs) if diffs else 0.0
         
-        # 根据趋势调整学习率
+        # Adjust learning rate based on trend
         if performance_trend > 0.01:
             self.current_lr = min(self.max_lr, self.current_lr * 1.1)
         elif performance_trend < -0.01:
@@ -224,7 +224,7 @@ class BaseLLM(ABC):
             
             importance_scores[name] = importance
             
-            # 更新参数信息
+            # Update parameters信息
             if name not in self.parameter_info:
                 self.parameter_info[name] = ParameterInfo(name=name, importance=importance)
             else:
@@ -234,7 +234,7 @@ class BaseLLM(ABC):
         return importance_scores
     
     def _should_update_parameter(self, param_name: str, importance: Optional[ParameterImportance]) -> bool:
-        """判断是否应该更新参数"""
+        """判断是否应该Update parameters"""
         if self.config.update_strategy == UpdateStrategy.FROZEN:
             return False
         
@@ -494,7 +494,7 @@ class HuggingFaceLLM(BaseLLM):
             self.torch = torch
             self.transformers = transformers
         except ImportError as e:
-            logger.error(f"缺少依赖: {e}")
+            logger.error(f"Missing dependencies: {e}")
             raise
     
     def generate(self, prompt: str, **kwargs) -> LLMResponse:
@@ -559,7 +559,7 @@ class HuggingFaceLLM(BaseLLM):
                 )
     
     def _load_model(self):
-        """加载模型"""
+        """Load model"""
         logger.info(f"加载HuggingFace模型: {self.model_name}")
         
         # 设备配置
@@ -576,7 +576,7 @@ class HuggingFaceLLM(BaseLLM):
             self.tokenizer.pad_token = self.tokenizer.eos_token
             self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         
-        # 加载模型
+        # Load model
         self.model = self.transformers.AutoModelForCausalLM.from_pretrained(
             self.model_name,
             torch_dtype=torch_dtype,
