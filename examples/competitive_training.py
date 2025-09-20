@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 async def competitive_training_example():
     """Train different model types in competitive mode"""
     
-    print("⚔️ Starting competitive multi-model training...")
-    print("📋 Configuration:")
+    print(" Starting competitive multi-model training...")
+    print(" Configuration:")
     print("   - Models: Qwen3 vs OpenAI vs Claude vs Llama3")
     print("   - Mode: Competitive")
     print("   - Strategy: Only top performers get weight updates")
@@ -51,7 +51,7 @@ async def competitive_training_example():
         # Start competitive training
         results = await trainer.train()
         
-        print("\n🏁 Competitive training completed!")
+        print("\n Competitive training completed!")
         
         # Analyze competition results
         performance = trainer.get_model_performance_summary()
@@ -63,7 +63,7 @@ async def competitive_training_example():
             reverse=True
         )
         
-        print("\n🏆 Competition Rankings:")
+        print("\n Competition Rankings:")
         for rank, (model_id, stats) in enumerate(ranked_models, 1):
             medal = "🥇" if rank == 1 else "🥈" if rank == 2 else "🥉" if rank == 3 else "  "
             print(f"   {medal} #{rank} {model_id} ({stats['model_type']}):")
@@ -77,7 +77,7 @@ async def competitive_training_example():
         min_reward = min(rewards)
         performance_gap = max_reward - min_reward
         
-        print(f"\n📊 Competition Analysis:")
+        print(f"\n Competition Analysis:")
         print(f"   Performance Gap: {performance_gap:.3f}")
         print(f"   Winner Advantage: {(max_reward/min_reward - 1)*100:.1f}%")
         
@@ -89,7 +89,7 @@ async def competitive_training_example():
         
         print(f"   Update Inequality: {update_inequality:.3f}")
         if update_inequality > 0.5:
-            print("   🎯 Strong competitive dynamics detected!")
+            print("    Strong competitive dynamics detected!")
         
         return results
         
@@ -104,7 +104,7 @@ async def competitive_training_example():
 async def analyze_competitive_dynamics(trainer):
     """Analyze competitive dynamics during training"""
     
-    print("\n🔍 Analyzing competitive dynamics...")
+    print("\n Analyzing competitive dynamics...")
     
     # Get training status
     status = trainer.get_training_status()
@@ -138,8 +138,8 @@ async def analyze_competitive_dynamics(trainer):
         key=lambda x: sum(x[1].values())
     )
     
-    print(f"   🏅 Most Competitive Model: {most_competitive[0]}")
-    print(f"   📈 Competition Score: {sum(most_competitive[1].values()):.3f}")
+    print(f"    Most Competitive Model: {most_competitive[0]}")
+    print(f"    Competition Score: {sum(most_competitive[1].values()):.3f}")
     
     return competition_metrics
 
@@ -147,18 +147,18 @@ async def analyze_competitive_dynamics(trainer):
 async def competitive_vs_cooperative_comparison():
     """Compare competitive vs cooperative training"""
     
-    print("\n🆚 Competitive vs Cooperative Comparison")
+    print("\n Competitive vs Cooperative Comparison")
     print("=" * 50)
     
     # Test competitive training
-    print("⚔️ Testing competitive training...")
+    print(" Testing competitive training...")
     competitive_trainer = create_competitive_multimodel_trainer(num_models=4)
     competitive_trainer.config.max_episodes = 100
     competitive_results = await competitive_trainer.train()
     await competitive_trainer.shutdown()
     
     # Test cooperative training  
-    print("\n🤝 Testing cooperative training...")
+    print("\n Testing cooperative training...")
     from core_srl import create_cooperative_multimodel_trainer
     cooperative_trainer = create_cooperative_multimodel_trainer(num_models=4)
     cooperative_trainer.config.max_episodes = 100
@@ -177,24 +177,24 @@ async def competitive_vs_cooperative_comparison():
     coop_max = max(coop_rewards)
     coop_avg = sum(coop_rewards) / len(coop_rewards)
     
-    print(f"\n📊 Comparison Results:")
+    print(f"\n Comparison Results:")
     print(f"   Competitive - Max: {comp_max:.3f}, Avg: {comp_avg:.3f}")
     print(f"   Cooperative - Max: {coop_max:.3f}, Avg: {coop_avg:.3f}")
     
     if comp_max > coop_max:
-        print("   🏆 Competitive training achieved higher peak performance")
+        print("    Competitive training achieved higher peak performance")
     else:
-        print("   🤝 Cooperative training achieved higher peak performance")
+        print("    Cooperative training achieved higher peak performance")
     
     if comp_avg > coop_avg:
-        print("   📈 Competitive training achieved higher average performance")
+        print("    Competitive training achieved higher average performance")
     else:
-        print("   📈 Cooperative training achieved higher average performance")
+        print("    Cooperative training achieved higher average performance")
 
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("⚔️ Core SRL - Competitive Multi-Model Training")
+    print(" Core SRL - Competitive Multi-Model Training")
     print("=" * 60)
     
     # Run competitive training
@@ -204,8 +204,8 @@ if __name__ == "__main__":
     asyncio.run(competitive_vs_cooperative_comparison())
     
     print("\n" + "=" * 60)
-    print("✨ Competitive training example completed!")
-    print("💡 Key insights:")
+    print(" Competitive training example completed!")
+    print(" Key insights:")
     print("   - Different model types show different competitive advantages")
     print("   - Selective weight updates create performance gaps")
     print("   - Competition drives specialization and diversity")

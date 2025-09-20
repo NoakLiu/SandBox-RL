@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 async def checkpoint_training_example():
     """Example showing training with checkpoint management"""
     
-    print("💾 Checkpoint Management Training Example")
+    print(" Checkpoint Management Training Example")
     print("=" * 50)
     
     # Configure training with checkpointing
@@ -43,13 +43,13 @@ async def checkpoint_training_example():
     
     trainer = MultiModelTrainer(config)
     
-    print(f"📁 Checkpoint directory: {config.checkpoint_dir}")
-    print(f"💾 Save interval: {config.save_interval} episodes")
+    print(f" Checkpoint directory: {config.checkpoint_dir}")
+    print(f" Save interval: {config.save_interval} episodes")
     print(f"🗂️ Max checkpoints: {config.max_checkpoints}")
     
     try:
         # Start training with automatic checkpointing
-        print("\n🏃‍♂️ Starting training with automatic checkpointing...")
+        print("\n Starting training with automatic checkpointing...")
         
         # Simulate interruption after 50 episodes
         trainer.config.max_episodes = 50
@@ -59,18 +59,18 @@ async def checkpoint_training_example():
         
         # Check saved checkpoints
         checkpoints = list_available_checkpoints(config.checkpoint_dir)
-        print(f"💾 Checkpoints saved: {len(checkpoints)}")
+        print(f" Checkpoints saved: {len(checkpoints)}")
         
         if checkpoints:
             latest_checkpoint = checkpoints[0]
-            print(f"📂 Latest checkpoint: {latest_checkpoint}")
+            print(f" Latest checkpoint: {latest_checkpoint}")
             
             # Load checkpoint metadata
             metadata = load_checkpoint_metadata(latest_checkpoint, config.checkpoint_dir)
             if metadata:
-                print(f"📊 Checkpoint episode: {metadata['episode']}")
+                print(f" Checkpoint episode: {metadata['episode']}")
                 print(f"📅 Saved at: {metadata['timestamp']}")
-                print(f"🤖 Models: {len(metadata['model_states'])}")
+                print(f" Models: {len(metadata['model_states'])}")
         
         await trainer.shutdown()
         
@@ -85,7 +85,7 @@ async def checkpoint_training_example():
 async def resume_training_example():
     """Example showing how to resume training from checkpoint"""
     
-    print("\n🔄 Resume Training Example")
+    print("\n Resume Training Example")
     print("=" * 30)
     
     checkpoint_dir = "./checkpoints/example_training"
@@ -97,14 +97,14 @@ async def resume_training_example():
         print("❌ No checkpoints found. Run checkpoint_training_example() first.")
         return
     
-    print(f"📂 Found {len(checkpoints)} checkpoints")
+    print(f" Found {len(checkpoints)} checkpoints")
     
     # Load latest checkpoint
     latest_checkpoint = checkpoints[0]
     metadata = load_checkpoint_metadata(latest_checkpoint, checkpoint_dir)
     
-    print(f"📥 Loading checkpoint: {latest_checkpoint}")
-    print(f"📊 Previous episode: {metadata['episode']}")
+    print(f" Loading checkpoint: {latest_checkpoint}")
+    print(f" Previous episode: {metadata['episode']}")
     
     # Create new trainer and load checkpoint
     config = MultiModelConfig(
@@ -125,11 +125,11 @@ async def resume_training_example():
             print(f"✅ Successfully resumed from episode {trainer.current_episode}")
             
             # Continue training
-            print("🏃‍♂️ Continuing training...")
+            print(" Continuing training...")
             results = await trainer.train()
             
             print(f"\n✅ Training completed!")
-            print(f"📈 Final episode: {results['total_episodes']}")
+            print(f" Final episode: {results['total_episodes']}")
             
             # Show progress
             final_performance = trainer.get_model_performance_summary()
@@ -148,7 +148,7 @@ async def resume_training_example():
 async def checkpoint_analysis_example():
     """Analyze training progress across multiple checkpoints"""
     
-    print("\n📈 Checkpoint Analysis Example")
+    print("\n Checkpoint Analysis Example")
     print("=" * 35)
     
     checkpoint_dir = "./checkpoints/example_training"
@@ -158,7 +158,7 @@ async def checkpoint_analysis_example():
         print("❌ Need at least 2 checkpoints for analysis")
         return
     
-    print(f"📊 Analyzing {len(checkpoints)} checkpoints...")
+    print(f" Analyzing {len(checkpoints)} checkpoints...")
     
     # Load all checkpoint metadata
     checkpoint_data = []
@@ -193,7 +193,7 @@ async def checkpoint_analysis_example():
             model_progress[model_id]['update_counts'].append(state['update_count'])
     
     # Show progress analysis
-    print(f"\n📈 Training Progress Analysis:")
+    print(f"\n Training Progress Analysis:")
     
     for model_id, progress in model_progress.items():
         if len(progress['rewards']) >= 2:
@@ -216,7 +216,7 @@ async def checkpoint_analysis_example():
     
     if all_improvements:
         avg_improvement = sum(all_improvements) / len(all_improvements)
-        print(f"\n🎯 Overall Training Effectiveness:")
+        print(f"\n Overall Training Effectiveness:")
         print(f"   Average Improvement: {avg_improvement:+.3f}")
         
         if avg_improvement > 0.1:
@@ -230,13 +230,13 @@ async def checkpoint_analysis_example():
 async def checkpoint_cleanup_example():
     """Example showing checkpoint cleanup and management"""
     
-    print("\n🧹 Checkpoint Cleanup Example")
+    print("\n Checkpoint Cleanup Example")
     print("=" * 32)
     
     checkpoint_dir = "./checkpoints/example_training"
     checkpoints = list_available_checkpoints(checkpoint_dir)
     
-    print(f"📂 Found {len(checkpoints)} checkpoints")
+    print(f" Found {len(checkpoints)} checkpoints")
     
     # Calculate total size
     total_size = 0
@@ -251,7 +251,7 @@ async def checkpoint_cleanup_example():
     print(f"💽 Total size: {total_size_mb:.2f} MB")
     
     # Show checkpoint details
-    print(f"\n📋 Checkpoint Details:")
+    print(f"\n Checkpoint Details:")
     for i, checkpoint_id in enumerate(checkpoints):
         metadata = load_checkpoint_metadata(checkpoint_id, checkpoint_dir)
         if metadata:
@@ -259,12 +259,12 @@ async def checkpoint_cleanup_example():
             timestamp = metadata['timestamp']
             is_final = checkpoint_id.startswith('final_')
             
-            status = "🏁 Final" if is_final else f"📊 Episode {episode}"
+            status = " Final" if is_final else f" Episode {episode}"
             print(f"   {i+1}. {checkpoint_id}")
             print(f"      {status} - {timestamp}")
     
     # Cleanup old checkpoints (keep only final and latest 3)
-    print(f"\n🧹 Cleanup Strategy:")
+    print(f"\n Cleanup Strategy:")
     
     final_checkpoints = [c for c in checkpoints if c.startswith('final_')]
     regular_checkpoints = [c for c in checkpoints if not c.startswith('final_')]
@@ -283,7 +283,7 @@ async def checkpoint_cleanup_example():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("💾 Core SRL - Checkpoint Management Examples")
+    print(" Core SRL - Checkpoint Management Examples")
     print("=" * 60)
     
     # Run checkpoint training
@@ -300,8 +300,8 @@ if __name__ == "__main__":
         asyncio.run(checkpoint_cleanup_example())
     
     print("\n" + "=" * 60)
-    print("✨ Checkpoint management examples completed!")
-    print("💡 Key takeaways:")
+    print(" Checkpoint management examples completed!")
+    print(" Key takeaways:")
     print("   - Checkpoints are saved automatically during training")
     print("   - Training can be resumed seamlessly from any checkpoint")
     print("   - Checkpoint analysis helps understand training progress")

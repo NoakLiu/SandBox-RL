@@ -27,13 +27,13 @@ logger = logging.getLogger(__name__)
 async def maze_environment_training():
     """Training in maze navigation environment"""
     
-    print("🗺️ Maze Environment Training")
+    print(" Maze Environment Training")
     print("=" * 30)
     
     # Create maze environment
     maze_env = create_maze_training_env(complexity="medium")
     
-    print("🗺️ Maze environment created:")
+    print(" Maze environment created:")
     print("   Complexity: Medium")
     print("   Goal: Navigate to target while avoiding obstacles")
     print("   Cooperation: Share path information")
@@ -52,7 +52,7 @@ async def maze_environment_training():
     trainer.environment = maze_env
     
     try:
-        print("\n🏃‍♂️ Starting maze navigation training...")
+        print("\n Starting maze navigation training...")
         
         # Custom monitoring for maze environment
         navigation_stats = []
@@ -89,7 +89,7 @@ async def maze_environment_training():
         final_success_rate = sum(s['success_rate'] for s in final_stats) / len(final_stats)
         final_avg_steps = sum(s['avg_steps'] for s in final_stats) / len(final_stats)
         
-        print(f"\n🗺️ Maze Navigation Results:")
+        print(f"\n Maze Navigation Results:")
         print(f"   Final success rate: {final_success_rate:.3f}")
         print(f"   Final average steps: {final_avg_steps:.1f}")
         
@@ -109,13 +109,13 @@ async def maze_environment_training():
 async def social_interaction_training():
     """Training in social interaction environment"""
     
-    print("\n👥 Social Interaction Training")
+    print("\n Social Interaction Training")
     print("=" * 33)
     
     # Create social environment
     social_env = create_social_training_env(scenario="negotiation", num_models=6)
     
-    print("👥 Social environment created:")
+    print(" Social environment created:")
     print("   Scenario: Negotiation")
     print("   Participants: 6 models")
     print("   Goal: Reach mutually beneficial agreements")
@@ -133,7 +133,7 @@ async def social_interaction_training():
     trainer.environment = social_env
     
     try:
-        print("\n💬 Starting social interaction training...")
+        print("\n Starting social interaction training...")
         
         # Track social dynamics
         social_stats = []
@@ -172,7 +172,7 @@ async def social_interaction_training():
         final_agreement_rate = sum(s['agreement_rate'] for s in final_stats) / len(final_stats)
         final_trust = sum(s['avg_trust'] for s in final_stats) / len(final_stats)
         
-        print(f"\n👥 Social Interaction Results:")
+        print(f"\n Social Interaction Results:")
         print(f"   Final agreement rate: {final_agreement_rate:.3f}")
         print(f"   Final trust level: {final_trust:.3f}")
         
@@ -193,13 +193,13 @@ async def social_interaction_training():
 async def team_battle_training():
     """Training in team battle environment"""
     
-    print("\n⚔️ Team Battle Training")
+    print("\n Team Battle Training")
     print("=" * 25)
     
     # Create team battle environment (4v4)
     team_env = create_multi_model_team_battle()
     
-    print("⚔️ Team battle environment created:")
+    print(" Team battle environment created:")
     print("   Format: 4v4 team battle")
     print("   Intra-team: Cooperation required")
     print("   Inter-team: Competition for victory")
@@ -218,7 +218,7 @@ async def team_battle_training():
     trainer.environment = team_env
     
     try:
-        print("\n⚔️ Starting team battle training...")
+        print("\n Starting team battle training...")
         
         # Track team performance
         team_stats = []
@@ -275,7 +275,7 @@ async def team_battle_training():
         final_a_coord = sum(s['team_a_coordination'] for s in final_stats) / len(final_stats)
         final_b_coord = sum(s['team_b_coordination'] for s in final_stats) / len(final_stats)
         
-        print(f"\n⚔️ Team Battle Results:")
+        print(f"\n Team Battle Results:")
         print(f"   Team A wins: {team_a_wins}/{len(final_stats)} ({team_a_wins/len(final_stats):.1%})")
         print(f"   Team B wins: {team_b_wins}/{len(final_stats)} ({team_b_wins/len(final_stats):.1%})")
         print(f"   Team A coordination: {final_a_coord:.3f}")
@@ -285,7 +285,7 @@ async def team_battle_training():
         win_balance = abs(team_a_wins - team_b_wins) / len(final_stats)
         
         if win_balance < 0.2:
-            print("   ⚖️ Well-balanced teams - competitive training successful")
+            print("    Well-balanced teams - competitive training successful")
         elif win_balance < 0.4:
             print("   ✅ Reasonably balanced - good team dynamics")
         else:
@@ -301,13 +301,13 @@ async def team_battle_training():
 async def staged_environment_training():
     """Training in staged environment with evolving difficulty"""
     
-    print("\n📈 Staged Environment Training")
+    print("\n Staged Environment Training")
     print("=" * 33)
     
     # Create staged environment
     staged_env = create_multi_model_staged_env(num_models=6)
     
-    print("📈 Staged environment created:")
+    print(" Staged environment created:")
     print("   Models: 6")
     print("   Stages: Warmup → Intermediate → Advanced")
     print("   Evolution: Gradually increasing complexity and competition")
@@ -323,7 +323,7 @@ async def staged_environment_training():
     trainer.environment = staged_env
     
     try:
-        print("\n📊 Starting staged environment training...")
+        print("\n Starting staged environment training...")
         
         # Track progression through stages
         stage_stats = []
@@ -363,7 +363,7 @@ async def staged_environment_training():
         intermediate_stats = [s for s in stage_stats if s['stage'] == 'Intermediate']
         advanced_stats = [s for s in stage_stats if s['stage'] == 'Advanced']
         
-        print(f"\n📈 Stage Progression Analysis:")
+        print(f"\n Stage Progression Analysis:")
         
         for stage_name, stage_data in [('Warmup', warmup_stats), ('Intermediate', intermediate_stats), ('Advanced', advanced_stats)]:
             if stage_data:
@@ -380,7 +380,7 @@ async def staged_environment_training():
             # Account for increasing difficulty
             progression_score = advanced_avg / max(warmup_avg, 0.1)
             
-            print(f"\n🎯 Learning Progression:")
+            print(f"\n Learning Progression:")
             print(f"   Progression score: {progression_score:.3f}")
             
             if progression_score > 1.2:
@@ -414,8 +414,8 @@ if __name__ == "__main__":
     stage_stats = asyncio.run(staged_environment_training())
     
     print("\n" + "=" * 60)
-    print("✨ Custom environment examples completed!")
-    print("💡 Key insights:")
+    print(" Custom environment examples completed!")
+    print(" Key insights:")
     print("   - Different environments require different cooperation/competition balances")
     print("   - Maze environments benefit from moderate mixed strategies")
     print("   - Social scenarios thrive with high cooperation")

@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 async def basic_monitoring_example():
     """Basic monitoring during training"""
     
-    print("📊 Basic Performance Monitoring Example")
+    print(" Basic Performance Monitoring Example")
     print("=" * 42)
     
     # Setup monitoring
@@ -39,8 +39,8 @@ async def basic_monitoring_example():
     monitor = create_unified_monitor(monitor_config)
     monitor.start()
     
-    print("📈 Monitoring system started")
-    print(f"📁 Log file: {monitor_config.log_file_path}")
+    print(" Monitoring system started")
+    print(f" Log file: {monitor_config.log_file_path}")
     
     # Configure training with monitoring
     config = MultiModelConfig(
@@ -54,7 +54,7 @@ async def basic_monitoring_example():
     trainer = MultiModelTrainer(config)
     
     try:
-        print("\n🏃‍♂️ Starting monitored training...")
+        print("\n Starting monitored training...")
         
         # Custom monitoring during training
         monitoring_data = []
@@ -97,7 +97,7 @@ async def basic_monitoring_example():
         # Get comprehensive monitoring stats
         final_stats = monitor.get_comprehensive_stats()
         
-        print(f"\n📊 Final Monitoring Stats:")
+        print(f"\n Final Monitoring Stats:")
         print(f"   Metrics collected: {final_stats['metrics_summary']['total_samples']}")
         print(f"   Average engagement: {final_stats['metrics_summary']['recent_avg_engagement']:.3f}")
         print(f"   Average response time: {final_stats['metrics_summary']['recent_avg_response_time']:.3f}s")
@@ -111,7 +111,7 @@ async def basic_monitoring_example():
             late_avg = sum(late_rewards) / len(late_rewards)
             improvement = late_avg - early_avg
             
-            print(f"\n📈 Training Progress:")
+            print(f"\n Training Progress:")
             print(f"   Early average reward: {early_avg:.3f}")
             print(f"   Late average reward: {late_avg:.3f}")
             print(f"   Improvement: {improvement:+.3f}")
@@ -133,7 +133,7 @@ async def basic_monitoring_example():
 async def real_time_visualization_example():
     """Example with real-time graph visualization"""
     
-    print("\n🎨 Real-time Visualization Example")
+    print("\n Real-time Visualization Example")
     print("=" * 37)
     
     # Create monitor with graph visualization
@@ -143,8 +143,8 @@ async def real_time_visualization_example():
     # Create visualization scenario
     monitor.create_visualization_scenario(num_agents=8)
     
-    print("🎭 Created visualization scenario with 8 agents")
-    print("📊 Graph visualization includes:")
+    print(" Created visualization scenario with 8 agents")
+    print(" Graph visualization includes:")
     print("   - Cooperation/competition edges")
     print("   - Information spread dynamics")
     print("   - Real-time belief updates")
@@ -160,7 +160,7 @@ async def real_time_visualization_example():
     trainer = MultiModelTrainer(config)
     
     try:
-        print("\n🎬 Starting training with visualization...")
+        print("\n Starting training with visualization...")
         
         # Training with visualization updates
         for episode in range(50):
@@ -185,7 +185,7 @@ async def real_time_visualization_example():
         # Get final visualization stats
         viz_stats = monitor.graph_visualizer.get_statistics()
         
-        print(f"\n🎨 Visualization Summary:")
+        print(f"\n Visualization Summary:")
         print(f"   Total nodes: {viz_stats['total_nodes']}")
         print(f"   Total edges: {viz_stats['total_edges']}")
         print(f"   Cooperation edges: {viz_stats.get('cooperation_count', 0)}")
@@ -202,7 +202,7 @@ async def real_time_visualization_example():
 async def performance_comparison_example():
     """Compare performance with and without monitoring"""
     
-    print("\n⚖️ Performance Impact Analysis")
+    print("\n Performance Impact Analysis")
     print("=" * 34)
     
     episodes = 50
@@ -223,7 +223,7 @@ async def performance_comparison_example():
     await trainer_no_monitor.shutdown()
     
     # Test with monitoring
-    print("\n📊 Testing with monitoring...")
+    print("\n Testing with monitoring...")
     config_with_monitor = MultiModelConfig(
         num_models=3,
         max_episodes=episodes,
@@ -239,7 +239,7 @@ async def performance_comparison_example():
     await trainer_with_monitor.shutdown()
     
     # Compare results
-    print(f"\n⚖️ Performance Comparison:")
+    print(f"\n Performance Comparison:")
     print(f"   Without monitoring: {time_no_monitor:.2f}s ({episodes/time_no_monitor:.2f} eps/sec)")
     print(f"   With monitoring: {time_with_monitor:.2f}s ({episodes/time_with_monitor:.2f} eps/sec)")
     
@@ -256,7 +256,7 @@ async def performance_comparison_example():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("📊 Core SRL - Performance Monitoring Examples")
+    print(" Core SRL - Performance Monitoring Examples")
     print("=" * 60)
     
     # Run basic monitoring
@@ -269,8 +269,8 @@ if __name__ == "__main__":
     asyncio.run(performance_comparison_example())
     
     print("\n" + "=" * 60)
-    print("✨ Performance monitoring examples completed!")
-    print("💡 Key insights:")
+    print(" Performance monitoring examples completed!")
+    print(" Key insights:")
     print("   - Real-time monitoring provides valuable training insights")
     print("   - Monitoring overhead is typically <10%")
     print("   - Graph visualization helps understand model interactions")

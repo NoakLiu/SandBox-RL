@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 async def distributed_gpu_training():
     """Distributed training across multiple GPUs"""
     
-    print("🖥️ Distributed GPU Training Example")
+    print(" Distributed GPU Training Example")
     print("=" * 38)
     
     # Configure for 8 models across 4 GPUs
@@ -44,7 +44,7 @@ async def distributed_gpu_training():
     
     trainer = MultiModelTrainer(config)
     
-    print(f"🔧 Distributed Configuration:")
+    print(f" Distributed Configuration:")
     print(f"   Models: {config.num_models}")
     print(f"   GPUs: {config.num_gpus}")
     print(f"   Models per GPU: {config.num_models // config.num_gpus}")
@@ -52,12 +52,12 @@ async def distributed_gpu_training():
     
     try:
         # Check GPU allocation
-        print(f"\n🎯 GPU Allocation:")
+        print(f"\n GPU Allocation:")
         for model_id, state in trainer.model_states.items():
             print(f"   {model_id} → GPU {state.gpu_id}")
         
         # Start distributed training
-        print(f"\n🚀 Starting distributed training...")
+        print(f"\n Starting distributed training...")
         
         # Monitor resource usage during training
         resource_history = []
@@ -84,7 +84,7 @@ async def distributed_gpu_training():
         # Analyze resource utilization
         final_stats = trainer.scheduler.get_system_statistics()
         
-        print(f"\n📊 Resource Utilization Analysis:")
+        print(f"\n Resource Utilization Analysis:")
         resource_stats = final_stats.get('resource_statistics', {})
         
         if 'gpu_allocation_rates' in resource_stats:
@@ -114,7 +114,7 @@ async def distributed_gpu_training():
                 gpu_performance[gpu_id] = []
             gpu_performance[gpu_id].append(stats['avg_reward'])
         
-        print(f"\n🖥️ Performance by GPU:")
+        print(f"\n Performance by GPU:")
         for gpu_id, rewards in gpu_performance.items():
             avg_reward = sum(rewards) / len(rewards)
             print(f"   GPU {gpu_id}: {avg_reward:.3f} average reward ({len(rewards)} models)")
@@ -128,7 +128,7 @@ async def distributed_gpu_training():
 async def lora_distributed_training():
     """Distributed training with LoRA management"""
     
-    print("\n🔧 Distributed LoRA Training Example")
+    print("\n Distributed LoRA Training Example")
     print("=" * 38)
     
     # Setup distributed LoRA scheduler
@@ -140,7 +140,7 @@ async def lora_distributed_training():
     
     await lora_scheduler.start()
     
-    print("🔧 Distributed LoRA scheduler started")
+    print(" Distributed LoRA scheduler started")
     print(f"   GPUs: 4")
     print(f"   LoRA adapters: 8 (2 per GPU)")
     
@@ -157,7 +157,7 @@ async def lora_distributed_training():
     trainer = MultiModelTrainer(config)
     
     try:
-        print(f"\n🏃‍♂️ Starting LoRA-enabled distributed training...")
+        print(f"\n Starting LoRA-enabled distributed training...")
         
         # Monitor LoRA performance
         lora_stats_history = []
@@ -194,7 +194,7 @@ async def lora_distributed_training():
         final_lora_stats = lora_stats_history[-1] if lora_stats_history else {}
         lora_status = final_lora_stats.get('lora_status', {})
         
-        print(f"\n🔧 LoRA Performance Summary:")
+        print(f"\n LoRA Performance Summary:")
         
         successful_loras = 0
         total_updates = 0
@@ -228,7 +228,7 @@ async def lora_distributed_training():
 async def load_balancing_analysis():
     """Analyze load balancing across distributed setup"""
     
-    print("\n⚖️ Load Balancing Analysis")
+    print("\n Load Balancing Analysis")
     print("=" * 28)
     
     # Setup distributed training
@@ -242,7 +242,7 @@ async def load_balancing_analysis():
     trainer = MultiModelTrainer(config)
     
     try:
-        print("📊 Analyzing load distribution...")
+        print(" Analyzing load distribution...")
         
         # Run training and collect load stats
         load_stats = []
@@ -267,7 +267,7 @@ async def load_balancing_analysis():
         # Analyze load balance
         final_distribution = load_stats[-1]['gpu_distribution'] if load_stats else {}
         
-        print(f"\n📊 Final Load Distribution:")
+        print(f"\n Final Load Distribution:")
         
         gpu_loads = []
         for gpu_id, model_count in final_distribution.items():
@@ -279,7 +279,7 @@ async def load_balancing_analysis():
             min_load = min(gpu_loads)
             load_imbalance = (max_load - min_load) / max(max_load, 1)
             
-            print(f"\n⚖️ Load Balance Analysis:")
+            print(f"\n Load Balance Analysis:")
             print(f"   Load imbalance: {load_imbalance:.3f}")
             
             if load_imbalance < 0.2:
@@ -297,7 +297,7 @@ async def load_balancing_analysis():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("🖥️ Core SRL - Distributed Training Examples")
+    print(" Core SRL - Distributed Training Examples")
     print("=" * 60)
     
     # Run distributed GPU training
@@ -310,8 +310,8 @@ if __name__ == "__main__":
     load_stats = asyncio.run(load_balancing_analysis())
     
     print("\n" + "=" * 60)
-    print("✨ Distributed training examples completed!")
-    print("💡 Key insights:")
+    print(" Distributed training examples completed!")
+    print(" Key insights:")
     print("   - Distributed training scales well across GPUs")
     print("   - LoRA enables efficient parameter updates")
     print("   - Load balancing is crucial for performance")

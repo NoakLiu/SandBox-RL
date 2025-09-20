@@ -11,7 +11,7 @@
 
 </div>
 
-## 🎯 What is Core SRL?
+## What is Core SRL?
 
 Core SRL enables **simultaneous training of multiple modern LLMs** using reinforcement learning with **cooperative-competitive dynamics**. Train 4-8 models like Qwen3-14B, together with real-time weight updates.
 
@@ -24,7 +24,7 @@ Core SRL enables **simultaneous training of multiple modern LLMs** using reinfor
 - **VERL/AReaL Integration**: Efficient training with advanced caching
 - **Checkpoint Management**: Automatic saving and recovery
 
-## 🏗️ System Architecture
+## System Architecture
 
 ![System Architecture](assets/archi.jpeg)
 
@@ -46,12 +46,12 @@ Core SRL enables **simultaneous training of multiple modern LLMs** using reinfor
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
 ```bash
-git clone https://github.com/your-repo/core-srl.git
+git clone https://github.com/NoakLiu/core-srl.git
 cd core-srl
 pip install -r requirements.txt
 ```
@@ -102,7 +102,7 @@ print("Available:", checkpoints)
 trainer.load_checkpoint(checkpoints[0])
 ```
 
-## 📊 Supported Models
+## Supported Models
 
 ```python
 MODERN_MODELS = {
@@ -134,7 +134,7 @@ core-srl/
 - **[VERL/AReaL](docs/verl_areal.md)** - Advanced optimization
 - **[API Reference](docs/api_reference.md)** - Complete API
 
-## 🤝 Contributing
+## Contributing
 
 Focus areas:
 - New modern LLM integrations

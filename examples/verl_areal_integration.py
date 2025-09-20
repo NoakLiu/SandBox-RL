@@ -25,13 +25,13 @@ logger = logging.getLogger(__name__)
 async def verl_integration_example():
     """Example using VERL for efficient RL training"""
     
-    print("🚀 VERL Integration Example")
+    print(" VERL Integration Example")
     print("=" * 30)
     
     # Create VERL trainer for Qwen3
     verl_trainer = create_verl_trainer("Qwen/Qwen2.5-14B-Instruct")
     
-    print("⚡ VERL trainer created for Qwen3-14B")
+    print(" VERL trainer created for Qwen3-14B")
     
     # Example training prompts
     training_prompts = [
@@ -41,11 +41,11 @@ async def verl_integration_example():
         "What factors should influence your decision-making process?"
     ]
     
-    print(f"📝 Training with {len(training_prompts)} prompts")
+    print(f" Training with {len(training_prompts)} prompts")
     
     try:
         # VERL rollout step
-        print("\n🔄 Executing VERL rollout...")
+        print("\n Executing VERL rollout...")
         rollout_data = await verl_trainer.rollout_step(training_prompts)
         
         print(f"✅ Rollout completed:")
@@ -54,7 +54,7 @@ async def verl_integration_example():
         print(f"   Rollout time: {rollout_data['rollout_time']:.3f}s")
         
         # VERL training step
-        print("\n🎯 Executing VERL training step...")
+        print("\n Executing VERL training step...")
         train_result = await verl_trainer.train_step(rollout_data)
         
         print(f"✅ Training step completed:")
@@ -76,7 +76,7 @@ async def verl_integration_example():
 async def areal_integration_example():
     """Example using AReaL for advanced caching and optimization"""
     
-    print("\n🧠 AReaL Integration Example")
+    print("\n AReaL Integration Example")
     print("=" * 32)
     
     # Create AReaL integration manager
@@ -91,14 +91,14 @@ async def areal_integration_example():
     
     # Get initial stats
     initial_stats = areal_manager.get_stats()
-    print(f"\n📊 Initial AReaL stats:")
+    print(f"\n Initial AReaL stats:")
     print(f"   AReaL available: {initial_stats['areal_available']}")
     print(f"   AReaL enabled: {initial_stats['areal_enabled']}")
     
     # Simulate cache operations
     cache = areal_manager.get_cache()
     if cache:
-        print("\n🔄 Testing cache operations...")
+        print("\n Testing cache operations...")
         
         # Test cache put/get
         test_data = {"test": "data", "value": 123}
@@ -110,7 +110,7 @@ async def areal_integration_example():
         
         # Get cache stats
         cache_stats = cache.get_stats()
-        print(f"📈 Cache stats: {cache_stats}")
+        print(f" Cache stats: {cache_stats}")
     
     return areal_manager
 
@@ -118,13 +118,13 @@ async def areal_integration_example():
 async def combined_verl_areal_example():
     """Example using both VERL and AReaL together"""
     
-    print("\n🔥 Combined VERL/AReaL Example")
+    print("\n Combined VERL/AReaL Example")
     print("=" * 35)
     
     # Create combined bridge
     bridge = create_areal_verl_bridge("Qwen/Qwen2.5-14B-Instruct")
     
-    print("🌉 VERL/AReaL bridge created")
+    print(" VERL/AReaL bridge created")
     
     # Training prompts for optimization
     optimization_prompts = [
@@ -135,7 +135,7 @@ async def combined_verl_areal_example():
     ]
     
     try:
-        print(f"\n⚡ Running integrated training loop...")
+        print(f"\n Running integrated training loop...")
         print(f"   Prompts: {len(optimization_prompts)}")
         print(f"   Optimization steps: 25")
         
@@ -149,7 +149,7 @@ async def combined_verl_areal_example():
         
         # Analyze optimization results
         final_stats = results['final_stats']
-        print(f"\n📊 Optimization Results:")
+        print(f"\n Optimization Results:")
         print(f"   Total steps: {final_stats['total_steps']}")
         print(f"   Average throughput: {final_stats['avg_throughput']:.2f} prompts/sec")
         print(f"   Average reward: {final_stats['avg_reward']:.3f}")
@@ -161,7 +161,7 @@ async def combined_verl_areal_example():
             min_throughput = min(training_metrics['throughput'])
             max_throughput = max(training_metrics['throughput'])
             
-            print(f"\n⚡ Performance Analysis:")
+            print(f"\n Performance Analysis:")
             print(f"   Throughput range: {min_throughput:.2f} - {max_throughput:.2f} prompts/sec")
             print(f"   Speedup: {max_throughput/max(min_throughput, 0.1):.2f}x")
         
@@ -176,7 +176,7 @@ async def combined_verl_areal_example():
 async def multimodel_with_optimization():
     """Full multi-model training with VERL/AReaL optimization"""
     
-    print("\n🏎️ Optimized Multi-Model Training")
+    print("\n Optimized Multi-Model Training")
     print("=" * 38)
     
     # Configure with all optimizations enabled
@@ -203,7 +203,7 @@ async def multimodel_with_optimization():
     
     trainer = MultiModelTrainer(config)
     
-    print("🔧 Configuration:")
+    print(" Configuration:")
     print(f"   VERL enabled: {config.enable_verl}")
     print(f"   AReaL enabled: {config.enable_areal}")
     print(f"   KV cache size: {config.kv_cache_size:,}")
@@ -211,7 +211,7 @@ async def multimodel_with_optimization():
     
     try:
         # Start optimized training
-        print("\n🏃‍♂️ Starting optimized multi-model training...")
+        print("\n Starting optimized multi-model training...")
         
         start_time = asyncio.get_event_loop().time()
         results = await trainer.train()
@@ -220,14 +220,14 @@ async def multimodel_with_optimization():
         training_time = end_time - start_time
         
         print(f"\n✅ Optimized training completed!")
-        print(f"⏱️ Training time: {training_time:.2f} seconds")
-        print(f"📈 Episodes: {results['total_episodes']}")
-        print(f"🚀 Speed: {results['total_episodes']/training_time:.2f} episodes/sec")
+        print(f" Training time: {training_time:.2f} seconds")
+        print(f" Episodes: {results['total_episodes']}")
+        print(f" Speed: {results['total_episodes']/training_time:.2f} episodes/sec")
         
         # Show optimization impact
         if trainer.verl_areal_bridge:
             optimization_stats = trainer.verl_areal_bridge.get_training_summary()
-            print(f"\n⚡ Optimization Impact:")
+            print(f"\n Optimization Impact:")
             print(f"   VERL stats: {optimization_stats.get('verl_stats', {})}")
             print(f"   AReaL stats: {optimization_stats.get('areal_stats', {})}")
         
@@ -236,7 +236,7 @@ async def multimodel_with_optimization():
         actual_speed = results['total_episodes'] / training_time
         speedup = actual_speed / baseline_speed
         
-        print(f"\n📊 Performance Comparison:")
+        print(f"\n Performance Comparison:")
         print(f"   Baseline (estimated): {baseline_speed:.2f} episodes/sec")
         print(f"   Optimized: {actual_speed:.2f} episodes/sec")
         print(f"   Speedup: {speedup:.2f}x")
@@ -250,7 +250,7 @@ async def multimodel_with_optimization():
 async def cache_performance_analysis():
     """Analyze cache performance during training"""
     
-    print("\n📊 Cache Performance Analysis")
+    print("\n Cache Performance Analysis")
     print("=" * 33)
     
     # Create trainer with large cache
@@ -264,7 +264,7 @@ async def cache_performance_analysis():
     trainer = MultiModelTrainer(config)
     
     try:
-        print("🔍 Analyzing cache performance during training...")
+        print(" Analyzing cache performance during training...")
         
         # Monitor cache stats during training
         cache_stats_history = []
@@ -295,7 +295,7 @@ async def cache_performance_analysis():
             final_stats = cache_stats_history[-1]
             initial_stats = cache_stats_history[0]
             
-            print(f"\n📈 Cache Performance Summary:")
+            print(f"\n Cache Performance Summary:")
             print(f"   Initial hit rate: {initial_stats['hit_rate']:.3f}")
             print(f"   Final hit rate: {final_stats['hit_rate']:.3f}")
             print(f"   Hit rate improvement: {final_stats['hit_rate'] - initial_stats['hit_rate']:+.3f}")
@@ -317,7 +317,7 @@ async def cache_performance_analysis():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("⚡ Core SRL - VERL/AReaL Integration Examples")
+    print(" Core SRL - VERL/AReaL Integration Examples")
     print("=" * 60)
     
     # Run VERL example
@@ -336,8 +336,8 @@ if __name__ == "__main__":
     asyncio.run(cache_performance_analysis())
     
     print("\n" + "=" * 60)
-    print("✨ VERL/AReaL integration examples completed!")
-    print("💡 Key insights:")
+    print(" VERL/AReaL integration examples completed!")
+    print(" Key insights:")
     print("   - VERL provides 2-3x training speedup")
     print("   - AReaL reduces memory usage by 20-30%")
     print("   - Combined optimization gives best results")

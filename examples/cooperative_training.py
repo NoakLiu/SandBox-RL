@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 async def cooperative_training_example():
     """Train models to cooperate and share knowledge"""
     
-    print("🤝 Starting cooperative multi-model training...")
-    print("📋 Configuration:")
+    print(" Starting cooperative multi-model training...")
+    print(" Configuration:")
     print("   - Models: 4 (same type for fair cooperation)")
     print("   - Mode: Cooperative")
     print("   - Strategy: Synchronized weight updates")
@@ -62,7 +62,7 @@ async def cooperative_training_example():
         reward_variance = sum((r - mean_reward)**2 for r in rewards) / len(rewards)
         mean_cooperation = sum(cooperation_scores) / len(cooperation_scores)
         
-        print(f"\n🤝 Cooperation Analysis:")
+        print(f"\n Cooperation Analysis:")
         print(f"   Average Reward: {mean_reward:.3f}")
         print(f"   Reward Variance: {reward_variance:.4f} (lower = better cooperation)")
         print(f"   Cooperation Score: {mean_cooperation:.3f}")
@@ -76,7 +76,7 @@ async def cooperative_training_example():
             print("   ⚠️ Limited cooperation: Models diverged despite cooperation settings")
         
         # Show individual model contributions
-        print(f"\n🤖 Individual Model Performance:")
+        print(f"\n Individual Model Performance:")
         for model_id, stats in performance.items():
             contribution = (stats['avg_reward'] - mean_reward) / max(mean_reward, 0.001)
             print(f"   {model_id}:")
@@ -97,7 +97,7 @@ async def cooperative_training_example():
 async def knowledge_sharing_analysis(trainer):
     """Analyze knowledge sharing between models"""
     
-    print("\n🧠 Knowledge Sharing Analysis:")
+    print("\n Knowledge Sharing Analysis:")
     
     # Get training status
     status = trainer.get_training_status()
@@ -125,7 +125,7 @@ async def knowledge_sharing_analysis(trainer):
 async def team_formation_example():
     """Example showing team-based cooperative training"""
     
-    print("\n👥 Team-Based Cooperative Training")
+    print("\n Team-Based Cooperative Training")
     print("=" * 40)
     
     # Configure team-based training
@@ -142,7 +142,7 @@ async def team_formation_example():
     trainer = MultiModelTrainer(config)
     
     try:
-        print("🏃‍♂️ Starting team-based training...")
+        print(" Starting team-based training...")
         print("   Team A: Models 0, 1, 2")
         print("   Team B: Models 3, 4, 5")
         
@@ -158,15 +158,15 @@ async def team_formation_example():
         team_a_avg = sum(p['avg_reward'] for p in team_a_performance.values()) / len(team_a_performance)
         team_b_avg = sum(p['avg_reward'] for p in team_b_performance.values()) / len(team_b_performance)
         
-        print(f"\n🏆 Team Results:")
+        print(f"\n Team Results:")
         print(f"   Team A Average: {team_a_avg:.3f}")
         print(f"   Team B Average: {team_b_avg:.3f}")
         
         if abs(team_a_avg - team_b_avg) < 0.05:
-            print("   ⚖️ Balanced team performance (good cooperation)")
+            print("    Balanced team performance (good cooperation)")
         else:
             winner = "Team A" if team_a_avg > team_b_avg else "Team B"
-            print(f"   🏆 {winner} performed better")
+            print(f"    {winner} performed better")
         
         return results
         
@@ -177,7 +177,7 @@ async def team_formation_example():
 async def cooperative_knowledge_transfer():
     """Example of cooperative knowledge transfer between specialized models"""
     
-    print("\n🔄 Cooperative Knowledge Transfer")
+    print("\n Cooperative Knowledge Transfer")
     print("=" * 40)
     
     # Use specialized models for knowledge transfer
@@ -199,7 +199,7 @@ async def cooperative_knowledge_transfer():
     trainer = MultiModelTrainer(config)
     
     try:
-        print("🧠 Starting knowledge transfer training...")
+        print(" Starting knowledge transfer training...")
         print("   Coder → Math → Generalist knowledge flow")
         
         results = await trainer.train()
@@ -210,7 +210,7 @@ async def cooperative_knowledge_transfer():
         print(f"\n📚 Knowledge Transfer Results:")
         for model_id, stats in performance.items():
             model_type = stats['model_type']
-            specialization = "🔧" if "coder" in model_type else "🔢" if "math" in model_type else "🌐"
+            specialization = "" if "coder" in model_type else "🔢" if "math" in model_type else "🌐"
             
             print(f"   {specialization} {model_id} ({model_type}):")
             print(f"      Performance: {stats['avg_reward']:.3f}")
@@ -223,7 +223,7 @@ async def cooperative_knowledge_transfer():
         
         transfer_effectiveness = general_perf / max((coder_perf + math_perf) / 2, 0.001)
         
-        print(f"\n🔄 Knowledge Transfer Effectiveness: {transfer_effectiveness:.3f}")
+        print(f"\n Knowledge Transfer Effectiveness: {transfer_effectiveness:.3f}")
         if transfer_effectiveness > 0.9:
             print("   ✅ Excellent knowledge transfer: Generalist learned from specialists")
         elif transfer_effectiveness > 0.7:
@@ -239,7 +239,7 @@ async def cooperative_knowledge_transfer():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("🤝 Core SRL - Cooperative Multi-Model Training")
+    print(" Core SRL - Cooperative Multi-Model Training")
     print("=" * 60)
     
     # Run main cooperative training
@@ -252,8 +252,8 @@ if __name__ == "__main__":
     asyncio.run(cooperative_knowledge_transfer())
     
     print("\n" + "=" * 60)
-    print("✨ Cooperative training examples completed!")
-    print("💡 Key insights:")
+    print(" Cooperative training examples completed!")
+    print(" Key insights:")
     print("   - Synchronized updates improve cooperation")
     print("   - Same model types cooperate better than different types")
     print("   - Knowledge transfer works between specialized models")
