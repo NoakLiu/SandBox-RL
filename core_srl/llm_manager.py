@@ -298,8 +298,105 @@ class BaseLLM(ABC):
         return param_update
     
     def _execute_parameter_update(self, updated_params: Dict[str, Any], learning_rate: float):
-        """执行参数更新"""
-        # 子类实现具体的参数更新逻辑
+        """Execute parameter update with validation and safety checks"""
+        if not updated_params:
+            logger.warning("No parameters to update")
+            return
+        
+        # Validate parameter updates before applying
+        valid_updates = {}
+        invalid_count = 0
+        
+        for param_name, param_update in updated_params.items():
+            try:
+                # Check if parameter update is valid
+                if self._validate_parameter_update(param_name, param_update):
+                    valid_updates[param_name] = param_update
+                else:
+                    invalid_count += 1
+                    logger.warning(f"Invalid parameter update for {param_name}, skipping")
+            except Exception as e:
+                invalid_count += 1
+                logger.error(f"Error validating parameter update for {param_name}: {e}")
+        
+        if invalid_count > 0:
+            logger.warning(f"Skipped {invalid_count} invalid parameter updates")
+        
+        if not valid_updates:
+            logger.error("No valid parameter updates to apply")
+            return
+        
+        # Apply parameter updates with safety mechanisms
+        successful_updates = 0
+        failed_updates = 0
+        
+        for param_name, param_update in valid_updates.items():
+            try:
+                # Apply the parameter update (subclass implementation)
+                self._apply_single_parameter_update(param_name, param_update, learning_rate)
+                successful_updates += 1
+                
+                # Log significant updates
+                if hasattr(param_update, 'shape') or hasattr(param_update, '__len__'):
+                    update_size = getattr(param_update, 'size', len(param_update)) if hasattr(param_update, '__len__') else 1
+                    if update_size > 1000:  # Log large updates
+                        logger.info(f"Applied large parameter update to {param_name}: size={update_size}")
+                
+            except Exception as e:
+                failed_updates += 1
+                logger.error(f"Failed to update parameter {param_name}: {e}")
+        
+        # Update statistics
+        self.update_count += 1
+        
+        # Log update summary
+        logger.info(f"Parameter update completed: {successful_updates} successful, {failed_updates} failed")
+        
+        # Trigger post-update validation if available
+        try:
+            self._post_update_validation()
+        except Exception as e:
+            logger.warning(f"Post-update validation failed: {e}")
+    
+    def _validate_parameter_update(self, param_name: str, param_update: Any) -> bool:
+        """Validate parameter update before applying"""
+        if param_update is None:
+            return False
+        
+        # Check for NaN or infinite values
+        if NUMPY_AVAILABLE:
+            try:
+                if hasattr(param_update, 'cpu'):
+                    update_array = param_update.cpu().numpy()
+                elif hasattr(param_update, 'numpy'):
+                    update_array = param_update.numpy()
+                else:
+                    update_array = np.array(param_update)
+                
+                if np.any(np.isnan(update_array)) or np.any(np.isinf(update_array)):
+                    logger.error(f"Parameter update for {param_name} contains NaN or Inf values")
+                    return False
+                
+                # Check for extremely large updates
+                max_abs_value = np.max(np.abs(update_array))
+                if max_abs_value > 10.0:  # Threshold for "too large" updates
+                    logger.warning(f"Very large parameter update for {param_name}: max_abs={max_abs_value:.4f}")
+                    # Allow but warn - might be intentional
+                
+            except Exception as e:
+                logger.error(f"Error validating parameter update for {param_name}: {e}")
+                return False
+        
+        return True
+    
+    def _apply_single_parameter_update(self, param_name: str, param_update: Any, learning_rate: float):
+        """Apply single parameter update - to be implemented by subclasses"""
+        # Base implementation - subclasses should override
+        logger.debug(f"Base implementation: would update {param_name} with lr={learning_rate}")
+    
+    def _post_update_validation(self):
+        """Perform validation after parameter updates - to be implemented by subclasses"""
+        # Base implementation - subclasses can override for model-specific validation
         pass
 
 
@@ -437,9 +534,197 @@ class HuggingFaceLLM(BaseLLM):
             return params_info
     
     def _execute_parameter_update(self, updated_params: Dict[str, Any], learning_rate: float):
-        """执行HuggingFace模型的参数更新"""
-        # 实际的参数更新逻辑
-        logger.info(f"HuggingFace模型参数更新完成，更新次数: {self.update_count}")
+        """Execute HuggingFace model parameter updates with torch operations"""
+        if not updated_params:
+            logger.warning("No parameters to update for HuggingFace model")
+            return
+        
+        if not self.model_loaded or self.model is None:
+            logger.error("HuggingFace model not loaded, cannot update parameters")
+            return
+        
+        try:
+            # Get current model parameters
+            model_state_dict = self.model.state_dict()
+            updated_count = 0
+            
+            # Apply updates to model parameters
+            with self.torch.no_grad():  # Disable gradient computation for parameter updates
+                for param_name, param_update in updated_params.items():
+                    # Find matching parameter in model
+                    matching_param_name = self._find_matching_parameter(param_name, model_state_dict)
+                    
+                    if matching_param_name is None:
+                        logger.warning(f"Parameter {param_name} not found in model, skipping")
+                        continue
+                    
+                    current_param = model_state_dict[matching_param_name]
+                    
+                    # Convert update to torch tensor if needed
+                    if not isinstance(param_update, self.torch.Tensor):
+                        try:
+                            if NUMPY_AVAILABLE and hasattr(param_update, 'shape'):
+                                param_update = self.torch.from_numpy(param_update).to(current_param.device)
+                            else:
+                                param_update = self.torch.tensor(param_update, device=current_param.device)
+                        except Exception as e:
+                            logger.error(f"Failed to convert parameter update for {param_name}: {e}")
+                            continue
+                    
+                    # Ensure shapes match
+                    if param_update.shape != current_param.shape:
+                        logger.error(f"Shape mismatch for {param_name}: expected {current_param.shape}, got {param_update.shape}")
+                        continue
+                    
+                    # Apply the parameter update
+                    try:
+                        # Ensure parameter update is on the same device
+                        param_update = param_update.to(current_param.device)
+                        
+                        # Apply update with learning rate scaling
+                        new_param_value = current_param - learning_rate * param_update
+                        
+                        # Update the parameter
+                        model_state_dict[matching_param_name].copy_(new_param_value)
+                        updated_count += 1
+                        
+                        # Log parameter statistics
+                        param_norm = self.torch.norm(current_param).item()
+                        update_norm = self.torch.norm(param_update).item()
+                        
+                        logger.debug(f"Updated {matching_param_name}: param_norm={param_norm:.6f}, update_norm={update_norm:.6f}")
+                        
+                    except Exception as e:
+                        logger.error(f"Failed to apply parameter update for {matching_param_name}: {e}")
+                        continue
+            
+            # Update model with new parameters
+            try:
+                self.model.load_state_dict(model_state_dict)
+                logger.info(f"HuggingFace model parameter update completed: {updated_count} parameters updated")
+                
+                # Trigger post-update operations
+                self._post_parameter_update_operations()
+                
+            except Exception as e:
+                logger.error(f"Failed to load updated state dict: {e}")
+                
+        except Exception as e:
+            logger.error(f"HuggingFace parameter update failed: {e}")
+    
+    def _find_matching_parameter(self, param_name: str, model_state_dict: Dict[str, Any]) -> Optional[str]:
+        """Find matching parameter name in model state dict"""
+        # Direct match
+        if param_name in model_state_dict:
+            return param_name
+        
+        # Try common parameter name variations
+        variations = [
+            param_name.replace(".", "_"),
+            param_name.replace("_", "."),
+            f"model.{param_name}",
+            f"transformer.{param_name}",
+            param_name.replace("weight", ""),
+            param_name.replace("bias", "")
+        ]
+        
+        for variation in variations:
+            if variation in model_state_dict:
+                return variation
+        
+        # Fuzzy matching - find parameters that contain the param_name
+        for model_param_name in model_state_dict.keys():
+            if param_name in model_param_name or model_param_name in param_name:
+                logger.debug(f"Fuzzy matched {param_name} to {model_param_name}")
+                return model_param_name
+        
+        return None
+    
+    def _post_parameter_update_operations(self):
+        """Perform post-update operations for HuggingFace model"""
+        try:
+            # Clear any cached computations
+            if hasattr(self.model, 'clear_cache'):
+                self.model.clear_cache()
+            
+            # Update model generation statistics
+            self.update_count += 1
+            
+            # Perform gradient checkpointing if enabled
+            if hasattr(self.model, 'gradient_checkpointing_enable'):
+                self.model.gradient_checkpointing_enable()
+            
+            # Log memory usage if available
+            if hasattr(self.torch.cuda, 'memory_allocated'):
+                memory_allocated = self.torch.cuda.memory_allocated()
+                logger.debug(f"GPU memory after parameter update: {memory_allocated / 1024**3:.2f} GB")
+                
+        except Exception as e:
+            logger.warning(f"Post-update operations failed: {e}")
+    
+    def _apply_single_parameter_update(self, param_name: str, param_update: Any, learning_rate: float):
+        """Apply single parameter update for HuggingFace model"""
+        if not self.model_loaded or self.model is None:
+            logger.error("Model not loaded, cannot apply parameter update")
+            return
+        
+        try:
+            model_state_dict = self.model.state_dict()
+            matching_param_name = self._find_matching_parameter(param_name, model_state_dict)
+            
+            if matching_param_name is None:
+                logger.warning(f"Parameter {param_name} not found in model")
+                return
+            
+            current_param = model_state_dict[matching_param_name]
+            
+            # Convert and apply update
+            with self.torch.no_grad():
+                if not isinstance(param_update, self.torch.Tensor):
+                    param_update = self.torch.tensor(param_update, device=current_param.device)
+                
+                param_update = param_update.to(current_param.device)
+                new_param_value = current_param - learning_rate * param_update
+                model_state_dict[matching_param_name].copy_(new_param_value)
+            
+            logger.debug(f"Applied single parameter update to {matching_param_name}")
+            
+        except Exception as e:
+            logger.error(f"Failed to apply single parameter update for {param_name}: {e}")
+    
+    def _post_update_validation(self):
+        """Perform validation after HuggingFace model parameter updates"""
+        if not self.model_loaded or self.model is None:
+            return
+        
+        try:
+            # Check for NaN parameters
+            nan_params = []
+            for name, param in self.model.named_parameters():
+                if self.torch.any(self.torch.isnan(param)):
+                    nan_params.append(name)
+            
+            if nan_params:
+                logger.error(f"Found NaN parameters after update: {nan_params}")
+            
+            # Check parameter norms
+            total_norm = 0.0
+            param_count = 0
+            
+            for name, param in self.model.named_parameters():
+                param_norm = self.torch.norm(param).item()
+                total_norm += param_norm
+                param_count += 1
+                
+                # Check for extremely large parameters
+                if param_norm > 100.0:
+                    logger.warning(f"Large parameter norm for {name}: {param_norm:.4f}")
+            
+            avg_norm = total_norm / max(param_count, 1)
+            logger.debug(f"Post-update validation: avg parameter norm = {avg_norm:.6f}")
+            
+        except Exception as e:
+            logger.warning(f"Post-update validation failed: {e}")
 
 
 class OpenAILLM(BaseLLM):
