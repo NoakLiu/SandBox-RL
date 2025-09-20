@@ -8,7 +8,7 @@ Complete guide for users who want to start LLM reinforcement learning training w
 
 ```bash
 # Clone repository
-git clone https://github.com/your-repo/core-srl.git
+git clone https://github.com/NoakLiu/core-srl.git
 cd core-srl
 
 # Install dependencies

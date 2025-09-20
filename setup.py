@@ -18,12 +18,12 @@ setup(
     description="Advanced Multi-Model Reinforcement Learning Framework for Modern LLMs with Cooperative-Competitive Training",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/your-repo/core-srl",
+    url="https://github.com/NoakLiu/core-srl",
     project_urls={
-        "Bug Tracker": "https://github.com/your-repo/core-srl/issues",
+        "Bug Tracker": "https://github.com/NoakLiu/core-srl/issues",
         "Documentation": "https://core-srl.readthedocs.io/",
-        "Source Code": "https://github.com/your-repo/core-srl",
-        "Examples": "https://github.com/your-repo/core-srl/tree/main/examples",
+        "Source Code": "https://github.com/NoakLiu/core-srl",
+        "Examples": "https://github.com/NoakLiu/core-srl/tree/main/examples",
     },
     packages=find_packages(),
     classifiers=[

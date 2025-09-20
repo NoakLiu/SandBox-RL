@@ -607,17 +607,34 @@ class SharedLLMManager:
             return response
     
     def update_shared_parameters(self, gradients: Dict[str, Any], learning_rate: float = 1e-4) -> Dict[str, Any]:
-        """更新共享LLM参数"""
+        """Update shared LLM parameters - only supports open-weight models"""
         with self.lock:
-            self.llm.update_parameters(gradients, learning_rate)
-            self.total_updates += 1
+            # Check if this is an open-weight model
+            if self.llm.backend in [LLMBackend.OPENAI_API, LLMBackend.ANTHROPIC]:
+                return {
+                    "status": "skipped",
+                    "reason": "API models do not support weight updates",
+                    "model": self.llm.model_name,
+                    "backend": self.llm.backend.value
+                }
             
-            return {
-                "status": "updated",
-                "update_count": self.total_updates,
-                "affected_nodes": list(self.registered_nodes.keys()),
-                "learning_rate": learning_rate
-            }
+            # Only update open-weight models (HuggingFace)
+            if hasattr(self.llm, 'update_parameters'):
+                self.llm.update_parameters(gradients, learning_rate)
+                self.total_updates += 1
+                
+                return {
+                    "status": "updated",
+                    "update_count": self.total_updates,
+                    "affected_nodes": list(self.registered_nodes.keys()),
+                    "learning_rate": learning_rate
+                }
+            else:
+                return {
+                    "status": "error",
+                    "reason": "Model does not support parameter updates",
+                    "model": self.llm.model_name
+                }
     
     def get_global_stats(self) -> Dict[str, Any]:
         """获取全局统计信息"""
