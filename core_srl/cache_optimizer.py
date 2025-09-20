@@ -237,11 +237,11 @@ class KVCacheManager:
                 if len(self.cache) >= self.config.max_cache_size:
                     self._evict_item()
                 
-                # 检查内存限制
+                # Check memory limit
                 if self.stats["memory_usage"] >= self.config.max_memory_gb:
                     self._evict_item()
                 
-                # 存储KV状态
+                # Store KV state
                 self.cache[cache_id] = kv_state
                 self.cache_order.append(cache_id)
                 self.access_counts[cache_id] = 0
@@ -250,11 +250,11 @@ class KVCacheManager:
                 return True
                 
             except Exception as e:
-                logger.error(f"存储KV缓存错误: {e}")
+                logger.error(f"Store KV cache error: {e}")
                 return False
     
     def _evict_item(self):
-        """驱逐缓存项"""
+        """Evict cache items"""
         if not self.cache_order:
             return
         
@@ -280,7 +280,7 @@ class KVCacheManager:
         self.stats["evictions"] += 1
     
     def _adaptive_eviction(self) -> str:
-        """自适应驱逐策略"""
+        """Adaptive eviction strategy"""
         candidates = list(self.cache.keys())
         if not candidates:
             return ""
@@ -291,7 +291,7 @@ class KVCacheManager:
             lfu_score = self.access_counts[key]
             priority_score = self.priorities[key]
             
-            # 综合分数
+            # Comprehensive score
             scores[key] = 0.4 * lru_score + 0.4 * lfu_score + 0.2 * (1.0 - priority_score)
         
         return min(candidates, key=lambda k: scores[k])
