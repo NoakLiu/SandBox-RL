@@ -131,7 +131,7 @@ class InteractionResult:
 
 
 class ResourceManager:
-    """统一资源管理器"""
+    """统一Resource management器"""
     
     def __init__(self, num_gpus: int = 8):
         self.num_gpus = num_gpus
@@ -233,7 +233,7 @@ class SlotManager:
         self.slot_rewards = {}
         self.lock = threading.Lock()
         
-        # 统计信息
+        # Statistics
         self.stats = {
             'total_slots': 0,
             'active_slots': 0,
@@ -576,7 +576,7 @@ class UnifiedScheduler:
         self.task_history = []
         self.interaction_history = []
         
-        # 统计信息
+        # Statistics
         self.stats = {
             'total_tasks': 0,
             'cooperation_tasks': 0,

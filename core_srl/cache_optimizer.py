@@ -43,7 +43,7 @@ except ImportError:
     TORCH_AVAILABLE = False
     torch = None
 
-# AReaL框架检查
+# AReaL framework check
 try:
     import areal
     AREAL_AVAILABLE = True
@@ -53,7 +53,7 @@ except ImportError:
 
 
 class CachePolicy(Enum):
-    """缓存策略"""
+    """Cache strategy"""
     LRU = "lru"
     LFU = "lfu"
     FIFO = "fifo"
@@ -62,7 +62,7 @@ class CachePolicy(Enum):
 
 
 class RolloutStatus(Enum):
-    """Rollout状态"""
+    """Rollout status"""
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -72,7 +72,7 @@ class RolloutStatus(Enum):
 
 @dataclass
 class KVCacheConfig:
-    """KV缓存配置"""
+    """KV cache configuration"""
     max_cache_size: int = 10000
     max_memory_gb: float = 8.0
     cache_policy: CachePolicy = CachePolicy.ADAPTIVE
@@ -86,7 +86,7 @@ class KVCacheConfig:
 
 @dataclass
 class RolloutConfig:
-    """Rollout配置"""
+    """Rollout configuration"""
     max_steps: int = 1000
     timeout_seconds: float = 300.0
     batch_size: int = 32
@@ -98,7 +98,7 @@ class RolloutConfig:
 
 @dataclass
 class CachedKVState:
-    """缓存的KV状态"""
+    """Cached KV state"""
     cache_id: str
     key_cache: Any
     value_cache: Any
@@ -125,7 +125,7 @@ class CachedKVState:
 
 @dataclass
 class RolloutTask:
-    """Rollout任务"""
+    """Rollout task"""
     task_id: str
     prompt: str
     max_tokens: int
@@ -139,7 +139,7 @@ class RolloutTask:
 
 
 class KVCacheManager:
-    """KV缓存管理器"""
+    """KV cache manager"""
     
     def __init__(self, config: KVCacheConfig):
         self.config = config
@@ -149,7 +149,7 @@ class KVCacheManager:
         self.priorities = defaultdict(float)
         self.lock = threading.RLock()
         
-        # 统计信息
+        # Statistics
         self.stats = {
             "hits": 0,
             "misses": 0,
@@ -159,7 +159,7 @@ class KVCacheManager:
             "compression_ratio": 0.0
         }
         
-        # 启动后台服务
+        # Start background service
         if config.enable_persistence:
             self._setup_persistence()
         
@@ -167,7 +167,7 @@ class KVCacheManager:
             self._start_metrics_thread()
     
     def _setup_persistence(self):
-        """设置持久化"""
+        """Setup persistence"""
         self.persistence_path = "./cache/kv_cache"
         os.makedirs(self.persistence_path, exist_ok=True)
         self.persistence_file = os.path.join(
@@ -176,20 +176,20 @@ class KVCacheManager:
         )
     
     def _start_metrics_thread(self):
-        """启动指标收集线程"""
+        """Start metrics collection thread"""
         def metrics_collector():
             while True:
                 try:
                     self._collect_metrics()
                     time.sleep(self.config.metrics_interval)
                 except Exception as e:
-                    logger.error(f"指标收集错误: {e}")
+                    logger.error(f"Metrics collection error: {e}")
         
         thread = threading.Thread(target=metrics_collector, daemon=True)
         thread.start()
     
     def _collect_metrics(self):
-        """收集缓存指标"""
+        """Collect cache metrics"""
         with self.lock:
             self.stats["size"] = len(self.cache)
             self.stats["memory_usage"] = self._estimate_memory_usage()
@@ -200,7 +200,7 @@ class KVCacheManager:
                 self.stats["compression_ratio"] = compressed_size / total_size if total_size > 0 else 0.0
     
     def _estimate_memory_usage(self) -> float:
-        """估算内存使用量"""
+        """Estimate memory usage"""
         try:
             import psutil
             process = psutil.Process()
@@ -210,7 +210,7 @@ class KVCacheManager:
             return 0.0
     
     def get(self, cache_id: str) -> Optional[CachedKVState]:
-        """获取缓存项"""
+        """Get cache item"""
         with self.lock:
             if cache_id in self.cache:
                 self.stats["hits"] += 1
@@ -219,7 +219,7 @@ class KVCacheManager:
                 cached_item.access_count += 1
                 self.access_counts[cache_id] += 1
                 
-                # 更新LRU顺序
+                # Update LRU order
                 if cache_id in self.cache_order:
                     self.cache_order.remove(cache_id)
                 self.cache_order.append(cache_id)
@@ -230,10 +230,10 @@ class KVCacheManager:
                 return None
     
     def put(self, cache_id: str, kv_state: CachedKVState) -> bool:
-        """存储KV状态到缓存"""
+        """Store KV state to cache"""
         with self.lock:
             try:
-                # 检查缓存大小限制
+                # Check cache size limit
                 if len(self.cache) >= self.config.max_cache_size:
                     self._evict_item()
                 
@@ -297,7 +297,7 @@ class KVCacheManager:
         return min(candidates, key=lambda k: scores[k])
     
     def get_stats(self) -> Dict[str, Any]:
-        """获取缓存统计信息"""
+        """获取缓存Statistics"""
         with self.lock:
             hit_rate = (self.stats["hits"] / (self.stats["hits"] + self.stats["misses"]) 
                        if (self.stats["hits"] + self.stats["misses"]) > 0 else 0)
@@ -339,7 +339,7 @@ class RolloutController:
         self.results = {}
         self.running = False
         
-        # 统计信息
+        # Statistics
         self.stats = {
             "total_tasks": 0,
             "completed_tasks": 0,
@@ -462,7 +462,7 @@ class RolloutController:
         return task.task_id
     
     def get_stats(self) -> Dict[str, Any]:
-        """获取统计信息"""
+        """获取Statistics"""
         return {
             **self.stats,
             "queue_size": self.task_queue.qsize(),
@@ -493,7 +493,7 @@ class ArealIntegrationManager:
         # 初始化指标收集
         self.metrics_collector = self._setup_metrics_collector()
         
-        # 启动后台服务
+        # Start background service
         self._start_background_services()
         
         logger.info(f"AReaL集成管理器初始化完成 (AReaL可用: {self.enable_areal})")
@@ -528,7 +528,7 @@ class ArealIntegrationManager:
         return FallbackMetricsCollector()
     
     def _start_background_services(self):
-        """启动后台服务"""
+        """Start background service"""
         # 启动指标收集服务
         def metrics_service():
             while True:
@@ -536,7 +536,7 @@ class ArealIntegrationManager:
                     self._collect_system_metrics()
                     time.sleep(1.0)
                 except Exception as e:
-                    logger.error(f"系统指标收集错误: {e}")
+                    logger.error(f"系统Metrics collection error: {e}")
         
         thread = threading.Thread(target=metrics_service, daemon=True)
         thread.start()
@@ -566,7 +566,7 @@ class ArealIntegrationManager:
         return self.metrics_collector
     
     def get_stats(self) -> Dict[str, Any]:
-        """获取统计信息"""
+        """获取Statistics"""
         return {
             "areal_available": AREAL_AVAILABLE,
             "areal_enabled": self.enable_areal,
@@ -852,7 +852,7 @@ class DecoupledPPOTrainer:
         return random.sample(all_steps, batch_size)
     
     def get_stats(self) -> Dict[str, Any]:
-        """获取统计信息"""
+        """获取Statistics"""
         return {
             "training_stats": self.training_stats,
             "kv_cache_stats": self.kv_cache.get_stats(),
@@ -961,13 +961,13 @@ class AReaLVERLBridge:
 # 工厂函数
 def create_kv_cache_manager(max_cache_size: int = 10000, 
                            cache_policy: CachePolicy = CachePolicy.ADAPTIVE) -> KVCacheManager:
-    """创建KV缓存管理器"""
+    """创建KV cache manager"""
     config = KVCacheConfig(max_cache_size=max_cache_size, cache_policy=cache_policy)
     return KVCacheManager(config)
 
 
 def create_areal_integration(cache_size: int = 10000, max_memory_gb: float = 8.0) -> ArealIntegrationManager:
-    """创建AReaL集成管理器"""
+    """Create AReaL integration管理器"""
     return ArealIntegrationManager(True, cache_size, max_memory_gb)
 
 

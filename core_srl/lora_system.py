@@ -98,7 +98,7 @@ class LoRAConfig:
     max_concurrent_requests: int = 10
     timeout: float = 30.0
     
-    # 统计信息
+    # Statistics
     request_count: int = 0
     success_count: int = 0
     avg_response_time: float = 0.0
@@ -669,7 +669,7 @@ class DistributedLoRAScheduler:
         # 热更新管理器
         self.hotswap_manager = LoRAHotSwapManager(self.lora_configs, poll_interval=5.0)
         
-        # 统计信息
+        # Statistics
         self.stats = {
             'total_tasks': 0,
             'successful_updates': 0,

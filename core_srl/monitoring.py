@@ -652,7 +652,7 @@ class GraphVisualizer:
             logger.info(f"可视化图像已导出: {filename}")
     
     def get_statistics(self) -> Dict[str, Any]:
-        """获取统计信息"""
+        """获取Statistics"""
         stats = {
             "total_nodes": len(self.nodes),
             "total_edges": len(self.edges),
@@ -682,7 +682,7 @@ class GraphVisualizer:
 
 
 class PerformanceMonitor:
-    """性能监控器"""
+    """Performance monitoring器"""
     
     def __init__(self, sampling_interval: float = 1.0):
         self.sampling_interval = sampling_interval
@@ -691,7 +691,7 @@ class PerformanceMonitor:
         self.lock = threading.Lock()
     
     def start_monitoring(self):
-        """启动性能监控"""
+        """启动Performance monitoring"""
         if self.is_monitoring:
             return
         
@@ -706,17 +706,17 @@ class PerformanceMonitor:
                     
                     time.sleep(self.sampling_interval)
                 except Exception as e:
-                    logger.error(f"性能监控错误: {e}")
+                    logger.error(f"Performance monitoring错误: {e}")
         
         thread = threading.Thread(target=monitor_loop, daemon=True)
         thread.start()
         
-        logger.info("性能监控已启动")
+        logger.info("Performance monitoring已启动")
     
     def stop_monitoring(self):
-        """停止性能监控"""
+        """停止Performance monitoring"""
         self.is_monitoring = False
-        logger.info("性能监控已停止")
+        logger.info("Performance monitoring已停止")
     
     def _collect_performance_metrics(self) -> Dict[str, Any]:
         """收集Performance metrics"""
@@ -910,7 +910,7 @@ def create_graph_visualizer(log_file: str = "graph_visualization.log") -> GraphV
 
 
 def create_performance_monitor(sampling_interval: float = 1.0) -> PerformanceMonitor:
-    """创建性能监控器"""
+    """创建Performance monitoring器"""
     return PerformanceMonitor(sampling_interval)
 
 
