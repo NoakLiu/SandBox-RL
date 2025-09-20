@@ -258,12 +258,10 @@ __all__ = [
     "TrainingMode",
     "WeightUpdateStrategy",
     
-    # MODERN LLM MANAGERS
+    # MODERN LLM MANAGERS (Open-weight models only)
     "create_qwen3_manager",
     "create_qwen_coder_manager", 
     "create_qwen_math_manager",
-    "create_openai_manager",
-    "create_claude_manager",
     "create_llama3_manager",
     
     # TRAINING ENVIRONMENTS
