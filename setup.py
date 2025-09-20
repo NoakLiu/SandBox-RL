@@ -18,12 +18,12 @@ setup(
     description="Advanced Multi-Model Reinforcement Learning Framework for Modern LLMs with Cooperative-Competitive Training",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/NoakLiu/core-srl",
+    url="https://github.com/NoakLiu/SandBox-RL",
     project_urls={
-        "Bug Tracker": "https://github.com/NoakLiu/core-srl/issues",
-        "Documentation": "https://core-srl.readthedocs.io/",
-        "Source Code": "https://github.com/NoakLiu/core-srl",
-        "Examples": "https://github.com/NoakLiu/core-srl/tree/main/examples",
+        "Bug Tracker": "https://github.com/NoakLiu/SandBox-RL/issues",
+        "Documentation": "https://sandbox-rl.readthedocs.io/",
+        "Source Code": "https://github.com/NoakLiu/SandBox-RL",
+        "Examples": "https://github.com/NoakLiu/SandBox-RL/tree/main/examples",
     },
     packages=find_packages(),
     classifiers=[

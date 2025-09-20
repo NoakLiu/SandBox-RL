@@ -51,7 +51,7 @@ Core SRL enables **simultaneous training of multiple modern LLMs** using reinfor
 ### Installation
 
 ```bash
-git clone https://github.com/NoakLiu/core-srl.git
+git clone https://github.com/NoakLiu/SandBox-RL.git
 cd core-srl
 pip install -r requirements.txt
 ```
