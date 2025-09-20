@@ -228,23 +228,18 @@ config.model_names["qwen3"] = "Qwen/Qwen2.5-Coder-14B-Instruct"
 config.model_names["qwen3"] = "Qwen/Qwen2.5-Math-14B-Instruct"
 ```
 
-### Using API Models (Note: No weight updates supported)
+### Using Specialized Models
 
 ```python
-import os
-
-# Set API keys
-os.environ["OPENAI_API_KEY"] = "your-openai-key"
-os.environ["ANTHROPIC_API_KEY"] = "your-anthropic-key"
-
-# Configure API models (weights cannot be updated)
+# Configure specialized open-weight models
 config = MultiModelConfig(
-    num_models=3,
-    model_types=["qwen3", "openai", "claude"],
+    num_models=4,
+    model_types=["qwen3", "qwen_coder", "qwen_math", "llama3"],
     model_names={
-        "qwen3": "Qwen/Qwen2.5-14B-Instruct",     # Supports weight updates
-        "openai": "gpt-4o-mini",                   # API only, no weight updates
-        "claude": "claude-3-5-haiku-20241022"     # API only, no weight updates
+        "qwen3": "Qwen/Qwen2.5-14B-Instruct",        # General purpose
+        "qwen_coder": "Qwen/Qwen2.5-Coder-14B-Instruct",  # Code specialized
+        "qwen_math": "Qwen/Qwen2.5-Math-14B-Instruct",    # Math specialized
+        "llama3": "meta-llama/Llama-3.1-8B-Instruct"      # Alternative architecture
     }
 )
 ```
@@ -327,17 +322,17 @@ config = MultiModelConfig(
 
 ## Environment Variables
 
-Set up API keys and GPU configuration:
+Set up GPU configuration:
 
 ```bash
-# Optional: For OpenAI models
-export OPENAI_API_KEY="your-openai-api-key"
-
-# Optional: For Anthropic models  
-export ANTHROPIC_API_KEY="your-anthropic-api-key"
-
 # GPU configuration
 export CUDA_VISIBLE_DEVICES="0,1,2,3"
+
+# Optional: HuggingFace cache directory
+export HF_HOME="/path/to/huggingface/cache"
+
+# Optional: Model parallelism
+export NCCL_DEBUG=INFO
 ```
 
 ## Troubleshooting
