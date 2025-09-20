@@ -15,7 +15,7 @@ Complete guide to get Core SRL up and running for multi-model RL training in 5 m
 
 ```bash
 # Clone the repository
-git clone https://github.com/NoakLiu/core-srl.git
+git clone https://github.com/NoakLiu/SandBox-RL.git
 cd core-srl
 
 # Create virtual environment
@@ -30,7 +30,7 @@ pip install -e .
 
 ```bash
 # Clone repository
-git clone https://github.com/NoakLiu/core-srl.git
+git clone https://github.com/NoakLiu/SandBox-RL.git
 cd core-srl
 
 # Create and activate virtual environment
@@ -45,7 +45,7 @@ pip install -e ".[full]"
 
 ```bash
 # For developers and contributors
-git clone https://github.com/NoakLiu/core-srl.git
+git clone https://github.com/NoakLiu/SandBox-RL.git
 cd core-srl
 
 python -m venv core_srl_env
