@@ -1,1 +1,0 @@
-vllm serve /nas/shared/kilab/hf-hub/Qwen2.5-7B-Instruct --port 8001 --served-model-name qwen-2 --enable-auto-tool-choice --tool-call-parser hermes

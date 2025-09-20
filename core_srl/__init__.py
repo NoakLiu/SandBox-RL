@@ -213,12 +213,35 @@ from .environments import (
     create_social_training_env
 )
 
+# Multi-Model Trainer - Core training system
+from .multimodel_trainer import (
+    TrainingMode,
+    WeightUpdateStrategy,
+    MultiModelConfig,
+    ModelState,
+    TrainingCheckpoint,
+    MultiModelTrainer,
+    create_multimodel_trainer,
+    create_cooperative_multimodel_trainer,
+    create_competitive_multimodel_trainer,
+    quick_start_multimodel_training,
+    list_available_checkpoints,
+    load_checkpoint_metadata
+)
+
 __version__ = "2.0.0"
 __author__ = "SRL Team"
 
 # Main exports for multi-model training
 __all__ = [
-    # Core classes
+    # CORE MULTI-MODEL TRAINING
+    "MultiModelTrainer",
+    "create_multimodel_trainer", 
+    "create_cooperative_multimodel_trainer",
+    "create_competitive_multimodel_trainer",
+    "quick_start_multimodel_training",
+    
+    # SYSTEM COMPONENTS
     "SharedLLMManager",
     "RLTrainer", 
     "LoRAManager",
@@ -227,45 +250,44 @@ __all__ = [
     "UnifiedMonitor",
     "WorkflowEngine",
     
-    # Configuration classes
+    # CONFIGURATION
+    "MultiModelConfig",
     "LLMConfig",
     "RLConfig", 
     "LoRAConfig",
     "EnvironmentConfig",
-    "MonitoringConfig",
+    "TrainingMode",
+    "WeightUpdateStrategy",
     
-    # Factory functions for quick setup
-    "create_shared_llm_manager",
-    "create_ppo_trainer",
-    "create_multi_agent_system",
-    "create_lora_manager",
-    "create_unified_scheduler",
-    "create_multi_model_coop_compete_env",
-    "create_unified_monitor",
-    "create_workflow_engine",
-    
-    # Modern model creators
-    "create_qwen_manager",
+    # MODERN LLM MANAGERS
+    "create_qwen3_manager",
+    "create_qwen_coder_manager", 
+    "create_qwen_math_manager",
     "create_openai_manager",
+    "create_claude_manager",
+    "create_llama3_manager",
     
-    # Environment creators
+    # TRAINING ENVIRONMENTS
+    "create_multi_model_coop_compete_env",
     "create_multi_model_team_battle",
     "create_multi_model_staged_env",
-    "create_maze_training_env",
-    "create_social_training_env",
     
-    # Benchmarking
+    # CHECKPOINT MANAGEMENT
+    "TrainingCheckpoint",
+    "list_available_checkpoints",
+    "load_checkpoint_metadata",
+    
+    # BENCHMARKING & EVALUATION
     "run_benchmark",
     "CoopCompeteEnv",
-    "SimplePG",
+    "SimplePG", 
     "OurMethodPolicy",
     
-    # Enums
+    # 🔧 CORE ENUMS
     "LLMBackend",
-    "RLAlgorithm", 
+    "RLAlgorithm",
     "EnvironmentType",
-    "ModelRole",
-    "LoRAUpdateStrategy"
+    "ModelRole"
 ]
 
 def get_version_info() -> Dict[str, str]:
