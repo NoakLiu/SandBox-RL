@@ -609,10 +609,10 @@ class HuggingFaceLLM(BaseLLM):
             
             return params_info
     
-    def _execute_parameter_update(self, updated_params: Dict[str, Any], learning_rate: float):
-        """Execute HuggingFace model parameter updates with torch operations"""
-        if not updated_params:
-            logger.warning("No parameters to update for HuggingFace model")
+    def _execute_parameter_update(self, gradients: Dict[str, Any], learning_rate: float):
+        """Execute HuggingFace model parameter updates with proper gradient-based optimization"""
+        if not gradients:
+            logger.warning("No gradients provided for parameter update")
             return
         
         if not self.model_loaded or self.model is None:
@@ -620,73 +620,167 @@ class HuggingFaceLLM(BaseLLM):
             return
         
         try:
-            # Get current model parameters
-            model_state_dict = self.model.state_dict()
-            updated_count = 0
+            # Initialize optimizer state if not exists
+            if not hasattr(self, '_optimizer_state'):
+                self._optimizer_state = {
+                    'beta1': 0.9,
+                    'beta2': 0.999,
+                    'eps': 1e-8,
+                    'weight_decay': 0.01,
+                    'amsgrad': False
+                }
             
-            # Apply updates to model parameters
-            with self.torch.no_grad():  # Disable gradient computation for parameter updates
-                for param_name, param_update in updated_params.items():
-                    # Find matching parameter in model
-                    matching_param_name = self._find_matching_parameter(param_name, model_state_dict)
+            # Get named parameters for proper gradient application
+            named_params = dict(self.model.named_parameters())
+            updated_count = 0
+            total_grad_norm = 0.0
+            
+            # First pass: compute global gradient norm for clipping
+            grad_norms = []
+            for param_name, grad_data in gradients.items():
+                matching_param_name = self._find_matching_parameter(param_name, named_params)
+                if matching_param_name and matching_param_name in named_params:
+                    param = named_params[matching_param_name]
                     
-                    if matching_param_name is None:
-                        logger.warning(f"Parameter {param_name} not found in model, skipping")
-                        continue
+                    # Convert gradient to tensor
+                    if isinstance(grad_data, dict) and 'gradient' in grad_data:
+                        grad = grad_data['gradient']
+                    else:
+                        grad = grad_data
                     
-                    current_param = model_state_dict[matching_param_name]
-                    
-                    # Convert update to torch tensor if needed
-                    if not isinstance(param_update, self.torch.Tensor):
+                    if not isinstance(grad, self.torch.Tensor):
                         try:
-                            if NUMPY_AVAILABLE and hasattr(param_update, 'shape'):
-                                param_update = self.torch.from_numpy(param_update).to(current_param.device)
+                            if NUMPY_AVAILABLE and hasattr(grad, 'shape'):
+                                grad = self.torch.from_numpy(grad).to(param.device)
                             else:
-                                param_update = self.torch.tensor(param_update, device=current_param.device)
+                                grad = self.torch.tensor(grad, device=param.device, dtype=param.dtype)
                         except Exception as e:
-                            logger.error(f"Failed to convert parameter update for {param_name}: {e}")
+                            logger.error(f"Failed to convert gradient for {param_name}: {e}")
                             continue
                     
-                    # Ensure shapes match
-                    if param_update.shape != current_param.shape:
-                        logger.error(f"Shape mismatch for {param_name}: expected {current_param.shape}, got {param_update.shape}")
+                    if grad.shape == param.shape:
+                        grad_norm = grad.norm().item()
+                        grad_norms.append(grad_norm)
+                        total_grad_norm += grad_norm ** 2
+            
+            total_grad_norm = (total_grad_norm ** 0.5)
+            
+            # Apply global gradient clipping
+            max_grad_norm = 1.0
+            clip_coef = 1.0
+            if total_grad_norm > max_grad_norm:
+                clip_coef = max_grad_norm / (total_grad_norm + 1e-6)
+                logger.debug(f"Applied global gradient clipping: {total_grad_norm:.4f} -> {max_grad_norm}")
+            
+            # Second pass: apply parameter updates
+            with self.torch.no_grad():
+                for param_name, grad_data in gradients.items():
+                    matching_param_name = self._find_matching_parameter(param_name, named_params)
+                    
+                    if matching_param_name is None or matching_param_name not in named_params:
+                        logger.warning(f"Parameter {param_name} not found in model")
                         continue
+                    
+                    param = named_params[matching_param_name]
+                    
+                    # Extract gradient and metadata
+                    if isinstance(grad_data, dict):
+                        grad = grad_data.get('gradient', grad_data)
+                        importance = grad_data.get('importance', 'NORMAL')
+                        layer_type = grad_data.get('layer_type', 'unknown')
+                    else:
+                        grad = grad_data
+                        importance = 'NORMAL'
+                        layer_type = 'unknown'
+                    
+                    # Convert gradient to tensor
+                    if not isinstance(grad, self.torch.Tensor):
+                        try:
+                            if NUMPY_AVAILABLE and hasattr(grad, 'shape'):
+                                grad = self.torch.from_numpy(grad).to(param.device)
+                            else:
+                                grad = self.torch.tensor(grad, device=param.device, dtype=param.dtype)
+                        except Exception as e:
+                            logger.error(f"Failed to convert gradient for {param_name}: {e}")
+                            continue
+                    
+                    # Ensure shapes and devices match
+                    if grad.shape != param.shape:
+                        logger.error(f"Shape mismatch for {param_name}: param {param.shape} vs grad {grad.shape}")
+                        continue
+                    
+                    grad = grad.to(param.device)
+                    
+                    # Apply global gradient clipping
+                    if clip_coef < 1.0:
+                        grad = grad * clip_coef
+                    
+                    # Apply Adam optimization with proper state tracking
+                    param_update, self._optimizer_state = self._apply_gradient_update(
+                        matching_param_name, grad, learning_rate, self._optimizer_state
+                    )
+                    
+                    # Apply parameter-specific learning rate adjustments
+                    effective_lr = learning_rate
+                    
+                    # Adjust learning rate based on layer type
+                    if 'embedding' in matching_param_name.lower():
+                        effective_lr *= 0.1  # Lower LR for embeddings
+                    elif 'layernorm' in matching_param_name.lower() or 'layer_norm' in matching_param_name.lower():
+                        effective_lr *= 2.0  # Higher LR for layer norms
+                    elif 'bias' in matching_param_name.lower():
+                        effective_lr *= 2.0  # Higher LR for biases
+                    
+                    # Apply importance-based scaling
+                    if importance == 'CRITICAL':
+                        effective_lr *= 0.5  # More conservative updates for critical params
+                    elif importance == 'LOW':
+                        effective_lr *= 2.0  # More aggressive updates for less important params
+                    
+                    # Convert param_update to tensor if needed
+                    if not isinstance(param_update, self.torch.Tensor):
+                        param_update = self.torch.tensor(param_update, device=param.device, dtype=param.dtype)
                     
                     # Apply the parameter update
                     try:
-                        # Ensure parameter update is on the same device
-                        param_update = param_update.to(current_param.device)
+                        old_param = param.clone()
+                        param.data.add_(param_update)
                         
-                        # Apply update with learning rate scaling
-                        new_param_value = current_param - learning_rate * param_update
+                        # Check for numerical stability
+                        if self.torch.any(self.torch.isnan(param)) or self.torch.any(self.torch.isinf(param)):
+                            logger.error(f"NaN or Inf detected in {matching_param_name}, reverting update")
+                            param.data.copy_(old_param)
+                            continue
                         
-                        # Update the parameter
-                        model_state_dict[matching_param_name].copy_(new_param_value)
                         updated_count += 1
                         
-                        # Log parameter statistics
-                        param_norm = self.torch.norm(current_param).item()
-                        update_norm = self.torch.norm(param_update).item()
+                        # Log detailed statistics
+                        param_norm = param.norm().item()
+                        update_norm = param_update.norm().item()
+                        relative_update = update_norm / (param_norm + 1e-8)
                         
-                        logger.debug(f"Updated {matching_param_name}: param_norm={param_norm:.6f}, update_norm={update_norm:.6f}")
+                        logger.debug(f"Updated {matching_param_name}: param_norm={param_norm:.6f}, "
+                                   f"update_norm={update_norm:.6f}, relative={relative_update:.6f}, "
+                                   f"lr={effective_lr:.8f}, importance={importance}")
+                        
+                        # Warn about large relative updates
+                        if relative_update > 0.1:
+                            logger.warning(f"Large relative update for {matching_param_name}: {relative_update:.4f}")
                         
                     except Exception as e:
                         logger.error(f"Failed to apply parameter update for {matching_param_name}: {e}")
                         continue
             
-            # Update model with new parameters
-            try:
-                self.model.load_state_dict(model_state_dict)
-                logger.info(f"HuggingFace model parameter update completed: {updated_count} parameters updated")
-                
-                # Trigger post-update operations
-                self._post_parameter_update_operations()
-                
-            except Exception as e:
-                logger.error(f"Failed to load updated state dict: {e}")
-                
+            # Post-update operations
+            self._post_parameter_update_operations()
+            
+            logger.info(f"HuggingFace parameter update completed: {updated_count}/{len(gradients)} parameters updated, "
+                       f"total_grad_norm={total_grad_norm:.6f}, clip_coef={clip_coef:.4f}")
+            
         except Exception as e:
             logger.error(f"HuggingFace parameter update failed: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
     
     def _find_matching_parameter(self, param_name: str, model_state_dict: Dict[str, Any]) -> Optional[str]:
         """Find matching parameter name in model state dict"""
